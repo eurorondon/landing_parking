@@ -432,16 +432,18 @@ footer p, footer a { font-size: 14px; color: rgba(255,255,255,.62); line-height:
   background: rgba(3, 12, 16, .64);
   backdrop-filter: blur(12px);
 }
-.modal.open { display: grid; }
+.modal.open { display: grid; animation: modal-fade .25s ease; }
 .modal-card {
   width: min(760px, 100%);
   max-height: 92vh;
   overflow-y: auto;
   background: var(--cream);
+  color: var(--text);
   border-radius: 34px;
   box-shadow: 0 40px 120px rgba(0,0,0,.4);
   position: relative;
   border: 1px solid rgba(255,255,255,.55);
+  animation: modal-pop .35s cubic-bezier(.22, 1, .36, 1);
 }
 .modal-top {
   padding: 28px;
@@ -465,6 +467,10 @@ footer p, footer a { font-size: 14px; color: rgba(255,255,255,.62); line-height:
 .success.show { display: block; }
 .form-error { padding: 14px 16px; border-radius: 16px; background: #fdecec; color: #a13030; margin-top: 14px; font-size: 14px; line-height: 1.5; }
 
+@keyframes modal-fade { from { opacity: 0; } }
+@keyframes modal-pop { from { opacity: 0; transform: translateY(18px) scale(.98); } }
+@keyframes sheet-up { from { transform: translateY(100%); } }
+
 @media (max-width: 920px) {
   nav { display: none; }
   header { top: 10px; border-radius: 24px; }
@@ -483,7 +489,6 @@ footer p, footer a { font-size: 14px; color: rgba(255,255,255,.62); line-height:
   header .btn { padding: 11px 13px; font-size: 12px; }
   .hero h1 { font-size: 43px; }
   .hero p { font-size: 16px; }
-  .summary-box { grid-template-columns: 1fr; }
   .booking-head { flex-direction: column; gap: 10px; }
   .booking-head .badge { align-self: flex-start; }
   .field input, .field select { font-size: 16px; padding: 13px 11px; }
@@ -495,4 +500,19 @@ footer p, footer a { font-size: 14px; color: rgba(255,255,255,.62); line-height:
   .image-card { min-height: 420px; }
   .footer-grid { grid-template-columns: 1fr; }
   .modal-body, .modal-top { padding: 22px; }
+  /* Modal como hoja deslizante pegada abajo */
+  .modal { padding: 0; place-items: end stretch; }
+  .modal-card {
+    width: 100%;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: 26px 26px 0 0;
+    border-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: sheet-up .4s cubic-bezier(.22, 1, .36, 1);
+  }
+  .modal-top { border-radius: 26px 26px 0 0; }
+  .summary-box { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .summary-item { padding: 13px; }
+  .summary-item strong { font-size: 14px; }
 }

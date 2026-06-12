@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { formatoFecha } from "@/lib/datetime";
 import { formatoEuros, type CalculoPrecio } from "@/lib/pricing";
 import type { DatosCliente, DatosReserva } from "@/lib/types";
@@ -87,7 +88,9 @@ export default function BookingModal({ reserva, calculo, onClose }: Props) {
     }
   }
 
-  return (
+  // Portal a <body>: dentro del hero, el modal hereda su color blanco y queda
+  // por debajo del header fijo (el hero crea su propio contexto de apilamiento)
+  return createPortal(
     <div
       className="modal open"
       onClick={(e) => e.target === e.currentTarget && onClose()}
@@ -214,6 +217,7 @@ export default function BookingModal({ reserva, calculo, onClose }: Props) {
           </form>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
