@@ -7,10 +7,10 @@
  */
 
 export const NEGOCIO = {
-  nombre: "Parking Aéreo Madrid",
+  nombre: "Parking Aero Madrid",
 
   // ⚠️ CAMBIAR: email del dueño del parking (recibe las reservas)
-  emailDueno: "dueno@parkingaereomadrid.es",
+  emailDueno: "dueno@parkingaeromadrid.es",
 
   // ⚠️ CAMBIAR: teléfono de contacto real
   telefono: "+34 600 000 000",
@@ -20,7 +20,7 @@ export const NEGOCIO = {
   whatsappHref: "https://wa.me/34600000000",
 
   // ⚠️ CAMBIAR: email público de atención al cliente
-  emailContacto: "info@parkingaereomadrid.es",
+  emailContacto: "info@parkingaeromadrid.es",
 
   // ⚠️ CAMBIAR: dirección real del parking
   direccion: "Av. de la Hispanidad, s/n · 28042 Madrid (junto a Aeropuerto Madrid-Barajas)",

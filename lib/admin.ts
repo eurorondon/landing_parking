@@ -52,8 +52,8 @@ export const DEFAULT_CONFIG: AdminConfig = {
   minDays: 1,
   terminalSurcharge: false,
   terminalSurchargeAmt: 2,
-  businessName: "Parking Aéreo Madrid",
-  ownerEmail: "admin@parkingaereomadrid.com",
+  businessName: "Parking Aero Madrid",
+  ownerEmail: "admin@parkingaeromadrid.com",
   ownerPhone: "+34 91 000 0000",
 };
 

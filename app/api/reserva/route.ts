@@ -15,7 +15,7 @@ import { genId, getConfig, getReservations, saveReservations } from "@/lib/store
  *  2. Verificar el dominio del negocio (o usar onboarding@resend.dev para pruebas)
  *  3. Crear un archivo .env.local en la raíz con:
  *       RESEND_API_KEY=re_xxxxxxxxxxxx
- *       EMAIL_FROM="Parking Aéreo Madrid <reservas@tudominio.es>"
+ *       EMAIL_FROM="Parking Aero Madrid <reservas@parkingaeromadrid.es>"
  *  4. El email del dueño (destinatario) se cambia en lib/config.ts → NEGOCIO.emailDueno
  *
  *  Sin RESEND_API_KEY la API no falla: registra la reserva en la
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM ?? "Parking Aéreo Madrid <onboarding@resend.dev>",
+        from: process.env.EMAIL_FROM ?? "Parking Aero Madrid <onboarding@resend.dev>",
         to: [destinatario],
         reply_to: replyTo,
         subject,

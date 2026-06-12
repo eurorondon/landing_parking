@@ -329,7 +329,8 @@ nav a:hover { color: #fff; }
 .price { font-size: 34px; letter-spacing: -.04em; font-weight: 600; }
 .days { color: #ffd29a; font-size: 13px; text-align: right; }
 .full { width: 100%; padding: 16px 22px; font-size: 15px; }
-.note { color: var(--muted); font-size: 12px; text-align: center; margin: 12px 0 0; }
+/* .booking-content para ganar a la regla ".hero p" (la nota es un <p> dentro del hero) */
+.booking-content .note { color: var(--text); opacity: .72; font-size: 12px; text-align: center; margin: 12px 0 0; }
 
 section { padding: 90px 0; }
 

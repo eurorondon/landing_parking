@@ -1,4 +1,4 @@
-# Parking Aéreo Madrid — Landing + Panel de Administración
+# Parking Aero Madrid — Landing + Panel de Administración
 
 Proyecto **Next.js 15 (App Router) + TypeScript** con dos partes:
 

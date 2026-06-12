@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Parking Aéreo Madrid | Reserva en Barajas sin estrés",
+  title: "Parking Aero Madrid | Reserva en Barajas sin estrés",
   description:
     "Reserva tu parking en Madrid-Barajas en menos de 1 minuto. Entrega y recogida en terminal, servicio 24 horas y sin pago anticipado.",
   openGraph: {
-    title: "Parking Aéreo Madrid",
+    title: "Parking Aero Madrid",
     description:
       "Deja tu coche en la terminal y viaja sin estrés. Reserva online sin pago anticipado.",
     locale: "es_ES",

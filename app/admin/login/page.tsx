@@ -36,7 +36,7 @@ export default function AdminLogin() {
     <div className="login-wrap">
       <form className="login-card" onSubmit={entrar}>
         <div className="login-title">
-          <span className="sb-dot" /> Parking Aéreo Madrid
+          <span className="sb-dot" /> Parking Aero Madrid
         </div>
         <p className="login-sub">Acceso al panel de administración</p>
         <div className="form-group">
