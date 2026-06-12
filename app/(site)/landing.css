@@ -220,6 +220,35 @@ nav a:hover { color: #fff; }
 }
 .field input::-webkit-date-and-time-value { text-align: left; min-height: 1.2em; }
 
+/* ─── TOGGLE COCHE / MOTO ─── */
+.vehicle-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: rgba(13,63,75,.08);
+  border-radius: 16px;
+  padding: 4px;
+  margin-bottom: 14px;
+}
+.vehicle-toggle button {
+  border: 0;
+  background: transparent;
+  padding: 11px;
+  border-radius: 13px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: .2s ease;
+}
+.vehicle-toggle button.active {
+  background: #fff;
+  color: var(--petrol);
+  box-shadow: 0 6px 16px rgba(7,25,35,.12);
+}
+.vehicle-toggle button:disabled { cursor: default; opacity: .6; }
+
 /* ─── SELECT PERSONALIZADO (Radix) ─── */
 .select-trigger {
   display: flex;

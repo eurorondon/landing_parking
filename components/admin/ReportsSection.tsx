@@ -32,7 +32,7 @@ export default function ReportsSection({ reservas }: { reservas: ReservaAdmin[] 
   reservas.forEach((r) => { if (termCount[r.terminal] !== undefined) termCount[r.terminal]++; });
   const maxTerm = Math.max(...Object.values(termCount)) || 1;
 
-  const statCount: Record<ReservaStatus, number> = { pending: 0, confirmed: 0, inside: 0, finished: 0, cancelled: 0 };
+  const statCount: Record<ReservaStatus, number> = { confirmed: 0, inside: 0, finished: 0, cancelled: 0 };
   reservas.forEach((r) => { if (statCount[r.status] !== undefined) statCount[r.status]++; });
   const maxStat = Math.max(...Object.values(statCount)) || 1;
 

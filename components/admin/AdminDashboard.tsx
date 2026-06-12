@@ -172,7 +172,8 @@ export default function AdminDashboard() {
 
   /* ── Render ── */
 
-  const pendientes = reservas.filter((r) => r.status === "pending").length;
+  // Badge del menú: reservas pendientes (a la espera de que llegue el vehículo)
+  const pendientes = reservas.filter((r) => r.status === "confirmed").length;
   const detalle = detailId ? reservas.find((r) => r.id === detailId) ?? null : null;
   const hoy = new Date();
 

@@ -32,7 +32,7 @@ function validarCliente(c: DatosCliente): string | null {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c.email.trim()))
     return "Escribe un correo electrónico válido.";
   if (c.matricula.trim().length < 4) return "Escribe la matrícula del vehículo.";
-  if (c.modelo.trim().length < 2) return "Escribe el modelo del coche.";
+  if (c.modelo.trim().length < 2) return "Escribe el modelo del vehículo.";
   return null;
 }
 
@@ -85,6 +85,7 @@ export default function BookingModal({ reserva, calculo, onChangeReserva, onClos
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...cliente,
+          vehiculo: reserva.vehiculo,
           entrada: `${reserva.entryDate}T${reserva.entryTime}`,
           salida: `${reserva.exitDate}T${reserva.exitTime}`,
           terminalEntrada: reserva.terminalEntrada,
@@ -124,6 +125,25 @@ export default function BookingModal({ reserva, calculo, onChangeReserva, onClos
         </div>
 
         <div className="modal-body">
+          <div className="vehicle-toggle" role="radiogroup" aria-label="Tipo de vehículo">
+            <button
+              type="button"
+              className={reserva.vehiculo === "car" ? "active" : ""}
+              onClick={() => cambiarReserva("vehiculo", "car")}
+              disabled={enviada}
+            >
+              🚗 Coche
+            </button>
+            <button
+              type="button"
+              className={reserva.vehiculo === "moto" ? "active" : ""}
+              onClick={() => cambiarReserva("vehiculo", "moto")}
+              disabled={enviada}
+            >
+              🏍️ Moto
+            </button>
+          </div>
+
           <div className="form-grid" style={{ marginBottom: 12 }}>
             <div className="field">
               <label htmlFor="mEntryDate">Fecha entrada</label>
@@ -262,7 +282,7 @@ export default function BookingModal({ reserva, calculo, onChangeReserva, onClos
                 />
               </div>
               <div className="field" style={{ gridColumn: "1/-1" }}>
-                <label htmlFor="modelo">Modelo del coche</label>
+                <label htmlFor="modelo">Modelo del vehículo</label>
                 <input
                   id="modelo"
                   type="text"
@@ -289,8 +309,8 @@ export default function BookingModal({ reserva, calculo, onChangeReserva, onClos
             )}
 
             <div className={`success${enviada ? " show" : ""}`}>
-              ✅ <strong>Reserva recibida.</strong> Te contactaremos para
-              confirmar los detalles en {cliente.email || "tu correo"}.
+              ✅ <strong>Reserva confirmada.</strong> Te hemos enviado la
+              confirmación a {cliente.email || "tu correo"}.
               Recuerda: no pagas nada hasta entregar tu vehículo.
             </div>
           </form>

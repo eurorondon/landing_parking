@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     name: reserva.nombre.trim(),
     phone: reserva.telefono.trim(),
     email: reserva.email.trim(),
-    vehicleType: "car", // la landing solo reserva coches; las motos se gestionan desde el panel
+    vehicleType: reserva.vehiculo === "moto" ? "moto" : "car",
     plate: reserva.matricula.trim().toUpperCase(),
     model: reserva.modelo.trim(),
     // El panel maneja una sola terminal: guardamos la de entrada y
@@ -68,7 +68,9 @@ export async function POST(request: Request) {
     terminal: reserva.terminalEntrada,
     checkIn: reserva.entrada,
     checkOut: reserva.salida,
-    status: "pending",
+    // La reserva entra ya confirmada: el cliente recibe el email de
+    // confirmación automáticamente al reservar.
+    status: "confirmed",
     price: reserva.total,
     notes: `Recibida desde la web · Terminal salida: ${reserva.terminalSalida}`,
     createdAt: new Date().toISOString(),
@@ -77,21 +79,19 @@ export async function POST(request: Request) {
   todas.unshift(nuevaReserva);
   await saveReservations(todas);
 
-  const asunto = `🚗 Nueva reserva: ${reserva.nombre} · ${formatoLegible(reserva.entrada)} · ${reserva.terminalEntrada}`;
-  const html = construirEmailHtml(reserva);
-
   const apiKey = process.env.RESEND_API_KEY;
+  const emailDueno = cfg.ownerEmail || NEGOCIO.emailDueno;
 
   if (!apiKey) {
     // Modo desarrollo: sin clave de Resend, solo registramos la reserva.
-    console.log("📩 [SIMULADO] Reserva recibida (configura RESEND_API_KEY para envío real):");
+    console.log("📩 [SIMULADO] Reserva confirmada (configura RESEND_API_KEY para envío real):");
     console.log(JSON.stringify(reserva, null, 2));
     return NextResponse.json({ ok: true, simulado: true });
   }
 
-  try {
-    // Envío real con la API HTTP de Resend (sin dependencias extra)
-    const res = await fetch("https://api.resend.com/emails", {
+  /** Envío con la API HTTP de Resend (sin dependencias extra) */
+  const enviarEmail = (destinatario: string, replyTo: string, subject: string, html: string) =>
+    fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -99,19 +99,40 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         from: process.env.EMAIL_FROM ?? "Parking Aéreo Madrid <onboarding@resend.dev>",
-        // Destinatario: el email configurado en el panel (/admin → Configuración),
-        // con lib/config.ts → NEGOCIO.emailDueno como respaldo.
-        to: [cfg.ownerEmail || NEGOCIO.emailDueno],
-        reply_to: reserva.email,  // responder al email va directo al cliente
-        subject: asunto,
+        to: [destinatario],
+        reply_to: replyTo,
+        subject,
         html,
       }),
     });
 
-    if (!res.ok) {
-      const detalle = await res.text();
-      console.error("Error de Resend:", detalle);
-      return NextResponse.json({ ok: false, error: "No se pudo enviar el correo" }, { status: 502 });
+  try {
+    // 1. Confirmación al cliente: este correo ES la confirmación de la reserva
+    const resCliente = await enviarEmail(
+      reserva.email,
+      emailDueno, // responder al correo contacta con el parking
+      `✅ Reserva confirmada · ${NEGOCIO.nombre} · ${formatoLegible(reserva.entrada)}`,
+      construirEmailCliente(reserva)
+    );
+    if (!resCliente.ok) {
+      const detalle = await resCliente.text();
+      console.error("Error de Resend (confirmación al cliente):", detalle);
+      return NextResponse.json(
+        { ok: false, error: "No se pudo enviar la confirmación" },
+        { status: 502 }
+      );
+    }
+
+    // 2. Aviso al dueño del parking (configurado en /admin → Configuración)
+    const resDueno = await enviarEmail(
+      emailDueno,
+      reserva.email, // responder al aviso va directo al cliente
+      `🚗 Nueva reserva: ${reserva.nombre} · ${formatoLegible(reserva.entrada)} · ${reserva.terminalEntrada}`,
+      construirEmailHtml(reserva)
+    );
+    if (!resDueno.ok) {
+      // La confirmación al cliente ya salió: registramos el fallo sin romper la reserva
+      console.error("Error de Resend (aviso al dueño):", await resDueno.text());
     }
 
     return NextResponse.json({ ok: true });
@@ -119,6 +140,40 @@ export async function POST(request: Request) {
     console.error("Error enviando la reserva:", error);
     return NextResponse.json({ ok: false, error: "Error interno" }, { status: 500 });
   }
+}
+
+/** Correo de confirmación que recibe el cliente al completar la reserva */
+function construirEmailCliente(r: ReservaCompleta): string {
+  const fila = (etiqueta: string, valor: string) => `
+    <tr>
+      <td style="padding:8px 12px;color:#64748b;font-size:14px;">${etiqueta}</td>
+      <td style="padding:8px 12px;color:#0f172a;font-size:14px;font-weight:600;">${valor}</td>
+    </tr>`;
+
+  return `
+  <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;">
+    <div style="background:#2c616e;border-radius:12px 12px 0 0;padding:20px 24px;">
+      <h1 style="color:#ffffff;font-size:18px;margin:0;">✅ Tu reserva está confirmada · ${NEGOCIO.nombre}</h1>
+    </div>
+    <div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;padding:8px 12px 16px;">
+      <p style="padding:8px 12px 0;color:#334155;font-size:14px;line-height:1.6;">
+        Hola ${r.nombre}: hemos registrado tu reserva. Estos son los datos:
+      </p>
+      <table style="width:100%;border-collapse:collapse;">
+        ${fila("Entrada", formatoLegible(r.entrada))}
+        ${fila("Salida", formatoLegible(r.salida))}
+        ${fila("Terminal entrada", r.terminalEntrada)}
+        ${fila("Terminal salida", r.terminalSalida)}
+        ${fila("Vehículo", `${r.vehiculo === "moto" ? "🏍️ Moto" : "🚗 Coche"} · ${r.modelo} · ${r.matricula}`)}
+        ${fila("Total estimado", formatoEuros(r.total))}
+      </table>
+      <p style="padding:8px 12px 0;color:#334155;font-size:14px;line-height:1.6;">
+        💳 No pagas nada por adelantado: el pago se realiza al entregar el vehículo.<br>
+        Si necesitas modificar o cancelar la reserva, responde a este correo o
+        llámanos al ${NEGOCIO.telefono}.
+      </p>
+    </div>
+  </div>`;
 }
 
 /** Plantilla HTML del correo que recibe el dueño del parking */
@@ -149,6 +204,7 @@ function construirEmailHtml(r: ReservaCompleta): string {
         ${fila("Nombre", r.nombre)}
         ${fila("Email", r.email)}
         ${fila("Teléfono", r.telefono)}
+        ${fila("Vehículo", r.vehiculo === "moto" ? "🏍️ Moto" : "🚗 Coche")}
         ${fila("Matrícula", r.matricula)}
         ${fila("Modelo", r.modelo)}
       </table>

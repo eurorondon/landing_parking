@@ -65,11 +65,8 @@ export default function DetailModal({ reserva: r, onClose, onChangeStatus, onEdi
           )}
         </div>
         <div className="modal-footer">
-          {r.status === "pending" && (
-            <button className="btn btn-green" onClick={() => onChangeStatus(r.id, "confirmed")}>✅ Confirmar</button>
-          )}
-          {(r.status === "pending" || r.status === "confirmed") && (
-            <button className="btn btn-primary" onClick={() => onChangeStatus(r.id, "inside")}>🅿️ Vehículo dentro</button>
+          {r.status === "confirmed" && (
+            <button className="btn btn-primary" onClick={() => onChangeStatus(r.id, "inside")}>🅿️ Marcar activa</button>
           )}
           {r.status === "inside" && (
             <button className="btn btn-ghost" onClick={() => onChangeStatus(r.id, "finished")}>🏁 Finalizar</button>

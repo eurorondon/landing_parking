@@ -14,6 +14,7 @@ import type { DatosReserva } from "@/lib/types";
  */
 export default function BookingForm() {
   const [reserva, setReserva] = useState<DatosReserva>({
+    vehiculo: "car",
     entryDate: entradaPorDefecto(),
     entryTime: "08:00",
     exitDate: salidaPorDefecto(),
@@ -55,6 +56,23 @@ export default function BookingForm() {
               <p>Calcula tu precio estimado y deja tu reserva lista.</p>
             </div>
             <div className="badge">Sin pago anticipado</div>
+          </div>
+
+          <div className="vehicle-toggle" role="radiogroup" aria-label="Tipo de vehículo">
+            <button
+              type="button"
+              className={reserva.vehiculo === "car" ? "active" : ""}
+              onClick={() => actualizar("vehiculo", "car")}
+            >
+              🚗 Coche
+            </button>
+            <button
+              type="button"
+              className={reserva.vehiculo === "moto" ? "active" : ""}
+              onClick={() => actualizar("vehiculo", "moto")}
+            >
+              🏍️ Moto
+            </button>
           </div>
 
           <div className="form-grid">
@@ -134,7 +152,7 @@ export default function BookingForm() {
             Ver disponibilidad y reservar
           </button>
           <p className="note">
-            La reserva se confirma por correo o teléfono. Puedes modificarla antes de viajar.
+            Recibirás la confirmación al instante en tu correo. Puedes modificarla antes de viajar.
           </p>
         </div>
       </div>

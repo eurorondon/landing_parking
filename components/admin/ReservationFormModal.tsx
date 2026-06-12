@@ -48,7 +48,7 @@ function initialState(editing: ReservaAdmin | null): FormState {
   return {
     name: "", phone: "", email: "", vehicleType: "", plate: "", model: "",
     terminal: "", checkIn: fmtLocal(tomorrow), checkOut: fmtLocal(nextWeek),
-    status: "pending", notes: "",
+    status: "confirmed", notes: "",
   };
 }
 
@@ -188,9 +188,8 @@ export default function ReservationFormModal({ config, editing, onClose, onSave 
               <div className="form-group">
                 <label className="form-label">Estado</label>
                 <select className="form-select" value={form.status} onChange={(e) => set("status", e.target.value as ReservaStatus)}>
-                  <option value="pending">Pendiente</option>
-                  <option value="confirmed">Confirmada</option>
-                  <option value="inside">Vehículo dentro</option>
+                  <option value="confirmed">Pendiente</option>
+                  <option value="inside">Activa</option>
                   <option value="finished">Finalizada</option>
                   <option value="cancelled">Cancelada</option>
                 </select>

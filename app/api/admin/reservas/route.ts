@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     terminal: body.terminal!,
     checkIn: body.checkIn!,
     checkOut: body.checkOut!,
-    status: body.status ?? "pending",
+    status: body.status ?? "confirmed",
     price: calcAdminPrice(cfg, body.vehicleType === "moto" ? "moto" : "car", body.checkIn!, body.checkOut!),
     notes: (body.notes ?? "").trim(),
     createdAt: new Date().toISOString(),

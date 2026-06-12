@@ -46,9 +46,7 @@ export default function HomeSection({ reservas, onDetail, onEdit, onDelete, goRe
   const entries = reservas.filter((r) => isToday(r.checkIn) && r.status !== "cancelled" && r.status !== "finished");
   const exits = reservas.filter((r) => isToday(r.checkOut) && r.status !== "cancelled" && r.status !== "finished");
   const inside = reservas.filter((r) => r.status === "inside");
-  const pending = reservas.filter((r) => r.status === "pending");
-  const carsInside = inside.filter((r) => r.vehicleType === "car").length;
-  const motosInside = inside.filter((r) => r.vehicleType === "moto").length;
+  const upcoming = reservas.filter((r) => r.status === "confirmed");
 
   const todayIncome = reservas
     .filter((r) => r.status === "finished" && isToday(r.checkOut))
@@ -63,10 +61,8 @@ export default function HomeSection({ reservas, onDetail, onEdit, onDelete, goRe
   const stats: { icon: string; color: string; val: string | number; label: string }[] = [
     { icon: "✈️", color: "#e0f0ff", val: entries.length, label: "Entradas hoy" },
     { icon: "🏁", color: "#fef3c7", val: exits.length, label: "Salidas hoy" },
-    { icon: "🅿️", color: "#d1fae5", val: inside.length, label: "Vehículos dentro" },
-    { icon: "🚗", color: "#ede9fe", val: carsInside, label: "Coches dentro" },
-    { icon: "🏍️", color: "#fef3c7", val: motosInside, label: "Motos dentro" },
-    { icon: "⏳", color: "#fff7ed", val: pending.length, label: "Pendientes" },
+    { icon: "🅿️", color: "#d1fae5", val: inside.length, label: "Reservas activas" },
+    { icon: "⏳", color: "#fff7ed", val: upcoming.length, label: "Pendientes" },
     { icon: "💶", color: "#d1fae5", val: fmtCurrency(todayIncome), label: "Ingresos hoy" },
     { icon: "📈", color: "#e0f0ff", val: fmtCurrency(monthIncome), label: "Ingresos del mes" },
   ];

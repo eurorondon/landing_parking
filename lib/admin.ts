@@ -6,7 +6,12 @@ import type { Terminal } from "./config";
  */
 
 export type VehicleType = "car" | "moto";
-export type ReservaStatus = "pending" | "confirmed" | "inside" | "finished" | "cancelled";
+/**
+ * Flujo de estados: la reserva entra confirmada por email al reservar y
+ * se muestra como "Pendiente" (a la espera del vehículo) → "Activa"
+ * (vehículo dentro) → "Finalizada".
+ */
+export type ReservaStatus = "confirmed" | "inside" | "finished" | "cancelled";
 
 export interface ReservaAdmin {
   id: string;
@@ -28,8 +33,9 @@ export interface ReservaAdmin {
 export interface AdminConfig {
   carPrice: number;
   motoPrice: number;
+  valetPrice: number;     // suplemento fijo por servicio de valet (€/reserva)
+  insurancePrice: number; // suplemento fijo por seguro (€/reserva)
   minDays: number;
-  minPrice: number;
   terminalSurcharge: boolean;
   terminalSurchargeAmt: number;
   businessName: string;
@@ -41,8 +47,9 @@ export interface AdminConfig {
 export const DEFAULT_CONFIG: AdminConfig = {
   carPrice: 8.9,
   motoPrice: 4.5,
+  valetPrice: 10,
+  insurancePrice: 5,
   minDays: 1,
-  minPrice: 15,
   terminalSurcharge: false,
   terminalSurchargeAmt: 2,
   businessName: "Parking Aéreo Madrid",
@@ -51,22 +58,27 @@ export const DEFAULT_CONFIG: AdminConfig = {
 };
 
 export const STATUS_LABEL: Record<ReservaStatus, string> = {
-  pending: "Pendiente",
-  confirmed: "Confirmada",
-  inside: "Vehículo dentro",
+  confirmed: "Pendiente",
+  inside: "Activa",
   finished: "Finalizada",
   cancelled: "Cancelada",
 };
 
 export const STATUS_CLASS: Record<ReservaStatus, string> = {
-  pending: "badge-pending",
-  confirmed: "badge-confirmed",
+  confirmed: "badge-pending",
   inside: "badge-inside",
   finished: "badge-finished",
   cancelled: "badge-cancelled",
 };
 
-/** Precio según la configuración del panel (tarifa por día y tipo de vehículo) */
+/**
+ * Precio según la configuración del panel: días × tarifa (coche o moto)
+ * más los suplementos fijos de valet y seguro de cada reserva.
+ *
+ * Los días se calculan con las horas reales y todo día empezado se
+ * cobra completo (26 horas → 2 días). El precio mínimo de una reserva
+ * es, por tanto: 1 día + valet + seguro.
+ */
 export function calcAdminPrice(
   cfg: AdminConfig,
   type: VehicleType,
@@ -79,7 +91,8 @@ export function calcAdminPrice(
   if (!Number.isFinite(d1) || !Number.isFinite(d2) || d2 <= d1) return 0;
   const days = Math.max(cfg.minDays, Math.ceil((d2 - d1) / 86400000));
   const rate = type === "car" ? cfg.carPrice : cfg.motoPrice;
-  return Math.max(cfg.minPrice, Math.round(days * rate * 100) / 100);
+  const total = days * rate + (cfg.valetPrice || 0) + (cfg.insurancePrice || 0);
+  return Math.round(total * 100) / 100;
 }
 
 export function fmtDate(dt: string): string {

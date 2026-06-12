@@ -61,9 +61,8 @@ export default function ReservationsSection({ reservas, onDetail, onEdit, onDele
         </div>
         <select className="filter-select" value={status} onChange={(e) => { setStatus(e.target.value as "" | ReservaStatus); setPage(0); }}>
           <option value="">Todos los estados</option>
-          <option value="pending">Pendiente</option>
-          <option value="confirmed">Confirmada</option>
-          <option value="inside">Vehículo dentro</option>
+          <option value="confirmed">Pendiente</option>
+          <option value="inside">Activa</option>
           <option value="finished">Finalizada</option>
           <option value="cancelled">Cancelada</option>
         </select>
