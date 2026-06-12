@@ -1,5 +1,11 @@
 /** Utilidades de fechas compartidas entre el calculador, el modal y el email */
 
+/** Opciones de hora en pasos de 30 min: "00:00", "00:30", … "23:30" */
+export const OPCIONES_HORA = Array.from({ length: 48 }, (_, i) => {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(Math.floor(i / 2))}:${i % 2 === 0 ? "00" : "30"}`;
+});
+
 /** Convierte un Date a "YYYY-MM-DD" (hora local) para <input type="date"> */
 export function aFechaInput(fecha: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");

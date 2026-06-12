@@ -6,7 +6,7 @@ const preguntas = [
   },
   {
     p: "¿Dónde entrego el coche?",
-    r: "La entrega se coordina en la terminal seleccionada: T1, T2, T3 o T4. Recibirás los detalles tras confirmar.",
+    r: "La entrega se coordina en la terminal que elijas: T1, T2, T3 o T4. Si aún no la conoces, selecciona «No sé la terminal» y la confirmamos contigo.",
   },
   {
     p: "¿Funciona de madrugada?",

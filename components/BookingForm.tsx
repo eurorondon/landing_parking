@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import BookingModal from "./BookingModal";
-import { TERMINALES, type Terminal } from "@/lib/config";
-import { entradaPorDefecto, salidaPorDefecto } from "@/lib/datetime";
+import Select from "./ui/Select";
+import { OPCIONES_TERMINAL } from "@/lib/config";
+import { entradaPorDefecto, salidaPorDefecto, OPCIONES_HORA } from "@/lib/datetime";
 import { calcularPrecio, formatoEuros } from "@/lib/pricing";
 import type { DatosReserva } from "@/lib/types";
 
@@ -17,7 +18,8 @@ export default function BookingForm() {
     entryTime: "08:00",
     exitDate: salidaPorDefecto(),
     exitTime: "18:00",
-    terminal: "T1",
+    terminalEntrada: "T1",
+    terminalSalida: "T1",
   });
   const [modalAbierto, setModalAbierto] = useState(false);
 
@@ -67,11 +69,12 @@ export default function BookingForm() {
             </div>
             <div className="field">
               <label htmlFor="entryTime">Hora entrada</label>
-              <input
+              <Select
                 id="entryTime"
-                type="time"
+                ariaLabel="Hora entrada"
                 value={reserva.entryTime}
-                onChange={(e) => actualizar("entryTime", e.target.value)}
+                opciones={OPCIONES_HORA}
+                onChange={(v) => actualizar("entryTime", v)}
               />
             </div>
             <div className="field">
@@ -85,29 +88,34 @@ export default function BookingForm() {
             </div>
             <div className="field">
               <label htmlFor="exitTime">Hora salida</label>
-              <input
+              <Select
                 id="exitTime"
-                type="time"
+                ariaLabel="Hora salida"
                 value={reserva.exitTime}
-                onChange={(e) => actualizar("exitTime", e.target.value)}
+                opciones={OPCIONES_HORA}
+                onChange={(v) => actualizar("exitTime", v)}
               />
             </div>
-          </div>
-
-          <div className="field" style={{ marginTop: 14 }}>
-            <label>Terminal</label>
-          </div>
-          <div className="terminal-row">
-            {TERMINALES.map((t) => (
-              <button
-                key={t}
-                type="button"
-                className={`terminal${reserva.terminal === t ? " active" : ""}`}
-                onClick={() => actualizar("terminal", t as Terminal)}
-              >
-                {t}
-              </button>
-            ))}
+            <div className="field">
+              <label htmlFor="terminalEntrada">Terminal entrada</label>
+              <Select
+                id="terminalEntrada"
+                ariaLabel="Terminal entrada"
+                value={reserva.terminalEntrada}
+                opciones={OPCIONES_TERMINAL}
+                onChange={(v) => actualizar("terminalEntrada", v)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="terminalSalida">Terminal salida</label>
+              <Select
+                id="terminalSalida"
+                ariaLabel="Terminal salida"
+                value={reserva.terminalSalida}
+                opciones={OPCIONES_TERMINAL}
+                onChange={(v) => actualizar("terminalSalida", v)}
+              />
+            </div>
           </div>
 
           <div className="price-box">
@@ -131,10 +139,11 @@ export default function BookingForm() {
         </div>
       </div>
 
-      {modalAbierto && calculo && (
+      {modalAbierto && (
         <BookingModal
           reserva={reserva}
           calculo={calculo}
+          onChangeReserva={actualizar}
           onClose={() => setModalAbierto(false)}
         />
       )}

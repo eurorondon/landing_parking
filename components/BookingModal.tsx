@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { formatoFecha } from "@/lib/datetime";
+import Select from "./ui/Select";
+import { OPCIONES_TERMINAL } from "@/lib/config";
+import { OPCIONES_HORA } from "@/lib/datetime";
 import { formatoEuros, type CalculoPrecio } from "@/lib/pricing";
 import type { DatosCliente, DatosReserva } from "@/lib/types";
 
 interface Props {
   reserva: DatosReserva;
-  calculo: CalculoPrecio;
+  // null cuando las fechas elegidas no son válidas (salida <= entrada)
+  calculo: CalculoPrecio | null;
+  onChangeReserva: (campo: keyof DatosReserva, valor: string) => void;
   onClose: () => void;
 }
 
@@ -32,7 +36,7 @@ function validarCliente(c: DatosCliente): string | null {
   return null;
 }
 
-export default function BookingModal({ reserva, calculo, onClose }: Props) {
+export default function BookingModal({ reserva, calculo, onChangeReserva, onClose }: Props) {
   const [cliente, setCliente] = useState<DatosCliente>(clienteVacio);
   const [enviando, setEnviando] = useState(false);
   const [enviada, setEnviada] = useState(false);
@@ -54,8 +58,17 @@ export default function BookingModal({ reserva, calculo, onClose }: Props) {
     setError(null);
   }
 
+  function cambiarReserva(campo: keyof DatosReserva, valor: string) {
+    onChangeReserva(campo, valor);
+    setError(null);
+  }
+
   async function confirmarReserva(e: React.FormEvent) {
     e.preventDefault();
+    if (!calculo) {
+      setError("Revisa las fechas: la salida debe ser posterior a la entrada.");
+      return;
+    }
     const errorCliente = validarCliente(cliente);
     if (errorCliente) {
       setError(errorCliente);
@@ -74,7 +87,8 @@ export default function BookingModal({ reserva, calculo, onClose }: Props) {
           ...cliente,
           entrada: `${reserva.entryDate}T${reserva.entryTime}`,
           salida: `${reserva.exitDate}T${reserva.exitTime}`,
-          terminal: reserva.terminal,
+          terminalEntrada: reserva.terminalEntrada,
+          terminalSalida: reserva.terminalSalida,
           dias: calculo.dias,
           total: calculo.total,
         }),
@@ -110,22 +124,87 @@ export default function BookingModal({ reserva, calculo, onClose }: Props) {
         </div>
 
         <div className="modal-body">
+          <div className="form-grid" style={{ marginBottom: 12 }}>
+            <div className="field">
+              <label htmlFor="mEntryDate">Fecha entrada</label>
+              <input
+                id="mEntryDate"
+                type="date"
+                value={reserva.entryDate}
+                onChange={(e) => cambiarReserva("entryDate", e.target.value)}
+                disabled={enviada}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="mEntryTime">Hora entrada</label>
+              <Select
+                id="mEntryTime"
+                ariaLabel="Hora entrada"
+                value={reserva.entryTime}
+                opciones={OPCIONES_HORA}
+                onChange={(v) => cambiarReserva("entryTime", v)}
+                disabled={enviada}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="mExitDate">Fecha salida</label>
+              <input
+                id="mExitDate"
+                type="date"
+                value={reserva.exitDate}
+                onChange={(e) => cambiarReserva("exitDate", e.target.value)}
+                disabled={enviada}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="mExitTime">Hora salida</label>
+              <Select
+                id="mExitTime"
+                ariaLabel="Hora salida"
+                value={reserva.exitTime}
+                opciones={OPCIONES_HORA}
+                onChange={(v) => cambiarReserva("exitTime", v)}
+                disabled={enviada}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="mTerminalEntrada">Terminal entrada</label>
+              <Select
+                id="mTerminalEntrada"
+                ariaLabel="Terminal entrada"
+                value={reserva.terminalEntrada}
+                opciones={OPCIONES_TERMINAL}
+                onChange={(v) => cambiarReserva("terminalEntrada", v)}
+                disabled={enviada}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="mTerminalSalida">Terminal salida</label>
+              <Select
+                id="mTerminalSalida"
+                ariaLabel="Terminal salida"
+                value={reserva.terminalSalida}
+                opciones={OPCIONES_TERMINAL}
+                onChange={(v) => cambiarReserva("terminalSalida", v)}
+                disabled={enviada}
+              />
+            </div>
+          </div>
+
+          {!calculo && (
+            <div className="form-error" style={{ margin: "0 0 12px" }}>
+              La salida debe ser posterior a la entrada.
+            </div>
+          )}
+
           <div className="summary-box">
-            <div className="summary-item">
-              <span>Entrada</span>
-              <strong>{formatoFecha(reserva.entryDate, reserva.entryTime)}</strong>
-            </div>
-            <div className="summary-item">
-              <span>Salida</span>
-              <strong>{formatoFecha(reserva.exitDate, reserva.exitTime)}</strong>
-            </div>
-            <div className="summary-item">
-              <span>Terminal</span>
-              <strong>{reserva.terminal}</strong>
-            </div>
-            <div className="summary-item">
+            <div className="summary-item" style={{ gridColumn: "1/-1" }}>
               <span>Total estimado</span>
-              <strong>{formatoEuros(calculo.total)}</strong>
+              <strong>
+                {calculo
+                  ? `${formatoEuros(calculo.total)} · ${calculo.dias} ${calculo.dias === 1 ? "día" : "días"}`
+                  : "—"}
+              </strong>
             </div>
           </div>
 

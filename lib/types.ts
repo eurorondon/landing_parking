@@ -6,7 +6,8 @@ export interface DatosReserva {
   entryTime: string; // "08:00"
   exitDate: string;
   exitTime: string;
-  terminal: Terminal;
+  terminalEntrada: Terminal;
+  terminalSalida: Terminal;
 }
 
 /** Datos personales del formulario del modal */
@@ -22,7 +23,8 @@ export interface DatosCliente {
 export interface ReservaCompleta extends DatosCliente {
   entrada: string; // "2026-06-15T08:00"
   salida: string;
-  terminal: Terminal;
+  terminalEntrada: Terminal;
+  terminalSalida: Terminal;
   dias: number;
   total: number;
 }

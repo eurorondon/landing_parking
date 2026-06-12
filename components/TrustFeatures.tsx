@@ -8,11 +8,6 @@ const features = [
     titulo: "Servicio 24/7",
     texto: "Para vuelos de día o madrugada.",
   },
-  {
-    icono: "🚗",
-    titulo: "Entrega en terminal",
-    texto: "Evita traslados innecesarios.",
-  },
   { icono: "🔒", titulo: "Parking vigilado", texto: "Viaja con tranquilidad." },
   {
     icono: "⚡",

@@ -36,7 +36,8 @@ export async function POST(request: Request) {
 
   // Validación básica en servidor (no confiar solo en el cliente)
   const camposObligatorios: (keyof ReservaCompleta)[] = [
-    "entrada", "salida", "terminal", "nombre", "email", "telefono", "matricula", "modelo",
+    "entrada", "salida", "terminalEntrada", "terminalSalida",
+    "nombre", "email", "telefono", "matricula", "modelo",
   ];
   const faltan = camposObligatorios.filter((c) => !String(reserva[c] ?? "").trim());
   if (faltan.length > 0) {
@@ -62,19 +63,21 @@ export async function POST(request: Request) {
     vehicleType: "car", // la landing solo reserva coches; las motos se gestionan desde el panel
     plate: reserva.matricula.trim().toUpperCase(),
     model: reserva.modelo.trim(),
-    terminal: reserva.terminal,
+    // El panel maneja una sola terminal: guardamos la de entrada y
+    // dejamos la de salida anotada en las notas.
+    terminal: reserva.terminalEntrada,
     checkIn: reserva.entrada,
     checkOut: reserva.salida,
     status: "pending",
     price: reserva.total,
-    notes: "Recibida desde la web",
+    notes: `Recibida desde la web · Terminal salida: ${reserva.terminalSalida}`,
     createdAt: new Date().toISOString(),
   };
   const todas = await getReservations();
   todas.unshift(nuevaReserva);
   await saveReservations(todas);
 
-  const asunto = `🚗 Nueva reserva: ${reserva.nombre} · ${formatoLegible(reserva.entrada)} · ${reserva.terminal}`;
+  const asunto = `🚗 Nueva reserva: ${reserva.nombre} · ${formatoLegible(reserva.entrada)} · ${reserva.terminalEntrada}`;
   const html = construirEmailHtml(reserva);
 
   const apiKey = process.env.RESEND_API_KEY;
@@ -136,7 +139,8 @@ function construirEmailHtml(r: ReservaCompleta): string {
       <table style="width:100%;border-collapse:collapse;">
         ${fila("Entrada", formatoLegible(r.entrada))}
         ${fila("Salida", formatoLegible(r.salida))}
-        ${fila("Terminal", r.terminal)}
+        ${fila("Terminal entrada", r.terminalEntrada)}
+        ${fila("Terminal salida", r.terminalSalida)}
         ${fila("Días", String(r.dias))}
         ${fila("Precio total", formatoEuros(r.total))}
       </table>

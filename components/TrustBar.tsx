@@ -7,7 +7,6 @@ const stats = [
   { numero: "4.9★", etiqueta: "Valoración media" },
   { numero: "24/7", etiqueta: "Atención al cliente" },
   { numero: "<60 seg", etiqueta: "Para completar la reserva" },
-  { numero: "0€", etiqueta: "Sin pago anticipado" },
 ];
 
 export default function TrustBar() {
