@@ -196,7 +196,7 @@ nav a:hover { color: #fff; }
 .badge { padding: 8px 10px; border-radius: 999px; font-size: 12px; background: #e9f6ef; color: #1d6648; white-space: nowrap; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.field { display: flex; flex-direction: column; gap: 7px; }
+.field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
 .field label { font-size: 12px; color: #59686c; font-weight: 600; }
 .field input, .field select {
   width: 100%;
@@ -210,6 +210,15 @@ nav a:hover { color: #fff; }
   transition: border .2s, box-shadow .2s;
 }
 .field input:focus, .field select:focus { border-color: rgba(28,124,125,.48); box-shadow: 0 0 0 4px rgba(28,124,125,.1); }
+/* En iOS Safari los inputs de fecha/hora tienen ancho intrínseco propio y se
+   desbordan de su columna; sin esto quedan pegados uno contra otro. */
+.field input[type="date"], .field input[type="time"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  max-width: 100%;
+}
+.field input::-webkit-date-and-time-value { text-align: left; min-height: 1.2em; }
 .terminal-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0 18px; }
 .terminal {
   border: 1px solid rgba(13,63,75,.12);
