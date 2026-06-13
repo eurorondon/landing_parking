@@ -1,10 +1,9 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import BookingForm from "@/components/BookingForm";
 import TrustBar from "@/components/TrustBar";
-import TrustFeatures from "@/components/TrustFeatures";
 import Benefits from "@/components/Benefits";
 import HowItWorks from "@/components/HowItWorks";
-import Reassurance from "@/components/Reassurance";
 import FAQ from "@/components/FAQ";
 import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
@@ -15,11 +14,17 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
+
+        {/* ── Calculadora de precio (inline, debajo del hero) ── */}
+        <section className="bform-section" id="calcular">
+          <div className="bform-container">
+            <BookingForm />
+          </div>
+        </section>
+
         <TrustBar />
-        <TrustFeatures />
         <Benefits />
         <HowItWorks />
-        <Reassurance />
         <FAQ />
         <FinalCTA />
       </main>

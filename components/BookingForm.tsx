@@ -9,8 +9,10 @@ import { calcularPrecio, formatoEuros } from "@/lib/pricing";
 import type { DatosReserva } from "@/lib/types";
 
 /**
- * Calculador de precio del hero: fechas, horas, terminal y precio en vivo.
- * Al pulsar el botón valida las fechas y abre el modal de reserva.
+ * Calculadora de precio — tema claro (Pantalla 2 del diseño).
+ * Muestra un formulario de fechas/horas/terminal con previsualización
+ * del precio en vivo. Al pulsar el CTA abre el modal de confirmación
+ * de datos de cliente (BookingModal).
  */
 export default function BookingForm() {
   const [reserva, setReserva] = useState<DatosReserva>({
@@ -24,7 +26,6 @@ export default function BookingForm() {
   });
   const [modalAbierto, setModalAbierto] = useState(false);
 
-  // Precio recalculado en vivo con cada cambio de fecha u hora
   const calculo = useMemo(
     () =>
       calcularPrecio(
@@ -48,115 +49,146 @@ export default function BookingForm() {
 
   return (
     <>
-      <div className="booking-card">
-        <div className="booking-content">
-          <div className="booking-head">
-            <div>
-              <h2>¿Cuándo vuelas?</h2>
-              <p>Calcula tu precio estimado y deja tu reserva lista.</p>
-            </div>
-            <div className="badge">Sin pago anticipado</div>
-          </div>
+      <div className="bform-card">
 
-          <div className="vehicle-toggle" role="radiogroup" aria-label="Tipo de vehículo">
-            <button
-              type="button"
-              className={reserva.vehiculo === "car" ? "active" : ""}
-              onClick={() => actualizar("vehiculo", "car")}
-            >
-              🚗 Coche
-            </button>
-            <button
-              type="button"
-              className={reserva.vehiculo === "moto" ? "active" : ""}
-              onClick={() => actualizar("vehiculo", "moto")}
-            >
-              🏍️ Moto
-            </button>
+        {/* ── Cabecera ── */}
+        <div className="bform-header">
+          <div className="bform-title-row">
+            <div className="bform-title-icon">📅</div>
+            <h2 className="bform-title">¿Cuándo vuelas?</h2>
           </div>
+          <p className="bform-subtitle">
+            Calcula tu precio y reserva en menos de 1 minuto.
+          </p>
+          <div className="bform-trust-badge">
+            <LockIcon /> Sin pago anticipado
+          </div>
+        </div>
 
-          <div className="form-grid">
-            <div className="field">
-              <label htmlFor="entryDate">Fecha entrada</label>
+        {/* ── Campos ── */}
+        <div className="bform-fields">
+          {/* Fila 1: entrada */}
+          <div className="bform-field">
+            <span className="bform-label">Fecha de entrada</span>
+            <div className="bform-icon-wrap">
+              <span className="bform-field-icon"><CalendarIcon /></span>
               <input
-                id="entryDate"
+                className="bform-input"
                 type="date"
                 value={reserva.entryDate}
                 onChange={(e) => actualizar("entryDate", e.target.value)}
+                aria-label="Fecha de entrada"
               />
             </div>
-            <div className="field">
-              <label htmlFor="entryTime">Hora entrada</label>
+          </div>
+
+          <div className="bform-field">
+            <span className="bform-label">Hora de entrada</span>
+            <div className="bform-icon-wrap">
+              <span className="bform-field-icon"><ClockIcon /></span>
               <Select
-                id="entryTime"
-                ariaLabel="Hora entrada"
+                ariaLabel="Hora de entrada"
                 value={reserva.entryTime}
                 opciones={OPCIONES_HORA}
                 onChange={(v) => actualizar("entryTime", v)}
               />
             </div>
-            <div className="field">
-              <label htmlFor="exitDate">Fecha salida</label>
+          </div>
+
+          {/* Fila 2: salida */}
+          <div className="bform-field">
+            <span className="bform-label">Fecha de salida</span>
+            <div className="bform-icon-wrap">
+              <span className="bform-field-icon"><CalendarIcon /></span>
               <input
-                id="exitDate"
+                className="bform-input"
                 type="date"
                 value={reserva.exitDate}
                 onChange={(e) => actualizar("exitDate", e.target.value)}
+                aria-label="Fecha de salida"
               />
             </div>
-            <div className="field">
-              <label htmlFor="exitTime">Hora salida</label>
+          </div>
+
+          <div className="bform-field">
+            <span className="bform-label">Hora de salida</span>
+            <div className="bform-icon-wrap">
+              <span className="bform-field-icon"><ClockIcon /></span>
               <Select
-                id="exitTime"
-                ariaLabel="Hora salida"
+                ariaLabel="Hora de salida"
                 value={reserva.exitTime}
                 opciones={OPCIONES_HORA}
                 onChange={(v) => actualizar("exitTime", v)}
               />
             </div>
-            <div className="field">
-              <label htmlFor="terminalEntrada">Terminal entrada</label>
+          </div>
+
+          {/* Fila 3: terminales */}
+          <div className="bform-field">
+            <span className="bform-label">Terminal de entrada</span>
+            <div className="bform-icon-wrap">
+              <span className="bform-field-icon"><PlaneIcon /></span>
               <Select
-                id="terminalEntrada"
-                ariaLabel="Terminal entrada"
+                ariaLabel="Terminal de entrada"
                 value={reserva.terminalEntrada}
                 opciones={OPCIONES_TERMINAL}
                 onChange={(v) => actualizar("terminalEntrada", v)}
               />
             </div>
-            <div className="field">
-              <label htmlFor="terminalSalida">Terminal salida</label>
+          </div>
+
+          <div className="bform-field">
+            <span className="bform-label">Terminal de salida</span>
+            <div className="bform-icon-wrap">
+              <span className="bform-field-icon"><PlaneIcon /></span>
               <Select
-                id="terminalSalida"
-                ariaLabel="Terminal salida"
+                ariaLabel="Terminal de salida"
                 value={reserva.terminalSalida}
                 opciones={OPCIONES_TERMINAL}
                 onChange={(v) => actualizar("terminalSalida", v)}
               />
             </div>
           </div>
-
-          <div className="price-box">
-            <div>
-              <small>Precio estimado</small>
-              <div className="price">{calculo ? formatoEuros(calculo.total) : "--€"}</div>
-            </div>
-            <div className="days">
-              {calculo
-                ? `${calculo.dias} ${calculo.dias === 1 ? "día estimado" : "días estimados"}`
-                : "Revisa tus fechas"}
-            </div>
-          </div>
-
-          <button type="button" className="btn btn-primary full" onClick={abrirModal}>
-            Ver disponibilidad y reservar
-          </button>
-          <p className="note">
-            Recibirás la confirmación al instante en tu correo. Puedes modificarla antes de viajar.
-          </p>
         </div>
+
+        {/* ── Caja de precio ── */}
+        <div className="bform-price-box">
+          <div className="bform-price-left">
+            <div className="bform-price-label">Precio estimado</div>
+            <div className="bform-price-amount">
+              {calculo ? formatoEuros(calculo.total) : "—€"}
+            </div>
+            <div className="bform-price-iva">IVA incluido</div>
+          </div>
+          <div className="bform-price-divider" />
+          <div className="bform-price-right">
+            <div className="bform-price-days">
+              {calculo ? calculo.dias : "—"}{" "}
+              <span className="bform-price-days-unit">días</span>
+            </div>
+            <div className="bform-price-days-label">de estancia</div>
+          </div>
+        </div>
+
+        {/* ── Botón CTA ── */}
+        <button
+          className="bform-cta"
+          onClick={abrirModal}
+          disabled={!calculo}
+          type="button"
+        >
+          VER DISPONIBILIDAD<br />Y RESERVAR
+        </button>
+
+        {/* ── Nota de confianza ── */}
+        <div className="bform-trust-note">
+          <LockIcon />
+          Sin pago anticipado · Confirmación rápida por WhatsApp
+        </div>
+
       </div>
 
+      {/* ── Modal de datos del cliente ── */}
       {modalAbierto && (
         <BookingModal
           reserva={reserva}
@@ -166,5 +198,80 @@ export default function BookingForm() {
         />
       )}
     </>
+  );
+}
+
+/* ── Iconos SVG inline ──────────────────────────────── */
+
+function CalendarIcon() {
+  return (
+    <svg
+      width="15" height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg
+      width="15" height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
+function PlaneIcon() {
+  return (
+    <svg
+      width="15" height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21 4 19 2c-2-2-4-2-5.5-.5L10 5 1.8 6.2c-.5.1-.9.5-.7 1l.8 1.8c.2.5.6.8 1.1.8h2.8l-1.7 3.9c-.1.4.1.8.5 1.1l2.1 1.5c.4.3.9.3 1.3 0l3.9-2.8v2.8c0 .5.3.9.8 1.1l1.8.8c.5.2.9-.2 1-.7z" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg
+      width="13" height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
   );
 }
