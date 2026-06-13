@@ -7,6 +7,7 @@ import HowItWorks from "@/components/HowItWorks";
 import FAQ from "@/components/FAQ";
 import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
+import StickyButtons from "@/components/StickyButtons";
 
 export default function Home() {
   return (
@@ -29,6 +30,7 @@ export default function Home() {
         <FinalCTA />
       </main>
       <Footer />
+      <StickyButtons />
     </>
   );
 }

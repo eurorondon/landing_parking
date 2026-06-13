@@ -29,12 +29,11 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 body {
   font-family: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--white);
   background: var(--bg);
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 a { color: inherit; text-decoration: none; }
@@ -95,7 +94,54 @@ header {
   gap: 4px;
   padding: 7px 8px;
 }
-.hamburger span { display: block; width: 20px; height: 2px; background: var(--white); border-radius: 2px; }
+.hamburger span { display: block; width: 20px; height: 2px; background: var(--white); border-radius: 2px; transition: transform .25s, opacity .25s; }
+
+/* Hamburguesa animada al estar abierta */
+.hamburger.is-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.hamburger.is-open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger.is-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* ── Menú móvil deslizante ── */
+.mobile-nav-overlay {
+  position: fixed; inset: 0; z-index: 299;
+  background: rgba(0,0,0,.55);
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s;
+}
+.mobile-nav-overlay.is-open { opacity: 1; pointer-events: auto; }
+
+.mobile-nav {
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 300;
+  width: min(80vw, 300px);
+  background: #111827;
+  display: flex; flex-direction: column; gap: 0;
+  padding: 24px 0 32px;
+  transform: translateX(-100%);
+  transition: transform .35s cubic-bezier(.22,1,.36,1);
+  box-shadow: 4px 0 24px rgba(0,0,0,.4);
+}
+.mobile-nav.is-open { transform: translateX(0); }
+
+.mobile-nav-close {
+  align-self: flex-start;
+  margin: 0 20px 16px;
+  background: none; border: none; color: rgba(255,255,255,.6);
+  font-size: 20px; cursor: pointer; line-height: 1;
+  padding: 4px 8px;
+}
+.mobile-nav-close:hover { color: #fff; }
+
+.mobile-nav a {
+  display: block;
+  padding: 14px 24px;
+  color: rgba(255,255,255,.8);
+  font-size: 16px; font-weight: 500;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  text-decoration: none;
+  transition: background .15s, color .15s;
+}
+.mobile-nav a:hover { background: rgba(255,255,255,.06); color: #fff; }
+.mobile-nav .btn { margin: 24px 24px 0; text-align: center; border-bottom: none; }
 
 /* Nav oculto en móvil por defecto; se muestra en escritorio */
 nav { display: none; align-items: center; gap: 28px; font-size: 14px; color: rgba(255,255,255,.72); }
@@ -1025,4 +1071,130 @@ footer a:hover { color: var(--orange); }
   .price-num { font-size: 40px; }
   .hero-feat-item b { font-size: 10px; }
   .stat-text { font-size: 9.5px; }
+}
+
+/* ══════════════════════════════════════════
+   BOTONES STICKY (Teléfono + WhatsApp)
+   ══════════════════════════════════════════ */
+.sticky-btns {
+  position: fixed;
+  bottom: max(24px, calc(env(safe-area-inset-bottom) + 12px));
+  right: max(24px, env(safe-area-inset-right));
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: opacity .3s, transform .3s;
+}
+.sticky-btns--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(16px);
+}
+
+/* Contenedor de cada botón (necesario para posicionar popup/tooltip) */
+.sticky-btn-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* Botón circular común */
+.sticky-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  transition: transform .2s;
+}
+.sticky-btn:hover { transform: scale(1.1); }
+
+/* Colores */
+.sticky-btn--phone { background: #3B82F6; }   /* azul */
+.sticky-btn--wa    { background: #25D366; }   /* verde WhatsApp */
+
+/* ── Popup número de teléfono ── */
+.sticky-phone-popup {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  border: 1px solid rgba(0,0,0,.08);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 190px;
+  animation: popup-in .15s ease;
+  white-space: nowrap;
+}
+@keyframes popup-in {
+  from { opacity: 0; transform: translateY(-50%) translateX(8px); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+.sticky-phone-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #9CA3AF;
+  margin: 0;
+}
+.sticky-phone-number {
+  font-size: 15px;
+  font-weight: 700;
+  color: #3B82F6;
+  text-decoration: none;
+}
+.sticky-phone-number:hover { text-decoration: underline; }
+.sticky-phone-hint {
+  font-size: 11px;
+  color: #9CA3AF;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Tooltip WhatsApp (solo escritorio) ── */
+.sticky-wa-tooltip {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #fff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.12);
+  border: 1px solid rgba(0,0,0,.08);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+.sticky-btn-wrap--wa:hover .sticky-wa-tooltip { opacity: 1; }
+
+@media (max-width: 767px) {
+  /* En móvil el tooltip no se muestra (es táctil) */
+  .sticky-wa-tooltip { display: none; }
+  /* Botones un poco más pequeños en móvil */
+  .sticky-btn { width: 50px; height: 50px; }
+  .sticky-btns {
+    bottom: max(16px, calc(env(safe-area-inset-bottom) + 12px));
+    right: max(16px, env(safe-area-inset-right));
+    gap: 10px;
+  }
 }
