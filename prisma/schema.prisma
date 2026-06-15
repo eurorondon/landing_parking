@@ -1,0 +1,369 @@
+generator client {
+  provider      = "prisma-client-js"
+  // output        = "../node_modules/.prisma/client" // o default
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model agencias {
+  id         Int      @id @default(autoincrement())
+  nombre     String   @default("") @db.VarChar(255)
+  telefono   String?  @db.VarChar(100)
+  movil      String?  @db.VarChar(100)
+  contacto   String?  @db.VarChar(100)
+  direccion  String?  @db.VarChar(255)
+  estatus    Int      @default(1)
+  created_at DateTime @default(now()) @db.DateTime(0)
+  created_by Int      @default(0)
+  updated_at DateTime @default(now()) @db.DateTime(0)
+  updated_by Int      @default(0)
+  clerk_id   String?  @db.VarChar(255)
+}
+
+model auth_assignment {
+  item_name  String    @db.VarChar(64)
+  user_id    String    @db.VarChar(64)
+  created_at Int?
+  auth_item  auth_item @relation(fields: [item_name], references: [name], onDelete: Cascade, map: "auth_assignment_ibfk_1")
+
+  @@id([item_name, user_id])
+  @@index([user_id], map: "idx-auth_assignment-user_id")
+}
+
+model auth_item {
+  name                                              String            @id @db.VarChar(64)
+  type                                              Int               @db.SmallInt
+  description                                       String?           @db.Text
+  rule_name                                         String?           @db.VarChar(64)
+  data                                              Bytes?            @db.Blob
+  created_at                                        Int?
+  updated_at                                        Int?
+  auth_assignment                                   auth_assignment[]
+  auth_rule                                         auth_rule?        @relation(fields: [rule_name], references: [name], map: "auth_item_ibfk_1")
+  auth_item_child_auth_item_child_parentToauth_item auth_item_child[] @relation("auth_item_child_parentToauth_item")
+  auth_item_child_auth_item_child_childToauth_item  auth_item_child[] @relation("auth_item_child_childToauth_item")
+
+  @@index([type], map: "idx-auth_item-type")
+  @@index([rule_name], map: "rule_name")
+}
+
+model auth_item_child {
+  parent                                      String    @db.VarChar(64)
+  child                                       String    @db.VarChar(64)
+  auth_item_auth_item_child_parentToauth_item auth_item @relation("auth_item_child_parentToauth_item", fields: [parent], references: [name], onDelete: Cascade, map: "auth_item_child_ibfk_1")
+  auth_item_auth_item_child_childToauth_item  auth_item @relation("auth_item_child_childToauth_item", fields: [child], references: [name], onDelete: Cascade, map: "auth_item_child_ibfk_2")
+
+  @@id([parent, child])
+  @@index([child], map: "child")
+}
+
+model auth_rule {
+  name       String      @id @db.VarChar(64)
+  data       Bytes?      @db.Blob
+  created_at Int?
+  updated_at Int?
+  auth_item  auth_item[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model clientes {
+  id              Int        @id @default(autoincrement())
+  nombre_completo String     @default("") @db.VarChar(255)
+  correo          String     @default("") @db.VarChar(255)
+  tipo_documento  String?    @db.VarChar(100)
+  nro_documento   String?    @db.VarChar(100)
+  movil           String     @default("") @db.VarChar(100)
+  estatus         Int        @default(1)
+  created_at      DateTime   @default(now()) @db.DateTime(0)
+  created_by      Int?       @default(0)
+  updated_at      DateTime   @default(now()) @db.DateTime(0)
+  updated_by      Int?       @default(0)
+  clerk_id        String?    @unique @db.VarChar(255) // <- nuevo
+  nif             String?    @db.VarChar(100)
+  razon_social    String?    @db.VarChar(255)
+  direccion       String?    @db.VarChar(255)
+  cod_postal      String?    @db.VarChar(10)
+  ciudad          String?    @db.VarChar(255)
+  provincia       String?    @db.VarChar(255)
+  pais            String?    @db.VarChar(255)
+  coches          coches[]
+  reservas        reservas[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model coches {
+  id            Int        @id @default(autoincrement())
+  id_cliente    Int?       @default(0)
+  matricula     String     @default("") @db.VarChar(100)
+  marca         String     @default("") @db.VarChar(100)
+  modelo        String?    @db.VarChar(100)
+  color         String?    @db.VarChar(100)
+  estatus_coche   Int        @default(1)
+  medio_registro  Int?
+  created_at    DateTime   @default(now()) @db.DateTime(0)
+  created_by    Int?       @default(0)
+  updated_at    DateTime   @default(now()) @db.DateTime(0)
+  updated_by    Int?       @default(0)
+  clientes      clientes?  @relation(fields: [id_cliente], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "cliente")
+  reservas      reservas[]
+
+  @@index([id_cliente], map: "cliente")
+}
+
+model conceptos {
+  id          Int     @id @default(autoincrement())
+  descripcion String  @default("") @db.VarChar(255)
+  punitario   Decimal @default(0.00) @db.Decimal(10, 2)
+  cantidad    Decimal @default(0.00) @db.Decimal(10, 2)
+  ptotal      Decimal @default(0.00) @db.Decimal(10, 2)
+  id_factura  Int     @default(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model configuracion {
+  id             Int      @id @default(autoincrement())
+  campo          String   @default("") @db.VarChar(50)
+  valor_numerico Decimal? @default(0.00) @db.Decimal(10, 2)
+  valor_texto    String?  @db.Text
+  estatus        Int      @default(1)
+  tipo_campo     Int      @default(1)
+  tipo_impuesto  Int?     @default(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model facturas {
+  id              Int       @id @default(autoincrement())
+  serie           String    @default("") @db.VarChar(2)
+  nro_factura     Int?
+  nif             String?   @default("") @db.VarChar(100)
+  razon_social    String?   @db.VarChar(255)
+  direccion       String?   @db.VarChar(255)
+  cod_postal      String    @default("") @db.VarChar(5)
+  ciudad          String?   @db.VarChar(255)
+  provincia       String?   @db.VarChar(255)
+  pais            String?   @db.VarChar(255)
+  monto_factura   Decimal   @default(0.00) @db.Decimal(10, 2)
+  monto_impuestos Decimal   @default(0.00) @db.Decimal(10, 2)
+  monto_total     Decimal   @default(0.00) @db.Decimal(10, 2)
+  id_tipo_pago    Int       @default(0)
+  observacion     String?   @db.VarChar(255)
+  estatus         Int       @default(1)
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  created_by      Int?      @default(0)
+  updated_at      DateTime? @db.DateTime(0)
+  updated_by      Int?      @default(0)
+  tipo_pago       tipo_pago @relation(fields: [id_tipo_pago], references: [id], onUpdate: Restrict, map: "facturas_ibfk_1")
+
+  @@index([id_tipo_pago], map: "id_tipo_pago")
+}
+
+model facturas_reserva {
+  id         Int @id @default(autoincrement())
+  id_reserva Int @default(0)
+  id_factura Int @default(0)
+}
+
+model facturas_servicios {
+  id              Int     @id @default(autoincrement())
+  id_factura      Int     @default(0)
+  id_servicio     Int     @default(0)
+  cantidad        Int     @default(0)
+  precio_unitario Decimal @default(0.000) @db.Decimal(10, 3)
+  precio_total    Decimal @default(0.000) @db.Decimal(10, 3)
+  tipo_servicio   Int     @default(0)
+}
+
+model factureros {
+  id             Int     @id @default(autoincrement())
+  serie          String  @default("") @db.VarChar(2)
+  factura_inicio Decimal @default(0) @db.Decimal(20, 0)
+  factura_fin    Decimal @default(0) @db.Decimal(20, 0)
+  estatus        Int     @default(0)
+}
+
+model listas_precios {
+  id       Int     @id @default(autoincrement())
+  nombre   String  @default("") @db.VarChar(255)
+  agregado Decimal @default(0.00) @db.Decimal(10, 2)
+  estatus  Int     @default(1)
+}
+
+model migration {
+  version    String @id @db.VarChar(180)
+  apply_time Int?
+}
+
+model paradas {
+  id           Int      @id @default(autoincrement())
+  fecha_inicio DateTime @db.Date
+  hora_inicio  DateTime @default(dbgenerated("'00:00:00'")) @db.Time(0)
+  fecha_fin    DateTime @db.Date
+  hora_fin     DateTime @default(dbgenerated("'00:00:00'")) @db.Time(0)
+  descripcion  String?  @default("") @db.VarChar(255)
+  status       String   @default("0") @db.VarChar(8)
+}
+
+model precio_temporada {
+  id           Int      @id @default(autoincrement())
+  fecha_inicio DateTime @db.Date
+  hora_inicio  DateTime @default(dbgenerated("'00:00:00'")) @db.Time(0)
+  fecha_fin    DateTime @db.Date
+  hora_fin     DateTime @default(dbgenerated("'00:00:00'")) @db.Time(0)
+  precio       Decimal  @default(0.00) @db.Decimal(10, 2)
+  descripcion  String?  @default("") @db.VarChar(255)
+  status       String   @default("activo") @db.VarChar(11)
+}
+
+model registro_precios {
+  id       Int     @id @default(autoincrement())
+  id_lista Int     @default(0)
+  cantidad Int     @default(0)
+  costo    Decimal @default(0.00) @db.Decimal(10, 2)
+}
+
+model registro_precios2 {
+  id       Int     @id @default(autoincrement())
+  id_lista Int     @default(0)
+  cantidad Int     @default(0)
+  costo    Decimal @default(0.00) @db.Decimal(10, 2)
+}
+
+model reservas {
+  id                     Int       @id @default(autoincrement())
+  nro_reserva            Int
+  fecha_entrada          DateTime  @default(dbgenerated("'1970-01-01'")) @db.Date
+  fecha_entrada_completa DateTime? @db.DateTime(0)
+  hora_entrada           DateTime  @default(dbgenerated("'00:00:00'")) @db.Time(0)
+  fecha_salida           DateTime  @default(dbgenerated("'1970-01-01'")) @db.Date
+  fecha_salida_completa  DateTime? @db.DateTime(0)
+  hora_salida            DateTime  @default(dbgenerated("'00:00:00'")) @db.Time(0)
+  id_cliente             Int       @default(0)
+  id_coche               Int?      @default(0)
+  terminal_entrada       String    @default("") @db.VarChar(255)
+  terminal_salida        String    @default("") @db.VarChar(255)
+  nro_vuelo_regreso      String?   @db.VarChar(255)
+  ciudad_procedencia     String?   @db.VarChar(255)
+  factura_equipaje       Int?
+  observaciones          String?   @db.VarChar(255)
+  factura                Int       @default(0)
+  nif                    String?   @default("") @db.VarChar(100)
+  razon_social           String?   @db.VarChar(255)
+  direccion              String?   @db.VarChar(255)
+  cod_postal             String    @default("") @db.VarChar(5)
+  ciudad                 String?   @db.VarChar(255)
+  provincia              String?   @db.VarChar(255)
+  pais                   String?   @db.VarChar(255)
+  costo_servicios        Decimal   @default(0.00) @db.Decimal(10, 2)
+  costo_servicios_extra  Decimal   @default(0.00) @db.Decimal(10, 2)
+  monto_factura          Decimal   @default(0.00) @db.Decimal(10, 2)
+  monto_impuestos        Decimal   @default(0.00) @db.Decimal(10, 2)
+  descuento              String    @default("NO") @db.VarChar(2)
+  monto_des              Int?      @default(0)
+  monto_total            Decimal   @default(0.00) @db.Decimal(10, 2)
+  id_tipo_pago           Int       @default(0)
+  condiciones            Int       @default(0)
+  cupon                  String?   @db.VarChar(255)
+  porcentaje_cupo        Decimal?  @db.Decimal(10, 2)
+  impreso                String?   @default("NO") @db.VarChar(5)
+  medio_reserva          Int
+  plan                   Int?      @default(0)
+  agencia                String?   @db.VarChar(255)
+  estatus                Int       @default(1)
+  indica_procesada       Int?      @default(0)
+  created_at             DateTime? @default(now()) @db.DateTime(0)
+  created_by             Int?      @default(0)
+  updated_at             DateTime  @default(now()) @db.DateTime(0)
+  updated_by             Int?      @default(0)
+  canceled_by            Int       @default(0)
+  cod_valid              String    @default("0") @db.VarChar(255)
+  pago_confirmado        Int?      @default(0)
+  pago_iniciado_at       DateTime? @db.DateTime(0)
+  ajuste_pago_pendiente  Int?      @default(0)
+  clientes               clientes  @relation(fields: [id_cliente], references: [id], onUpdate: Restrict, map: "clientes")
+  coches                 coches?   @relation(fields: [id_coche], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "coches")
+  tipo_pago              tipo_pago @relation(fields: [id_tipo_pago], references: [id], onUpdate: Restrict, map: "tipo_pago")
+
+  @@index([id_cliente], map: "clientes")
+  @@index([id_coche], map: "coches")
+  @@index([id_tipo_pago], map: "tipo_pago")
+}
+
+model reservas_servicios {
+  id              Int       @id @default(autoincrement())
+  id_reserva      Int?
+  id_servicio     Int       @default(0)
+  cantidad        Int       @default(0)
+  precio_unitario Decimal   @default(0.00) @db.Decimal(10, 2)
+  precio_total    Decimal   @default(0.00) @db.Decimal(10, 2)
+  tipo_servicio   Int       @default(0)
+  servicios       servicios @relation(fields: [id_servicio], references: [id], onUpdate: Restrict, map: "reservas_servicios_ibfk_1")
+
+  @@index([id_servicio], map: "id_servicio")
+}
+
+model servicios {
+  id                 Int                  @id @default(autoincrement())
+  nombre_servicio    String               @default("") @db.VarChar(255)
+  descripcion        String?              @default("") @db.VarChar(255)
+  costo              Decimal              @default(0.00) @db.Decimal(10, 2)
+  costoser           Decimal              @db.Decimal(4, 2)
+  estatus            Int                  @default(1)
+  fijo               Int                  @default(0)
+  id_listas_precios  Int?                 @default(0)
+  reservas_servicios reservas_servicios[]
+}
+
+model tipo_pago {
+  id          Int        @id @default(autoincrement())
+  descripcion String     @default("") @db.VarChar(255)
+  estatus     Int        @default(1)
+  facturas    facturas[]
+  reservas    reservas[]
+}
+
+model user {
+  id                   Int              @id @default(autoincrement())
+  username             String           @unique(map: "username") @db.VarChar(255)
+  auth_key             String           @db.VarChar(32)
+  password_hash        String           @db.VarChar(255)
+  password_reset_token String?          @unique(map: "password_reset_token") @db.VarChar(255)
+  email                String           @unique(map: "email") @db.VarChar(255)
+  status               Int              @default(10) @db.SmallInt
+  created_at           Int
+  updated_at           Int
+  verification_token   String?          @db.VarChar(255)
+  user_afiliados       user_afiliados[]
+}
+
+model user_afiliados {
+  id            Int  @id @default(autoincrement())
+  user_id       Int  @default(0)
+  tipo_afiliado Int  @default(0)
+  user          user @relation(fields: [user_id], references: [id], onUpdate: Restrict, map: "user_afiliados_ibfk_1")
+
+  @@index([user_id], map: "user_id")
+}
+
+model user_cliente {
+  id         Int  @id @default(autoincrement())
+  id_usuario Int? @default(0)
+  id_cliente Int  @default(0)
+}
+
+model encuesta_inicial {
+  id          Int       @id @default(autoincrement())
+  reserva_id  Int       @default(0)
+  pregunta1   Int       @default(0)
+  pregunta2   Int       @default(0)
+  pregunta3   Int       @default(0)
+  respuesta   Int?
+  sugerencias String?
+  created_at  DateTime? @default(now())
+
+  @@map("encuesta_inicial")
+}

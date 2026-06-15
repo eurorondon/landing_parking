@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { calcAdminPrice, type ReservaAdmin } from "@/lib/admin";
-import { genId, getConfig, getReservations, saveReservations } from "@/lib/store";
+import { getConfig, getReservations, saveReservations, createFullReservation } from "@/lib/store";
 
-/** Lista todas las reservas (siembra datos demo la primera vez) */
+/** Lista todas las reservas (desde AppSync o datos demo si no hay config) */
 export async function GET() {
   const reservations = await getReservations(true);
   return NextResponse.json({ ok: true, reservations });
@@ -27,30 +27,27 @@ export async function POST(request: Request) {
   }
 
   const cfg = await getConfig();
-  const nueva: ReservaAdmin = {
-    id: genId(),
-    name: body.name!.trim(),
-    phone: body.phone!.trim(),
-    email: body.email!.trim(),
-    vehicleType: body.vehicleType === "moto" ? "moto" : "car",
-    plate: body.plate!.trim().toUpperCase(),
-    model: (body.model ?? "").trim(),
-    terminal: body.terminal!,
-    checkIn: body.checkIn!,
-    checkOut: body.checkOut!,
-    status: body.status ?? "confirmed",
-    price: calcAdminPrice(cfg, body.vehicleType === "moto" ? "moto" : "car", body.checkIn!, body.checkOut!),
-    notes: (body.notes ?? "").trim(),
-    createdAt: new Date().toISOString(),
-  };
+  const vehicleType = body.vehicleType === "moto" ? "moto" : "car";
 
-  const all = await getReservations(true);
-  all.unshift(nueva);
-  await saveReservations(all);
+  const nueva = await createFullReservation({
+    name:        body.name!.trim(),
+    phone:       body.phone!.trim(),
+    email:       body.email!.trim(),
+    vehicleType,
+    plate:       body.plate!.trim().toUpperCase(),
+    model:       (body.model ?? "").trim(),
+    terminal:    body.terminal!,
+    checkIn:     body.checkIn!,
+    checkOut:    body.checkOut!,
+    status:      body.status ?? "confirmed",
+    price:       calcAdminPrice(cfg, vehicleType, body.checkIn!, body.checkOut!),
+    notes:       (body.notes ?? "").trim(),
+  });
+
   return NextResponse.json({ ok: true, reservation: nueva });
 }
 
-/** Borra TODAS las reservas (zona de peligro de Configuración) */
+/** Borra TODAS las reservas (zona de peligro en Configuración) */
 export async function DELETE() {
   await saveReservations([]);
   return NextResponse.json({ ok: true });

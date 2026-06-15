@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { calcAdminPrice, type ReservaAdmin } from "@/lib/admin";
-import { getConfig, getReservations, saveReservations } from "@/lib/store";
+import {
+  getConfig,
+  getReservationById,
+  updateReservationById,
+  deleteReservationById,
+} from "@/lib/store";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -14,30 +19,39 @@ export async function PATCH(request: Request, { params }: Params) {
     return NextResponse.json({ ok: false, error: "JSON no válido" }, { status: 400 });
   }
 
-  const all = await getReservations();
-  const idx = all.findIndex((r) => r.id === id);
-  if (idx === -1) {
+  // Obtener el estado actual de la reserva (necesario para el recálculo de precio)
+  const actual = await getReservationById(id);
+  if (!actual) {
     return NextResponse.json({ ok: false, error: "Reserva no encontrada" }, { status: 404 });
   }
 
-  const actualizada: ReservaAdmin = { ...all[idx], ...body, id };
-  if (actualizada.plate) actualizada.plate = actualizada.plate.toUpperCase();
-
-  // Si cambian fechas o tipo de vehículo, se recalcula el precio con las tarifas del panel
+  // Si cambian fechas o tipo de vehículo, recalcular el precio con las tarifas del panel
   if (body.checkIn || body.checkOut || body.vehicleType) {
-    const cfg = await getConfig();
-    actualizada.price = calcAdminPrice(cfg, actualizada.vehicleType, actualizada.checkIn, actualizada.checkOut);
+    const cfg     = await getConfig();
+    const tipo    = body.vehicleType ?? actual.vehicleType;
+    const entrada = body.checkIn     ?? actual.checkIn;
+    const salida  = body.checkOut    ?? actual.checkOut;
+    body = { ...body, price: calcAdminPrice(cfg, tipo, entrada, salida) };
   }
+  if (body.plate) body.plate = body.plate.toUpperCase();
 
-  all[idx] = actualizada;
-  await saveReservations(all);
-  return NextResponse.json({ ok: true, reservation: actualizada });
+  try {
+    const actualizada = await updateReservationById(id, body);
+    return NextResponse.json({ ok: true, reservation: actualizada });
+  } catch (err) {
+    console.error("[admin/reservas/[id]] PATCH:", err);
+    return NextResponse.json({ ok: false, error: "Error al actualizar" }, { status: 500 });
+  }
 }
 
 /** Elimina una reserva */
 export async function DELETE(_request: Request, { params }: Params) {
   const { id } = await params;
-  const all = await getReservations();
-  await saveReservations(all.filter((r) => r.id !== id));
-  return NextResponse.json({ ok: true });
+  try {
+    await deleteReservationById(id);
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[admin/reservas/[id]] DELETE:", err);
+    return NextResponse.json({ ok: false, error: "Error al eliminar" }, { status: 500 });
+  }
 }

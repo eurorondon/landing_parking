@@ -3,26 +3,20 @@ import { NEGOCIO } from "@/lib/config";
 import { formatoLegible } from "@/lib/datetime";
 import { formatoEuros } from "@/lib/pricing";
 import type { ReservaCompleta } from "@/lib/types";
-import type { ReservaAdmin } from "@/lib/admin";
-import { genId, getConfig, getReservations, saveReservations } from "@/lib/store";
+import { getConfig, createFullReservation } from "@/lib/store";
 
 /**
  * ============================================================
- *  API DE RESERVAS — envío de correo al dueño del parking
+ *  API DE RESERVAS — guarda en AppSync + envía correos
  *
- *  CÓMO ACTIVAR EL ENVÍO REAL (con Resend, recomendado):
- *  1. Crear cuenta gratuita en https://resend.com
- *  2. Verificar el dominio del negocio (o usar onboarding@resend.dev para pruebas)
- *  3. Crear un archivo .env.local en la raíz con:
- *       RESEND_API_KEY=re_xxxxxxxxxxxx
- *       EMAIL_FROM="Parking Aero Madrid <reservas@parkingaeromadrid.es>"
- *  4. El email del dueño (destinatario) se cambia en lib/config.ts → NEGOCIO.emailDueno
+ *  La reserva se persiste en la misma base de datos DynamoDB que
+ *  usa el panel parkingplus-dashboard (User + Vehicle + ParkingSession).
  *
- *  Sin RESEND_API_KEY la API no falla: registra la reserva en la
- *  consola del servidor y responde OK (modo desarrollo).
- *
- *  ALTERNATIVA CON NODEMAILER (SMTP propio): ver bloque comentado
- *  al final de este archivo.
+ *  Variables necesarias en .env.local:
+ *    APPSYNC_ENDPOINT=https://...appsync-api.us-east-1.amazonaws.com/graphql
+ *    APPSYNC_API_KEY=da2-xxxx   (renovar en consola AWS AppSync si expiró)
+ *    RESEND_API_KEY=re_xxxx     (opcional — para envío real de correos)
+ *    EMAIL_FROM="Parking Aero Madrid <reservas@parkingaeromadrid.es>"
  * ============================================================
  */
 
@@ -34,7 +28,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "JSON no válido" }, { status: 400 });
   }
 
-  // Validación básica en servidor (no confiar solo en el cliente)
+  // Validación básica en servidor
   const camposObligatorios: (keyof ReservaCompleta)[] = [
     "entrada", "salida", "terminalEntrada", "terminalSalida",
     "nombre", "email", "telefono", "matricula", "modelo",
@@ -43,53 +37,48 @@ export async function POST(request: Request) {
   if (faltan.length > 0) {
     return NextResponse.json(
       { ok: false, error: `Faltan campos: ${faltan.join(", ")}` },
-      { status: 400 }
+      { status: 400 },
     );
   }
   if (new Date(reserva.salida) <= new Date(reserva.entrada)) {
     return NextResponse.json(
       { ok: false, error: "La salida debe ser posterior a la entrada" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  // ── Registrar la reserva en el panel de administración (estado: Pendiente) ──
+  // ── Persistir en AppSync (misma BD que el panel) ──────────────────────────
   const cfg = await getConfig();
-  const nuevaReserva: ReservaAdmin = {
-    id: genId(),
-    name: reserva.nombre.trim(),
-    phone: reserva.telefono.trim(),
-    email: reserva.email.trim(),
-    vehicleType: reserva.vehiculo === "moto" ? "moto" : "car",
-    plate: reserva.matricula.trim().toUpperCase(),
-    model: reserva.modelo.trim(),
-    // El panel maneja una sola terminal: guardamos la de entrada y
-    // dejamos la de salida anotada en las notas.
-    terminal: reserva.terminalEntrada,
-    checkIn: reserva.entrada,
-    checkOut: reserva.salida,
-    // La reserva entra ya confirmada: el cliente recibe el email de
-    // confirmación automáticamente al reservar.
-    status: "confirmed",
-    price: reserva.total,
-    notes: `Recibida desde la web · Terminal salida: ${reserva.terminalSalida}`,
-    createdAt: new Date().toISOString(),
-  };
-  const todas = await getReservations();
-  todas.unshift(nuevaReserva);
-  await saveReservations(todas);
+  try {
+    await createFullReservation({
+      name:        reserva.nombre.trim(),
+      phone:       reserva.telefono.trim(),
+      email:       reserva.email.trim(),
+      vehicleType: reserva.vehiculo === "moto" ? "moto" : "car",
+      plate:       reserva.matricula.trim().toUpperCase(),
+      model:       reserva.modelo.trim(),
+      terminal:    reserva.terminalEntrada,
+      checkIn:     reserva.entrada,
+      checkOut:    reserva.salida,
+      status:      "confirmed",
+      price:       reserva.total,
+      notes:       `Recibida desde la web · Terminal salida: ${reserva.terminalSalida}`,
+    });
+  } catch (err) {
+    // No interrumpimos el flujo: el email de confirmación sigue enviándose
+    console.error("[reserva] Error al guardar en AppSync:", err);
+  }
 
+  // ── Envío de correos ───────────────────────────────────────────────────────
   const apiKey = process.env.RESEND_API_KEY;
   const emailDueno = cfg.ownerEmail || NEGOCIO.emailDueno;
 
   if (!apiKey) {
-    // Modo desarrollo: sin clave de Resend, solo registramos la reserva.
     console.log("📩 [SIMULADO] Reserva confirmada (configura RESEND_API_KEY para envío real):");
     console.log(JSON.stringify(reserva, null, 2));
     return NextResponse.json({ ok: true, simulado: true });
   }
 
-  /** Envío con la API HTTP de Resend (sin dependencias extra) */
   const enviarEmail = (destinatario: string, replyTo: string, subject: string, html: string) =>
     fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -98,8 +87,8 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM ?? "Parking Aero Madrid <onboarding@resend.dev>",
-        to: [destinatario],
+        from:     process.env.EMAIL_FROM ?? "Parking Aero Madrid <onboarding@resend.dev>",
+        to:       [destinatario],
         reply_to: replyTo,
         subject,
         html,
@@ -107,31 +96,30 @@ export async function POST(request: Request) {
     });
 
   try {
-    // 1. Confirmación al cliente: este correo ES la confirmación de la reserva
+    // 1. Confirmación al cliente
     const resCliente = await enviarEmail(
       reserva.email,
-      emailDueno, // responder al correo contacta con el parking
+      emailDueno,
       `✅ Reserva confirmada · ${NEGOCIO.nombre} · ${formatoLegible(reserva.entrada)}`,
-      construirEmailCliente(reserva)
+      construirEmailCliente(reserva),
     );
     if (!resCliente.ok) {
       const detalle = await resCliente.text();
       console.error("Error de Resend (confirmación al cliente):", detalle);
       return NextResponse.json(
         { ok: false, error: "No se pudo enviar la confirmación" },
-        { status: 502 }
+        { status: 502 },
       );
     }
 
-    // 2. Aviso al dueño del parking (configurado en /admin → Configuración)
+    // 2. Aviso al dueño del parking
     const resDueno = await enviarEmail(
       emailDueno,
-      reserva.email, // responder al aviso va directo al cliente
+      reserva.email,
       `🚗 Nueva reserva: ${reserva.nombre} · ${formatoLegible(reserva.entrada)} · ${reserva.terminalEntrada}`,
-      construirEmailHtml(reserva)
+      construirEmailHtml(reserva),
     );
     if (!resDueno.ok) {
-      // La confirmación al cliente ya salió: registramos el fallo sin romper la reserva
       console.error("Error de Resend (aviso al dueño):", await resDueno.text());
     }
 
@@ -142,7 +130,7 @@ export async function POST(request: Request) {
   }
 }
 
-/** Correo de confirmación que recibe el cliente al completar la reserva */
+/** Correo de confirmación que recibe el cliente */
 function construirEmailCliente(r: ReservaCompleta): string {
   const fila = (etiqueta: string, valor: string) => `
     <tr>
@@ -160,12 +148,12 @@ function construirEmailCliente(r: ReservaCompleta): string {
         Hola ${r.nombre}: hemos registrado tu reserva. Estos son los datos:
       </p>
       <table style="width:100%;border-collapse:collapse;">
-        ${fila("Entrada", formatoLegible(r.entrada))}
-        ${fila("Salida", formatoLegible(r.salida))}
+        ${fila("Entrada",          formatoLegible(r.entrada))}
+        ${fila("Salida",           formatoLegible(r.salida))}
         ${fila("Terminal entrada", r.terminalEntrada)}
-        ${fila("Terminal salida", r.terminalSalida)}
-        ${fila("Vehículo", `${r.vehiculo === "moto" ? "🏍️ Moto" : "🚗 Coche"} · ${r.modelo} · ${r.matricula}`)}
-        ${fila("Total estimado", formatoEuros(r.total))}
+        ${fila("Terminal salida",  r.terminalSalida)}
+        ${fila("Vehículo",         `${r.vehiculo === "moto" ? "🏍️ Moto" : "🚗 Coche"} · ${r.modelo} · ${r.matricula}`)}
+        ${fila("Total estimado",   formatoEuros(r.total))}
       </table>
       <p style="padding:8px 12px 0;color:#334155;font-size:14px;line-height:1.6;">
         💳 No pagas nada por adelantado: el pago se realiza al entregar el vehículo.<br>
@@ -176,7 +164,7 @@ function construirEmailCliente(r: ReservaCompleta): string {
   </div>`;
 }
 
-/** Plantilla HTML del correo que recibe el dueño del parking */
+/** Correo de aviso al dueño del parking */
 function construirEmailHtml(r: ReservaCompleta): string {
   const fila = (etiqueta: string, valor: string) => `
     <tr>
@@ -192,53 +180,22 @@ function construirEmailHtml(r: ReservaCompleta): string {
     <div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;padding:8px 12px 16px;">
       <h2 style="font-size:14px;color:#334155;padding:8px 12px 0;">📅 Datos de la reserva</h2>
       <table style="width:100%;border-collapse:collapse;">
-        ${fila("Entrada", formatoLegible(r.entrada))}
-        ${fila("Salida", formatoLegible(r.salida))}
+        ${fila("Entrada",          formatoLegible(r.entrada))}
+        ${fila("Salida",           formatoLegible(r.salida))}
         ${fila("Terminal entrada", r.terminalEntrada)}
-        ${fila("Terminal salida", r.terminalSalida)}
-        ${fila("Días", String(r.dias))}
-        ${fila("Precio total", formatoEuros(r.total))}
+        ${fila("Terminal salida",  r.terminalSalida)}
+        ${fila("Días",             String(r.dias))}
+        ${fila("Precio total",     formatoEuros(r.total))}
       </table>
       <h2 style="font-size:14px;color:#334155;padding:8px 12px 0;">👤 Datos del cliente</h2>
       <table style="width:100%;border-collapse:collapse;">
-        ${fila("Nombre", r.nombre)}
-        ${fila("Email", r.email)}
+        ${fila("Nombre",   r.nombre)}
+        ${fila("Email",    r.email)}
         ${fila("Teléfono", r.telefono)}
         ${fila("Vehículo", r.vehiculo === "moto" ? "🏍️ Moto" : "🚗 Coche")}
         ${fila("Matrícula", r.matricula)}
-        ${fila("Modelo", r.modelo)}
+        ${fila("Modelo",    r.modelo)}
       </table>
     </div>
   </div>`;
 }
-
-/*
- * ============================================================
- *  ALTERNATIVA: envío con NODEMAILER (SMTP propio)
- *
- *  1. npm install nodemailer
- *  2. Variables en .env.local:
- *       SMTP_HOST=smtp.tudominio.es
- *       SMTP_PORT=465
- *       SMTP_USER=reservas@tudominio.es
- *       SMTP_PASS=xxxxxxxx
- *  3. Sustituir el bloque de fetch a Resend por:
- *
- *  import nodemailer from "nodemailer";
- *
- *  const transporter = nodemailer.createTransport({
- *    host: process.env.SMTP_HOST,
- *    port: Number(process.env.SMTP_PORT),
- *    secure: true,
- *    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
- *  });
- *
- *  await transporter.sendMail({
- *    from: `"${NEGOCIO.nombre}" <${process.env.SMTP_USER}>`,
- *    to: NEGOCIO.emailDueno,
- *    replyTo: reserva.email,
- *    subject: asunto,
- *    html,
- *  });
- * ============================================================
- */
