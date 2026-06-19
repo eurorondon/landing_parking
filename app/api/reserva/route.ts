@@ -7,14 +7,13 @@ import { getConfig, createFullReservation } from "@/lib/store";
 
 /**
  * ============================================================
- *  API DE RESERVAS — guarda en AppSync + envía correos
+ *  API DE RESERVAS — guarda en MySQL/Prisma + envía correos
  *
- *  La reserva se persiste en la misma base de datos DynamoDB que
- *  usa el panel parkingplus-dashboard (User + Vehicle + ParkingSession).
+ *  La reserva se persiste en la misma base de datos MySQL que
+ *  usa el panel parkingplus-dashboard (tablas: clientes, coches, reservas).
  *
  *  Variables necesarias en .env.local:
- *    APPSYNC_ENDPOINT=https://...appsync-api.us-east-1.amazonaws.com/graphql
- *    APPSYNC_API_KEY=da2-xxxx   (renovar en consola AWS AppSync si expiró)
+ *    DATABASE_URL=mysql://user:pass@host:3306/nombre_db
  *    RESEND_API_KEY=re_xxxx     (opcional — para envío real de correos)
  *    EMAIL_FROM="Parking Aero Madrid <reservas@parkingaeromadrid.es>"
  * ============================================================
@@ -47,7 +46,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // ── Persistir en AppSync (misma BD que el panel) ──────────────────────────
+  // ── Persistir en MySQL via Prisma (misma BD que el panel) ────────────────
   const cfg = await getConfig();
   try {
     await createFullReservation({
@@ -66,7 +65,7 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     // No interrumpimos el flujo: el email de confirmación sigue enviándose
-    console.error("[reserva] Error al guardar en AppSync:", err);
+    console.error("[reserva] Error al guardar en BD:", err);
   }
 
   // ── Envío de correos ───────────────────────────────────────────────────────

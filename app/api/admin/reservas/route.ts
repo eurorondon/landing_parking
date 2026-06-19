@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { calcAdminPrice, type ReservaAdmin } from "@/lib/admin";
 import { getConfig, getReservations, saveReservations, createFullReservation } from "@/lib/store";
 
-/** Lista todas las reservas (desde AppSync o datos demo si no hay config) */
+/** Lista todas las reservas (desde MySQL/Prisma o datos demo si no hay DATABASE_URL) */
 export async function GET() {
   const reservations = await getReservations(true);
   return NextResponse.json({ ok: true, reservations });

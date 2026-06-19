@@ -297,9 +297,15 @@ export async function createFullReservation(params: {
   });
   const nroReserva = (ultima?.nro_reserva ?? 10000) + Math.floor(Math.random() * 20) + 1;
 
-  // 4. tipo_pago por defecto (primer tipo activo)
-  const tipoPago = await db.tipo_pago.findFirst({ where: { estatus: 1 } });
-  const idTipoPago = tipoPago?.id ?? 1;
+  // 4. tipo_pago por defecto (primer activo; si la tabla está vacía, lo crea)
+  let tipoPago = await db.tipo_pago.findFirst({ where: { estatus: 1 } });
+  if (!tipoPago) tipoPago = await db.tipo_pago.findFirst();
+  if (!tipoPago) {
+    tipoPago = await db.tipo_pago.create({
+      data: { descripcion: "Efectivo", estatus: 1 },
+    });
+  }
+  const idTipoPago = tipoPago.id;
 
   // 5. Fechas
   const checkInDate  = new Date(params.checkIn);
