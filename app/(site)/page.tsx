@@ -5,6 +5,7 @@ import TrustBar from "@/components/TrustBar";
 import Benefits from "@/components/Benefits";
 import HowItWorks from "@/components/HowItWorks";
 import FAQ from "@/components/FAQ";
+import SeoHubSection from "@/components/SeoHubSection";
 import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
 import StickyButtons from "@/components/StickyButtons";
@@ -27,6 +28,10 @@ export default function Home() {
         <Benefits />
         <HowItWorks />
         <FAQ />
+
+        {/* ── Hub de enlaces internos: landing SEO + blog ── */}
+        <SeoHubSection />
+
         <FinalCTA />
       </main>
       <Footer />

@@ -1199,6 +1199,91 @@ footer a:hover { color: var(--orange); }
   }
 }
 
+/* ══════════════════════════════════════════
+   SEO HUB SECTION (homepage)
+   ══════════════════════════════════════════ */
+
+.seo-hub-section {
+  padding: 80px 0;
+  background: var(--bg-card-s);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.seo-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 40px;
+}
+
+.seo-hub-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+  text-decoration: none;
+  color: var(--white);
+  transition: border-color .2s, background .2s, transform .2s;
+}
+
+.seo-hub-card:hover {
+  border-color: var(--orange);
+  background: rgba(255, 149, 0, .06);
+  transform: translateY(-2px);
+}
+
+.seo-hub-emoji {
+  font-size: 28px;
+  line-height: 1;
+  transition: transform .2s;
+}
+
+.seo-hub-card:hover .seo-hub-emoji {
+  transform: scale(1.15);
+}
+
+.seo-hub-label {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--gray);
+  line-height: 1.35;
+}
+
+.seo-hub-blog-link {
+  text-align: center;
+}
+
+.seo-hub-blog-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 24px;
+  border: 1px solid rgba(255, 149, 0, .4);
+  border-radius: 999px;
+  color: var(--orange);
+  font-size: .9rem;
+  font-weight: 600;
+  transition: background .2s, color .2s;
+}
+
+.seo-hub-blog-btn:hover {
+  background: var(--orange);
+  color: #000;
+  border-color: var(--orange);
+}
+
+@media (max-width: 640px) {
+  .seo-hub-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .seo-hub-section { padding: 60px 0; }
+  .seo-hub-card { padding: 18px 10px; }
+}
+
 /* ============================================================
    PÁGINAS SEO — secciones específicas de las landing comerciales
    ============================================================ */
@@ -1360,4 +1445,237 @@ footer a:hover { color: var(--orange); }
   .seo-internal-links { padding: 48px 0; }
   .seo-faq-section { padding: 48px 0; }
   .seo-h2 { font-size: 1.25rem; }
+}
+
+/* ──────────────────────────────────────────
+   BLOG ARTICLES
+   ────────────────────────────────────────── */
+
+.blog-hero {
+  padding: 120px 0 64px;
+  background: var(--bg-card-s);
+  border-bottom: 1px solid var(--border);
+}
+
+.blog-h1 {
+  font-size: clamp(24px, 3.2vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: var(--white);
+  margin: 16px 0 20px;
+  max-width: 860px;
+}
+
+.blog-intro {
+  font-size: 1.05rem;
+  color: var(--gray);
+  line-height: 1.75;
+  max-width: 720px;
+}
+
+@media (max-width: 768px) {
+  .blog-hero   { padding: 88px 0 40px; }
+  .blog-h1     { font-size: 1.55rem; }
+  .blog-intro  { font-size: .95rem; }
+}
+
+/* ── Blog index ── */
+.blog-index-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.blog-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color .2s, transform .2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.blog-card:hover {
+  border-color: var(--orange);
+  transform: translateY(-2px);
+}
+
+.blog-card-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--orange);
+  text-transform: uppercase;
+}
+
+.blog-card h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.blog-card p {
+  font-size: .88rem;
+  color: var(--gray);
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+}
+
+.blog-card-arrow {
+  font-size: 18px;
+  color: var(--orange);
+  align-self: flex-end;
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .blog-index-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Blog article page ── */
+
+.blog-article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  color: var(--gray-dim);
+  font-size: .82rem;
+  margin-bottom: 20px;
+}
+
+.blog-article-meta time,
+.blog-article-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.blog-intro-box {
+  border-left: 3px solid var(--orange);
+  padding-left: 20px;
+  margin-top: 4px;
+}
+
+/* FAQ accordion (blog articles) */
+.blog-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 760px;
+}
+
+.blog-faq-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color .2s;
+}
+
+.blog-faq-item[open] {
+  border-color: rgba(255,149,0,.4);
+}
+
+.blog-faq-q {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 17px 20px;
+  font-weight: 600;
+  color: var(--white);
+  cursor: pointer;
+  font-size: .93rem;
+  line-height: 1.4;
+}
+
+.blog-faq-q::-webkit-details-marker { display: none; }
+.blog-faq-q::marker { display: none; }
+
+.blog-faq-chevron {
+  font-size: 16px;
+  color: var(--orange);
+  flex-shrink: 0;
+  transition: transform .25s;
+}
+
+.blog-faq-item[open] .blog-faq-chevron {
+  transform: rotate(180deg);
+}
+
+.blog-faq-a {
+  padding: 0 20px 17px;
+  color: var(--gray);
+  line-height: 1.7;
+  font-size: .9rem;
+}
+
+/* Related posts block */
+.blog-related-posts {
+  padding: 64px 0;
+  border-top: 1px solid var(--border);
+}
+
+.blog-posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.blog-post-link {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color .2s, transform .2s;
+}
+
+.blog-post-link:hover {
+  border-color: var(--orange);
+  transform: translateY(-2px);
+}
+
+.blog-post-link-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--orange);
+  text-transform: uppercase;
+}
+
+.blog-post-link h3 {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.blog-post-link-arrow {
+  margin-top: auto;
+  padding-top: 8px;
+  font-size: 16px;
+  color: var(--orange);
+}
+
+@media (max-width: 640px) {
+  .blog-posts-grid { grid-template-columns: 1fr; }
+  .blog-related-posts { padding: 48px 0; }
 }
