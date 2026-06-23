@@ -31,10 +31,11 @@ export default function Header() {
 
         {/* Navegación — visible solo en escritorio (CSS) */}
         <nav>
-          <a href="#como-funciona">Cómo funciona</a>
-          <a href="#ventajas">Ventajas</a>
-          <a href="#faq">FAQ</a>
-          <a href="#contacto">Contacto</a>
+          <a href="/#como-funciona">Cómo funciona</a>
+          <a href="/#ventajas">Ventajas</a>
+          <a href="/parking-barajas/">Parking Barajas</a>
+          <a href="/#faq">FAQ</a>
+          <a href="/#contacto">Contacto</a>
         </nav>
 
         <div className="header-right">
@@ -69,10 +70,11 @@ export default function Header() {
         <button className="mobile-nav-close" aria-label="Cerrar menú" onClick={close}>
           ✕
         </button>
-        <a href="#como-funciona" onClick={close}>Cómo funciona</a>
-        <a href="#ventajas" onClick={close}>Ventajas</a>
-        <a href="#faq" onClick={close}>FAQ</a>
-        <a href="#contacto" onClick={close}>Contacto</a>
+        <a href="/#como-funciona" onClick={close}>Cómo funciona</a>
+        <a href="/#ventajas" onClick={close}>Ventajas</a>
+        <a href="/parking-barajas/" onClick={close}>Parking Barajas</a>
+        <a href="/#faq" onClick={close}>FAQ</a>
+        <a href="/#contacto" onClick={close}>Contacto</a>
         <a className="btn btn-primary" href="#calcular" onClick={close}>
           Reservar ahora
         </a>
