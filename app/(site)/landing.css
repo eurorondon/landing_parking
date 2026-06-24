@@ -879,6 +879,19 @@ footer a:hover { color: var(--orange); }
 }
 .bform-card .select-chevron { color: #ccc; }
 
+/* Aviso nocturnidad */
+.bform-nocturno-aviso {
+  display: flex; align-items: flex-start; gap: 8px;
+  margin: 0 22px 4px;
+  padding: 10px 14px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  color: #92400e;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
 /* Caja de precio */
 .bform-price-box {
   display: flex; align-items: center; gap: 0;

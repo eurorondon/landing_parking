@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Select from "./ui/Select";
 import { OPCIONES_TERMINAL } from "@/lib/config";
 import { OPCIONES_HORA } from "@/lib/datetime";
-import { calculateRawParkingDays, formatoEuros, type CalculoPrecio } from "@/lib/pricing";
+import { calculateRawParkingDays, aplicaNocturnidad, formatoEuros, type CalculoPrecio } from "@/lib/pricing";
 import type { DatosCliente, DatosReserva } from "@/lib/types";
 
 interface Props {
@@ -63,13 +63,20 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
       setCalculo(null);
       return;
     }
-    const dias = calculateRawParkingDays(entrada, salida);
+    const dias     = calculateRawParkingDays(entrada, salida);
+    const nocturno = aplicaNocturnidad(reserva.entryTime, reserva.exitTime);
     if (dias <= 0) { setCalculo(null); return; }
 
-    fetch(`/api/precio?dias=${dias}`)
+    fetch(`/api/precio?dias=${dias}${nocturno ? "&nocturno=1" : ""}`)
       .then((r) => r.ok ? r.json() : Promise.reject())
-      .then((data: { costo_parking: number; costo_seguro: number; total: number }) => {
-        setCalculo({ dias, costoParking: data.costo_parking, costoSeguro: data.costo_seguro, total: data.total });
+      .then((data: { costo_parking: number; costo_seguro: number; costo_nocturnidad: number; total: number }) => {
+        setCalculo({
+          dias,
+          costoParking:     data.costo_parking,
+          costoSeguro:      data.costo_seguro,
+          costoNocturnidad: nocturno ? data.costo_nocturnidad : 0,
+          total:            data.total,
+        });
       })
       .catch(() => setCalculo(null));
   }, [reserva.entryDate, reserva.entryTime, reserva.exitDate, reserva.exitTime]);
@@ -247,6 +254,12 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
               <span>Seguro de vehículo</span>
               <strong>{calculo ? formatoEuros(calculo.costoSeguro) : "—"}</strong>
             </div>
+            {calculo && calculo.costoNocturnidad > 0 && (
+              <div className="summary-item" style={{ gridColumn: "1/-1", color: "#d97706" }}>
+                <span>🌙 Recargo nocturno (00:30–03:30)</span>
+                <strong>{formatoEuros(calculo.costoNocturnidad)}</strong>
+              </div>
+            )}
             <div className="summary-item" style={{ gridColumn: "1/-1", borderTop: "1px solid #e2e8f0", paddingTop: 8, marginTop: 4 }}>
               <span><strong>Total estimado</strong></span>
               <strong style={{ fontSize: "1.1em" }}>{calculo ? formatoEuros(calculo.total) : "—"}</strong>

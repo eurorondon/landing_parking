@@ -2,13 +2,14 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 /**
- * GET /api/precio?dias=N
+ * GET /api/precio?dias=N[&nocturno=1]
  *
  * Replica exacta de la lógica del dashboard (parkingplus-dashboard)
  * usando las mismas tablas del schema Prisma compartido:
- *   - registro_precios   → precio base por días
- *   - precio_temporada   → suplemento de temporada (si está activo)
- *   - servicios id=4     → coste del seguro
+ *   - registro_precios    → precio base por días
+ *   - precio_temporada    → suplemento de temporada (si está activo)
+ *   - servicios id=4      → coste del seguro
+ *   - servicios id=11     → coste del suplemento nocturno (00:30–03:30)
  *
  * Lógica de bloques (igual que Yii2):
  *   1-18 días   → N × precioDia + planCosto  [+ N × temporadaRate]
@@ -16,7 +17,8 @@ import { NextResponse } from "next/server";
  *   >30 días    → bloques de 30; resto >= 18 → bloque completo,
  *                 resto < 18 → resto × precioDia (sin temporada)
  *
- * Responde: { costo_parking, costo_seguro, total }
+ * Responde: { costo_parking, costo_seguro, costo_nocturnidad, total }
+ * Cuando nocturno=1, costo_nocturnidad se suma al total.
  */
 
 function calcularPrecioParking(
@@ -51,29 +53,33 @@ function calcularPrecioParking(
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    // Recibe los días de parking ya calculados (usar calculateRawParkingDays en cliente)
-    const dias = parseInt(searchParams.get("dias") || "0", 10);
+    // Días de parking ya calculados (usar calculateRawParkingDays en cliente)
+    const dias     = parseInt(searchParams.get("dias")    || "0", 10);
+    const nocturno = searchParams.get("nocturno") === "1";
 
-    // Coste del seguro (servicio id=4)
-    const seguro = await prisma.servicios.findFirst({
-      where: { id: 4 },
-      select: { costo: true },
-    });
-    const costoSeguro = Number(seguro?.costo || 0);
+    // Consultar seguro (id=4) y nocturnidad (id=11) en paralelo
+    const [seguro, nocturnidadSvc] = await Promise.all([
+      prisma.servicios.findFirst({ where: { id: 4  }, select: { costo: true } }),
+      prisma.servicios.findFirst({ where: { id: 11 }, select: { costo: true } }),
+    ]);
+
+    const costoSeguro      = Number(seguro?.costo      || 0);
+    const costoNocturnidad = Number(nocturnidadSvc?.costo || 10); // fallback 10 € si no existe en BD
 
     if (dias <= 0) {
-      return NextResponse.json({ costo_parking: 0, costo_seguro: costoSeguro, total: costoSeguro });
+      const total = costoSeguro + (nocturno ? costoNocturnidad : 0);
+      return NextResponse.json({ costo_parking: 0, costo_seguro: costoSeguro, costo_nocturnidad: costoNocturnidad, total });
     }
 
     // Derivar precioDia, planCosto y precioBloque desde la tabla
     const [r1, r2, r30] = await Promise.all([
-      prisma.registro_precios.findFirst({ where: { cantidad: 1 } }),
-      prisma.registro_precios.findFirst({ where: { cantidad: 2 } }),
+      prisma.registro_precios.findFirst({ where: { cantidad: 1  } }),
+      prisma.registro_precios.findFirst({ where: { cantidad: 2  } }),
       prisma.registro_precios.findFirst({ where: { cantidad: 30 } }),
     ]);
 
-    const precioDia  = r1 && r2 ? Number(r2.costo) - Number(r1.costo) : 7;
-    const planCosto  = r1 ? Number(r1.costo) - precioDia : 23.98;
+    const precioDia    = r1 && r2 ? Number(r2.costo) - Number(r1.costo) : 7;
+    const planCosto    = r1 ? Number(r1.costo) - precioDia : 23.98;
     const precioBloque = r30 ? Number(r30.costo) : 18 * precioDia + planCosto;
 
     // Suplemento de temporada activa
@@ -99,10 +105,13 @@ export async function GET(request: Request) {
       costoParking = calcularPrecioParking(dias, precioBloque, precioDia, planCosto, temporadaRate);
     }
 
+    const total = costoParking + costoSeguro + (nocturno ? costoNocturnidad : 0);
+
     return NextResponse.json({
-      costo_parking: costoParking,
-      costo_seguro:  costoSeguro,
-      total:         costoParking + costoSeguro,
+      costo_parking:     costoParking,
+      costo_seguro:      costoSeguro,
+      costo_nocturnidad: costoNocturnidad,  // siempre devuelto; cliente decide si aplica
+      total,
     });
   } catch (error) {
     console.error("[api/precio] Error:", error);

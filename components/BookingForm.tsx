@@ -5,14 +5,19 @@ import BookingModal from "./BookingModal";
 import Select from "./ui/Select";
 import { OPCIONES_TERMINAL } from "@/lib/config";
 import { entradaPorDefecto, salidaPorDefecto, OPCIONES_HORA } from "@/lib/datetime";
-import { calculateRawParkingDays, formatoEuros, type CalculoPrecio } from "@/lib/pricing";
+import {
+  calculateRawParkingDays,
+  aplicaNocturnidad,
+  formatoEuros,
+  type CalculoPrecio,
+} from "@/lib/pricing";
 import type { DatosReserva } from "@/lib/types";
 
 /**
- * Calculadora de precio — tema claro (Pantalla 2 del diseño).
- * El precio se obtiene desde /api/precio?dias=N, que consulta
- * registro_precios2 + precio_temporada + servicios en la misma BD
- * que usa el dashboard (lógica Yii2 exacta).
+ * Calculadora de precio — tema claro.
+ * El precio se obtiene desde /api/precio?dias=N[&nocturno=1], que consulta
+ * registro_precios + precio_temporada + servicios en la misma BD que el dashboard.
+ * La nocturnidad (00:30–03:30) suma el coste del servicio id=11.
  */
 export default function BookingForm() {
   const [reserva, setReserva] = useState<DatosReserva>({
@@ -24,11 +29,11 @@ export default function BookingForm() {
     terminalEntrada: "T1",
     terminalSalida: "T1",
   });
-  const [calculo, setCalculo] = useState<CalculoPrecio | null>(null);
-  const [cargando, setCargando] = useState(false);
+  const [calculo, setCalculo]     = useState<CalculoPrecio | null>(null);
+  const [cargando, setCargando]   = useState(false);
   const [modalAbierto, setModalAbierto] = useState(false);
 
-  // Recalcula el precio cada vez que cambian las fechas u horas
+  // Recalcula precio desde la BD cuando cambian fechas u horas
   useEffect(() => {
     const entrada = new Date(`${reserva.entryDate}T${reserva.entryTime}`);
     const salida  = new Date(`${reserva.exitDate}T${reserva.exitTime}`);
@@ -38,7 +43,8 @@ export default function BookingForm() {
       return;
     }
 
-    const dias = calculateRawParkingDays(entrada, salida);
+    const dias      = calculateRawParkingDays(entrada, salida);
+    const nocturno  = aplicaNocturnidad(reserva.entryTime, reserva.exitTime);
 
     if (dias <= 0) {
       setCalculo(null);
@@ -46,17 +52,18 @@ export default function BookingForm() {
     }
 
     setCargando(true);
-    fetch(`/api/precio?dias=${dias}`)
+    fetch(`/api/precio?dias=${dias}${nocturno ? "&nocturno=1" : ""}`)
       .then((r) => {
         if (!r.ok) throw new Error("Error en la respuesta del servidor");
         return r.json();
       })
-      .then((data: { costo_parking: number; costo_seguro: number; total: number }) => {
+      .then((data: { costo_parking: number; costo_seguro: number; costo_nocturnidad: number; total: number }) => {
         setCalculo({
           dias,
-          costoParking: data.costo_parking,
-          costoSeguro:  data.costo_seguro,
-          total:        data.total,
+          costoParking:     data.costo_parking,
+          costoSeguro:      data.costo_seguro,
+          costoNocturnidad: nocturno ? data.costo_nocturnidad : 0,
+          total:            data.total,
         });
       })
       .catch(() => setCalculo(null))
@@ -74,6 +81,8 @@ export default function BookingForm() {
     }
     setModalAbierto(true);
   }
+
+  const isNocturno = calculo ? calculo.costoNocturnidad > 0 : false;
 
   return (
     <>
@@ -179,6 +188,13 @@ export default function BookingForm() {
           </div>
         </div>
 
+        {/* ── Aviso nocturnidad ── */}
+        {isNocturno && (
+          <div className="bform-nocturno-aviso">
+            🌙 Se aplica recargo nocturno de {formatoEuros(calculo!.costoNocturnidad)} por horario entre las 00:30 y las 03:30
+          </div>
+        )}
+
         {/* ── Caja de precio ── */}
         <div className="bform-price-box">
           <div className="bform-price-left">
@@ -233,16 +249,8 @@ export default function BookingForm() {
 
 function CalendarIcon() {
   return (
-    <svg
-      width="15" height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
       <line x1="16" y1="2" x2="16" y2="6" />
       <line x1="8" y1="2" x2="8" y2="6" />
@@ -253,16 +261,8 @@ function CalendarIcon() {
 
 function ClockIcon() {
   return (
-    <svg
-      width="15" height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <circle cx="12" cy="12" r="10" />
       <polyline points="12 6 12 12 16 14" />
     </svg>
@@ -271,16 +271,8 @@ function ClockIcon() {
 
 function PlaneIcon() {
   return (
-    <svg
-      width="15" height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21 4 19 2c-2-2-4-2-5.5-.5L10 5 1.8 6.2c-.5.1-.9.5-.7 1l.8 1.8c.2.5.6.8 1.1.8h2.8l-1.7 3.9c-.1.4.1.8.5 1.1l2.1 1.5c.4.3.9.3 1.3 0l3.9-2.8v2.8c0 .5.3.9.8 1.1l1.8.8c.5.2.9-.2 1-.7z" />
     </svg>
   );
@@ -288,16 +280,8 @@ function PlaneIcon() {
 
 function LockIcon() {
   return (
-    <svg
-      width="13" height="13"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
     </svg>
