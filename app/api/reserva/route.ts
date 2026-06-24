@@ -61,7 +61,7 @@ export async function POST(request: Request) {
       checkOut:    reserva.salida,
       status:      "confirmed",
       price:       reserva.total,
-      notes:       `Recibida desde la web · Terminal salida: ${reserva.terminalSalida}`,
+      notes:       `Recibida desde la web · Terminal salida: ${reserva.terminalSalida}${reserva.planNombre ? ` · Plan: ${reserva.planNombre}` : ""}`,
     });
   } catch (err) {
     // No interrumpimos el flujo: el email de confirmación sigue enviándose

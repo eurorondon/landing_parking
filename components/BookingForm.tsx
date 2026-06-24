@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import BookingModal from "./BookingModal";
+import { useRouter } from "next/navigation";
 import Select from "./ui/Select";
 import { OPCIONES_TERMINAL } from "@/lib/config";
 import { entradaPorDefecto, salidaPorDefecto, OPCIONES_HORA } from "@/lib/datetime";
@@ -29,9 +29,9 @@ export default function BookingForm() {
     terminalEntrada: "T1",
     terminalSalida: "T1",
   });
-  const [calculo, setCalculo]     = useState<CalculoPrecio | null>(null);
-  const [cargando, setCargando]   = useState(false);
-  const [modalAbierto, setModalAbierto] = useState(false);
+  const [calculo, setCalculo]   = useState<CalculoPrecio | null>(null);
+  const [cargando, setCargando] = useState(false);
+  const router = useRouter();
 
   // Recalcula precio desde la BD cuando cambian fechas u horas
   useEffect(() => {
@@ -74,12 +74,25 @@ export default function BookingForm() {
     setReserva((r) => ({ ...r, [campo]: valor }));
   }
 
-  function abrirModal() {
+  function verPlanes() {
     if (!calculo) {
       alert("Por favor revisa las fechas de entrada y salida.");
       return;
     }
-    setModalAbierto(true);
+    const nocturno = calculo.costoNocturnidad > 0;
+    const params = new URLSearchParams({
+      entryDate:       reserva.entryDate,
+      entryTime:       reserva.entryTime,
+      exitDate:        reserva.exitDate,
+      exitTime:        reserva.exitTime,
+      terminalEntrada: reserva.terminalEntrada,
+      terminalSalida:  reserva.terminalSalida,
+      vehiculo:        reserva.vehiculo,
+      dias:            String(calculo.dias),
+      nocturno:        nocturno ? "1" : "0",
+      baseTotal:       String(calculo.total),
+    });
+    router.push(`/planes?${params.toString()}`);
   }
 
   const isNocturno = calculo ? calculo.costoNocturnidad > 0 : false;
@@ -240,7 +253,7 @@ export default function BookingForm() {
         {/* ── Botón CTA ── */}
         <button
           className="bform-cta"
-          onClick={abrirModal}
+          onClick={verPlanes}
           disabled={!calculo || cargando}
           type="button"
         >
@@ -255,15 +268,6 @@ export default function BookingForm() {
 
       </div>
 
-      {/* ── Modal de datos del cliente ── */}
-      {modalAbierto && (
-        <BookingModal
-          reserva={reserva}
-          calculo={calculo}
-          onChangeReserva={actualizar}
-          onClose={() => setModalAbierto(false)}
-        />
-      )}
     </>
   );
 }

@@ -30,4 +30,7 @@ export interface ReservaCompleta extends DatosCliente {
   terminalSalida: Terminal;
   dias: number;
   total: number;
+  /** Plan seleccionado (1=Estándar, 2=Premium, 3=Priority, 4=Económico) */
+  plan?: number;
+  planNombre?: string;
 }
