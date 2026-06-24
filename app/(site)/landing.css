@@ -879,6 +879,24 @@ footer a:hover { color: var(--orange); }
 }
 .bform-card .select-chevron { color: #ccc; }
 
+/* Toggle de vehículo dentro de bform-card (tema claro) */
+.bform-vehicle-toggle {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  background: #f4f4f4; border-radius: 14px;
+  padding: 4px; border: 1.5px solid #e8e8e8;
+}
+.bform-vehicle-toggle button {
+  border: 0; background: transparent; padding: 10px 8px;
+  border-radius: 11px;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  color: #888; cursor: pointer; transition: background .18s, color .18s;
+}
+.bform-vehicle-toggle button.active {
+  background: #ff9500; color: #fff;
+  box-shadow: 0 2px 8px rgba(255,149,0,.3);
+}
+.bform-vehicle-toggle button:hover:not(.active) { background: #ebebeb; color: #333; }
+
 /* Aviso nocturnidad */
 .bform-nocturno-aviso {
   display: flex; align-items: flex-start; gap: 8px;

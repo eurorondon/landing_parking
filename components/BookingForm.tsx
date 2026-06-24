@@ -186,6 +186,29 @@ export default function BookingForm() {
               />
             </div>
           </div>
+
+          {/* Fila 4: tipo de vehículo — ocupa todo el ancho */}
+          <div className="bform-field" style={{ gridColumn: "1 / -1" }}>
+            <span className="bform-label">Tipo de vehículo</span>
+            <div className="bform-vehicle-toggle" role="radiogroup" aria-label="Tipo de vehículo">
+              <button
+                type="button"
+                className={reserva.vehiculo === "car" ? "active" : ""}
+                onClick={() => actualizar("vehiculo", "car")}
+                aria-pressed={reserva.vehiculo === "car"}
+              >
+                🚗 Coche
+              </button>
+              <button
+                type="button"
+                className={reserva.vehiculo === "moto" ? "active" : ""}
+                onClick={() => actualizar("vehiculo", "moto")}
+                aria-pressed={reserva.vehiculo === "moto"}
+              >
+                🏍️ Moto
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* ── Aviso nocturnidad ── */}
