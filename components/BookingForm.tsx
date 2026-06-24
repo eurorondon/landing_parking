@@ -1,18 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import BookingModal from "./BookingModal";
 import Select from "./ui/Select";
 import { OPCIONES_TERMINAL } from "@/lib/config";
 import { entradaPorDefecto, salidaPorDefecto, OPCIONES_HORA } from "@/lib/datetime";
-import { calcularPrecio, formatoEuros } from "@/lib/pricing";
+import { calculateRawParkingDays, formatoEuros, type CalculoPrecio } from "@/lib/pricing";
 import type { DatosReserva } from "@/lib/types";
 
 /**
  * Calculadora de precio — tema claro (Pantalla 2 del diseño).
- * Muestra un formulario de fechas/horas/terminal con previsualización
- * del precio en vivo. Al pulsar el CTA abre el modal de confirmación
- * de datos de cliente (BookingModal).
+ * El precio se obtiene desde /api/precio?dias=N, que consulta
+ * registro_precios2 + precio_temporada + servicios en la misma BD
+ * que usa el dashboard (lógica Yii2 exacta).
  */
 export default function BookingForm() {
   const [reserva, setReserva] = useState<DatosReserva>({
@@ -24,16 +24,44 @@ export default function BookingForm() {
     terminalEntrada: "T1",
     terminalSalida: "T1",
   });
+  const [calculo, setCalculo] = useState<CalculoPrecio | null>(null);
+  const [cargando, setCargando] = useState(false);
   const [modalAbierto, setModalAbierto] = useState(false);
 
-  const calculo = useMemo(
-    () =>
-      calcularPrecio(
-        new Date(`${reserva.entryDate}T${reserva.entryTime}`),
-        new Date(`${reserva.exitDate}T${reserva.exitTime}`)
-      ),
-    [reserva]
-  );
+  // Recalcula el precio cada vez que cambian las fechas u horas
+  useEffect(() => {
+    const entrada = new Date(`${reserva.entryDate}T${reserva.entryTime}`);
+    const salida  = new Date(`${reserva.exitDate}T${reserva.exitTime}`);
+
+    if (!Number.isFinite(entrada.getTime()) || !Number.isFinite(salida.getTime())) {
+      setCalculo(null);
+      return;
+    }
+
+    const dias = calculateRawParkingDays(entrada, salida);
+
+    if (dias <= 0) {
+      setCalculo(null);
+      return;
+    }
+
+    setCargando(true);
+    fetch(`/api/precio?dias=${dias}`)
+      .then((r) => {
+        if (!r.ok) throw new Error("Error en la respuesta del servidor");
+        return r.json();
+      })
+      .then((data: { costo_parking: number; costo_seguro: number; total: number }) => {
+        setCalculo({
+          dias,
+          costoParking: data.costo_parking,
+          costoSeguro:  data.costo_seguro,
+          total:        data.total,
+        });
+      })
+      .catch(() => setCalculo(null))
+      .finally(() => setCargando(false));
+  }, [reserva.entryDate, reserva.entryTime, reserva.exitDate, reserva.exitTime]);
 
   function actualizar(campo: keyof DatosReserva, valor: string) {
     setReserva((r) => ({ ...r, [campo]: valor }));
@@ -156,7 +184,7 @@ export default function BookingForm() {
           <div className="bform-price-left">
             <div className="bform-price-label">Precio estimado</div>
             <div className="bform-price-amount">
-              {calculo ? formatoEuros(calculo.total) : "—€"}
+              {cargando ? "…" : calculo ? formatoEuros(calculo.total) : "—"}
             </div>
             <div className="bform-price-iva">IVA incluido</div>
           </div>
@@ -174,7 +202,7 @@ export default function BookingForm() {
         <button
           className="bform-cta"
           onClick={abrirModal}
-          disabled={!calculo}
+          disabled={!calculo || cargando}
           type="button"
         >
           VER DISPONIBILIDAD<br />Y RESERVAR

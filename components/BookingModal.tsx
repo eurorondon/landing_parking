@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Select from "./ui/Select";
 import { OPCIONES_TERMINAL } from "@/lib/config";
 import { OPCIONES_HORA } from "@/lib/datetime";
-import { formatoEuros, type CalculoPrecio } from "@/lib/pricing";
+import { calculateRawParkingDays, formatoEuros, type CalculoPrecio } from "@/lib/pricing";
 import type { DatosCliente, DatosReserva } from "@/lib/types";
 
 interface Props {
@@ -36,11 +36,13 @@ function validarCliente(c: DatosCliente): string | null {
   return null;
 }
 
-export default function BookingModal({ reserva, calculo, onChangeReserva, onClose }: Props) {
+export default function BookingModal({ reserva, calculo: calculoInicial, onChangeReserva, onClose }: Props) {
   const [cliente, setCliente] = useState<DatosCliente>(clienteVacio);
   const [enviando, setEnviando] = useState(false);
   const [enviada, setEnviada] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // El modal tiene su propio cálculo local por si el usuario cambia fechas dentro del modal
+  const [calculo, setCalculo] = useState<CalculoPrecio | null>(calculoInicial);
 
   // Bloquea el scroll de fondo y permite cerrar con Escape
   useEffect(() => {
@@ -52,6 +54,25 @@ export default function BookingModal({ reserva, calculo, onChangeReserva, onClos
       window.removeEventListener("keydown", onKey);
     };
   }, [onClose]);
+
+  // Recalcula precio desde la BD cuando cambian las fechas dentro del modal
+  useEffect(() => {
+    const entrada = new Date(`${reserva.entryDate}T${reserva.entryTime}`);
+    const salida  = new Date(`${reserva.exitDate}T${reserva.exitTime}`);
+    if (!Number.isFinite(entrada.getTime()) || !Number.isFinite(salida.getTime())) {
+      setCalculo(null);
+      return;
+    }
+    const dias = calculateRawParkingDays(entrada, salida);
+    if (dias <= 0) { setCalculo(null); return; }
+
+    fetch(`/api/precio?dias=${dias}`)
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((data: { costo_parking: number; costo_seguro: number; total: number }) => {
+        setCalculo({ dias, costoParking: data.costo_parking, costoSeguro: data.costo_seguro, total: data.total });
+      })
+      .catch(() => setCalculo(null));
+  }, [reserva.entryDate, reserva.entryTime, reserva.exitDate, reserva.exitTime]);
 
   function actualizar(campo: keyof DatosCliente, valor: string) {
     setCliente((c) => ({ ...c, [campo]: valor }));
@@ -219,12 +240,16 @@ export default function BookingModal({ reserva, calculo, onChangeReserva, onClos
 
           <div className="summary-box">
             <div className="summary-item" style={{ gridColumn: "1/-1" }}>
-              <span>Total estimado</span>
-              <strong>
-                {calculo
-                  ? `${formatoEuros(calculo.total)} · ${calculo.dias} ${calculo.dias === 1 ? "día" : "días"}`
-                  : "—"}
-              </strong>
+              <span>Estancia ({calculo ? `${calculo.dias} ${calculo.dias === 1 ? "día" : "días"}` : "—"})</span>
+              <strong>{calculo ? formatoEuros(calculo.costoParking) : "—"}</strong>
+            </div>
+            <div className="summary-item" style={{ gridColumn: "1/-1" }}>
+              <span>Seguro de vehículo</span>
+              <strong>{calculo ? formatoEuros(calculo.costoSeguro) : "—"}</strong>
+            </div>
+            <div className="summary-item" style={{ gridColumn: "1/-1", borderTop: "1px solid #e2e8f0", paddingTop: 8, marginTop: 4 }}>
+              <span><strong>Total estimado</strong></span>
+              <strong style={{ fontSize: "1.1em" }}>{calculo ? formatoEuros(calculo.total) : "—"}</strong>
             </div>
           </div>
 
