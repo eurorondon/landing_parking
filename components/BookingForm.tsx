@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Select from "./ui/Select";
 import { OPCIONES_TERMINAL } from "@/lib/config";
-import { entradaPorDefecto, salidaPorDefecto, OPCIONES_HORA } from "@/lib/datetime";
+import { entradaPorDefecto, salidaPorDefecto, OPCIONES_HORA, aFechaInput } from "@/lib/datetime";
 import {
   calculateRawParkingDays,
   aplicaNocturnidad,
@@ -32,6 +32,9 @@ export default function BookingForm() {
   const [calculo, setCalculo]   = useState<CalculoPrecio | null>(null);
   const [cargando, setCargando] = useState(false);
   const router = useRouter();
+
+  // Fecha mínima seleccionable: hoy (se recalcula en cada render para no quedar obsoleto)
+  const hoy = aFechaInput(new Date());
 
   // Recalcula precio desde la BD cuando cambian fechas u horas
   useEffect(() => {
@@ -71,7 +74,14 @@ export default function BookingForm() {
   }, [reserva.entryDate, reserva.entryTime, reserva.exitDate, reserva.exitTime]);
 
   function actualizar(campo: keyof DatosReserva, valor: string) {
-    setReserva((r) => ({ ...r, [campo]: valor }));
+    setReserva((r) => {
+      const nuevo = { ...r, [campo]: valor };
+      // Si la nueva fecha de entrada es posterior a la salida, adelanta la salida
+      if (campo === "entryDate" && valor > r.exitDate) {
+        nuevo.exitDate = valor;
+      }
+      return nuevo;
+    });
   }
 
   function verPlanes() {
@@ -126,6 +136,7 @@ export default function BookingForm() {
                 className="bform-input"
                 type="date"
                 value={reserva.entryDate}
+                min={hoy}
                 onChange={(e) => actualizar("entryDate", e.target.value)}
                 aria-label="Fecha de entrada"
               />
@@ -154,6 +165,7 @@ export default function BookingForm() {
                 className="bform-input"
                 type="date"
                 value={reserva.exitDate}
+                min={reserva.entryDate}
                 onChange={(e) => actualizar("exitDate", e.target.value)}
                 aria-label="Fecha de salida"
               />
