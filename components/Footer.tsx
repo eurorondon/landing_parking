@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { NEGOCIO } from "@/lib/config";
 import CookieResetButton from "@/components/CookieResetButton";
 
@@ -7,6 +8,13 @@ export default function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div>
+            <Image
+              src="/logo.jpg"
+              alt="Parking Aero Madrid"
+              width={64}
+              height={64}
+              style={{ borderRadius: 12, marginBottom: 12, display: "block" }}
+            />
             <h4>{NEGOCIO.nombre}</h4>
             <p>
               Parking para viajeros del Aeropuerto Madrid-Barajas. Reserva

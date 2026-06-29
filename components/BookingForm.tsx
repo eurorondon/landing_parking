@@ -37,17 +37,59 @@ export default function BookingForm() {
   const [cargando, setCargando] = useState(false);
   const router = useRouter();
 
-  // Inicializa fechas y hora en el cliente (nunca en SSR)
+  // Estado del servicio de lavado seleccionado desde ServiciosLimpieza
+  const [lavado, setLavado] = useState<{ id: number; nombre: string; precio: string } | null>(null);
+
+  // Inicializa en el cliente:
+  // · Calcula "hoy" para el atributo min de los inputs de fecha
+  // · Pre-rellena solo la hora (igual que el dashboard: la fecha la elige el usuario)
+  // · Lee el lavado pendiente guardado por ServiciosLimpieza
+  // · Re-sincroniza "hoy" si la pestaña queda abierta hasta el día siguiente
   useEffect(() => {
-    const todayStr  = aFechaInput(new Date());
-    const slotInicio = getNearestSlot();
-    setHoy(todayStr);
-    setReserva(r => ({
-      ...r,
-      entryDate: todayStr,
-      entryTime: slotInicio,
-      exitDate:  salidaPorDefecto(),
-    }));
+    function actualizarHoy() {
+      const todayStr   = aFechaInput(new Date());
+      const slotInicio = getNearestSlot();
+      setHoy(todayStr);
+      // Solo pre-rellena la hora de entrada; la fecha la elige el usuario
+      setReserva(r => ({
+        ...r,
+        entryTime: r.entryTime || slotInicio,
+      }));
+    }
+
+    actualizarHoy();
+
+    // Lee el servicio de lavado guardado por ServiciosLimpieza (si el usuario
+    // ya había hecho clic antes de que el form montara, p. ej. vuelve con Atrás)
+    const lid    = sessionStorage.getItem("lavado_id");
+    const lnomb  = sessionStorage.getItem("lavado_nombre");
+    const lprec  = sessionStorage.getItem("lavado_precio");
+    if (lid && lnomb) setLavado({ id: Number(lid), nombre: lnomb, precio: lprec ?? "" });
+
+    // Escucha el evento en tiempo real: cuando el usuario hace clic en "Solicitar"
+    // en la sección de lavado DESPUÉS de que este form ya montó
+    const onLavado = (e: Event) => {
+      const { id, nombre, precio } = (e as CustomEvent<{ id: number; nombre: string; precio: string }>).detail;
+      setLavado({ id: Number(id), nombre, precio });
+    };
+    window.addEventListener("lavado-seleccionado", onLavado);
+
+    // Re-sync "hoy" cuando el usuario vuelve a la pestaña o desde bfcache
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") setHoy(aFechaInput(new Date()));
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) setHoy(aFechaInput(new Date()));
+    };
+    window.addEventListener("pageshow", onPageShow);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener("lavado-seleccionado", onLavado);
+    };
   }, []);
 
   // Recalcula precio desde la BD cuando cambian fechas u horas
@@ -114,6 +156,10 @@ export default function BookingForm() {
     : OPCIONES_HORA;
 
   function verPlanes() {
+    if (!reserva.entryDate || !reserva.exitDate) {
+      alert("Por favor selecciona las fechas de entrada y salida.");
+      return;
+    }
     if (!calculo) {
       alert("Por favor revisa las fechas de entrada y salida.");
       return;
@@ -130,6 +176,7 @@ export default function BookingForm() {
       dias:            String(calculo.dias),
       nocturno:        nocturno ? "1" : "0",
       baseTotal:       String(calculo.total),
+      ...(lavado ? { lavadoId: String(lavado.id), lavadoNombre: lavado.nombre } : {}),
     });
     router.push(`/planes?${params.toString()}`);
   }
@@ -265,6 +312,24 @@ export default function BookingForm() {
           </div>
         </div>
 
+        {/* ── Badge lavado seleccionado ── */}
+        {lavado && (
+          <div className="bform-lavado-badge">
+            <span>🧹 {lavado.nombre} · {lavado.precio}</span>
+            <button
+              type="button"
+              className="bform-lavado-remove"
+              aria-label="Quitar servicio de lavado"
+              onClick={() => {
+                setLavado(null);
+                sessionStorage.removeItem("lavado_id");
+                sessionStorage.removeItem("lavado_nombre");
+                sessionStorage.removeItem("lavado_precio");
+              }}
+            >✕</button>
+          </div>
+        )}
+
         {/* ── Aviso nocturnidad ── */}
         {isNocturno && (
           <div className="bform-nocturno-aviso">
@@ -277,7 +342,9 @@ export default function BookingForm() {
           <div className="bform-price-left">
             <div className="bform-price-label">Precio estimado</div>
             <div className="bform-price-amount">
-              {cargando ? "…" : calculo ? formatoEuros(calculo.total) : "—"}
+              {!reserva.entryDate || !reserva.exitDate
+                ? "—"
+                : cargando ? "…" : calculo ? formatoEuros(calculo.total) : "—"}
             </div>
             <div className="bform-price-iva">IVA incluido</div>
           </div>
@@ -295,10 +362,12 @@ export default function BookingForm() {
         <button
           className="bform-cta"
           onClick={verPlanes}
-          disabled={!calculo || cargando}
+          disabled={cargando && !!(reserva.entryDate && reserva.exitDate)}
           type="button"
         >
-          VER DISPONIBILIDAD<br />Y RESERVAR
+          {!reserva.entryDate || !reserva.exitDate
+            ? <>📅 Selecciona las fechas</>
+            : <>VER DISPONIBILIDAD<br />Y RESERVAR</>}
         </button>
 
         {/* ── Nota de confianza ── */}

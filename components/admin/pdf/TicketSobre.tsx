@@ -1,11 +1,10 @@
 "use client";
 /**
  * TicketSobre — Etiqueta de sobre (227 × 391 pt)
- * Equivalente a GenerarPDFSobres.tsx del dashboard.
- * Una página por reserva.
+ * Formato idéntico a GenerarPDFSobres.tsx del dashboard.
  */
 import React from "react";
-import { Page, Text, Document, Font, View } from "@react-pdf/renderer";
+import { Page, Text, Document, Font, View, Image } from "@react-pdf/renderer";
 import type { ReservaPDF } from "./tipos";
 import { abrevTerminal } from "./tipos";
 
@@ -20,11 +19,11 @@ Font.register({
   ],
 });
 
-const PLAN_LABEL: Record<number, string> = {
-  1: "Plan Estándar",
-  2: "Plan Premium",
-  3: "Plan Priority",
-};
+function getMedioIcon(medio: number): string {
+  if (medio === 1) return "/phone.png";
+  if (medio === 2) return "/tags.png";
+  return "/globe.png";
+}
 
 interface Props {
   reservas: ReservaPDF[];
@@ -33,11 +32,19 @@ interface Props {
 const TicketSobre: React.FC<Props> = ({ reservas }) => (
   <Document>
     {reservas.map((item, index) => {
+      const serviciosReserva = item.servicios;
+      const serviciosFijos   = serviciosReserva.filter((s) => s.fijo === 2);
+
+      const IS_PREMIUM = item.plan === 2;
+      const tieneTechado =
+        !IS_PREMIUM &&
+        serviciosReserva.some(
+          (s) => s.nombre_servicio?.toLowerCase() === "techado"
+        );
+
       const esPagadoOnline =
         (item.pago_confirmado ?? 0) === 1 &&
         (item.id_tipo_pago === 5 || item.id_tipo_pago === 7);
-
-      const serviciosFijos = item.servicios.filter((s) => s.fijo === 2);
 
       return (
         <Page
@@ -50,7 +57,7 @@ const TicketSobre: React.FC<Props> = ({ reservas }) => (
             position: "relative",
           }}
         >
-          {/* ── Nro reserva (top-left) ── */}
+          {/* ── Nro reserva (top-left absoluto) ── */}
           <View style={{ position: "absolute", top: 14, left: 14 }}>
             <Text style={{ fontSize: 14, fontWeight: "bold" }}>
               {item.nro_reserva}
@@ -59,7 +66,13 @@ const TicketSobre: React.FC<Props> = ({ reservas }) => (
 
           {/* ── Importe y teléfono (top-right) ── */}
           <View style={{ alignItems: "flex-end" }}>
-            <Text style={{ fontSize: 11, fontWeight: "bold", textTransform: "uppercase" }}>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: "bold",
+                textTransform: "uppercase",
+              }}
+            >
               {esPagadoOnline ? "*PAGADO*" : "IMPORTE"} : {item.monto_total} €
             </Text>
             <Text style={{ fontSize: 11, fontWeight: "bold" }}>
@@ -67,30 +80,34 @@ const TicketSobre: React.FC<Props> = ({ reservas }) => (
             </Text>
           </View>
 
-          {/* ── Medio reserva (icono texto) ── */}
-          <View style={{ marginTop: 4, marginBottom: 4 }}>
-            <Text style={{ fontSize: 8 }}>
-              {item.medio_reserva === 1
-                ? "📞 TELÉFONO"
-                : item.medio_reserva === 2
-                ? "🏢 AGENCIA"
-                : "🌐 WEB"}
-            </Text>
+          {/* ── Icono medio reserva ── */}
+          <View style={{ position: "absolute", top: 50, left: 14 }}>
+            <Image
+              src={getMedioIcon(item.medio_reserva)}
+              style={{ width: 18, height: 18 }}
+            />
           </View>
 
+          {/* ── Icono techado (si aplica) ── */}
+          {tieneTechado && (
+            <View style={{ position: "absolute", top: 74, left: 14 }}>
+              <Image src="/techado.png" style={{ width: 22, height: 22 }} />
+            </View>
+          )}
+
           {/* ── Matrícula ── */}
-          <View style={{ alignItems: "center", marginTop: 8, marginBottom: 4 }}>
+          <View style={{ alignItems: "center", marginTop: 16, marginBottom: 4 }}>
             <Text style={{ fontSize: 9, textTransform: "uppercase" }}>Matrícula</Text>
             <Text style={{ fontSize: 28, fontWeight: "bold" }}>{item.matricula}</Text>
           </View>
 
-          {/* ── Marca - Modelo ── */}
+          {/* ── Marca – Modelo ── */}
           <View style={{ alignItems: "center", marginBottom: 6 }}>
             <Text style={{ fontSize: 9, textTransform: "uppercase" }}>Marca - Modelo</Text>
             <Text style={{ fontSize: 14, fontWeight: "bold" }}>{item.marcaModelo}</Text>
           </View>
 
-          {/* ── Fecha Entrada + Terminal ── */}
+          {/* ── Fecha de Entrada + Terminal ── */}
           <View style={{ alignItems: "center", marginBottom: 4 }}>
             <Text style={{ fontSize: 9, textTransform: "uppercase" }}>Fecha de Entrada</Text>
             <View
@@ -102,8 +119,12 @@ const TicketSobre: React.FC<Props> = ({ reservas }) => (
               }}
             >
               <View>
-                <Text style={{ fontSize: 14, fontWeight: "bold" }}>{item.fecha_entrada}</Text>
-                <Text style={{ fontSize: 14, fontWeight: "bold" }}>{item.hora_entrada}</Text>
+                <Text style={{ fontSize: 14, fontWeight: "bold" }}>
+                  {item.fecha_entrada}
+                </Text>
+                <Text style={{ fontSize: 14, fontWeight: "bold" }}>
+                  {item.hora_entrada}
+                </Text>
               </View>
               <Text style={{ fontSize: 14, fontWeight: "bold" }}>
                 {abrevTerminal(item.terminal_entrada)}
@@ -111,7 +132,7 @@ const TicketSobre: React.FC<Props> = ({ reservas }) => (
             </View>
           </View>
 
-          {/* ── Fecha Salida + Terminal ── */}
+          {/* ── Fecha de Salida + Terminal ── */}
           <View style={{ alignItems: "center", marginBottom: 6 }}>
             <Text style={{ fontSize: 9, textTransform: "uppercase" }}>Fecha de Salida</Text>
             <View
@@ -123,8 +144,12 @@ const TicketSobre: React.FC<Props> = ({ reservas }) => (
               }}
             >
               <View>
-                <Text style={{ fontSize: 14, fontWeight: "bold" }}>{item.fecha_salida}</Text>
-                <Text style={{ fontSize: 14, fontWeight: "bold" }}>{item.hora_salida}</Text>
+                <Text style={{ fontSize: 14, fontWeight: "bold" }}>
+                  {item.fecha_salida}
+                </Text>
+                <Text style={{ fontSize: 14, fontWeight: "bold" }}>
+                  {item.hora_salida}
+                </Text>
               </View>
               <Text style={{ fontSize: 14, fontWeight: "bold" }}>
                 {abrevTerminal(item.terminal_salida)}
@@ -134,26 +159,46 @@ const TicketSobre: React.FC<Props> = ({ reservas }) => (
 
           {/* ── Separador ── */}
           <View
-            style={{ borderBottomWidth: 1, borderBottomColor: "#333", marginBottom: 6 }}
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: "#333",
+              marginBottom: 6,
+            }}
           />
 
           {/* ── Plan ── */}
-          {[1, 2, 3].includes(item.plan) && (
-            <Text style={{ fontSize: 9, fontWeight: "bold", marginBottom: 4 }}>
-              {PLAN_LABEL[item.plan]}
+          {[1, 2, 3, 4].includes(item.plan ?? 0) && (
+            <Text style={{ fontSize: 9, fontWeight: "bold", marginBottom: 6 }}>
+              {item.plan === 1
+                ? "Plan Estándar"
+                : item.plan === 2
+                ? "Plan Premium"
+                : item.plan === 3
+                ? "Plan Priority"
+                : "Plan Económico"}
             </Text>
           )}
 
           {/* ── Servicios incluidos ── */}
           {serviciosFijos.length > 0 && (
             <View style={{ marginBottom: 6 }}>
-              <Text style={{ fontSize: 9, fontWeight: "bold", marginBottom: 4 }}>
+              <Text
+                style={{
+                  fontSize: 9,
+                  fontWeight: "bold",
+                  marginBottom: 4,
+                }}
+              >
                 INCLUYE:
               </Text>
               {serviciosFijos.map((s, i) => (
                 <Text
                   key={i}
-                  style={{ fontSize: 8, textTransform: "uppercase", marginBottom: 2 }}
+                  style={{
+                    fontSize: 8,
+                    textTransform: "uppercase",
+                    marginBottom: 2,
+                  }}
                 >
                   {s.nombre_servicio}
                 </Text>
@@ -162,11 +207,23 @@ const TicketSobre: React.FC<Props> = ({ reservas }) => (
           )}
 
           {/* ── Pie: nombre cliente ── */}
-          <View style={{ position: "absolute", bottom: 14, left: 14, right: 14 }}>
+          <View
+            style={{ position: "absolute", bottom: 14, left: 14, right: 14 }}
+          >
             <View
-              style={{ borderBottomWidth: 1, borderBottomColor: "#333", marginBottom: 6 }}
+              style={{
+                borderBottomWidth: 1,
+                borderBottomColor: "#333",
+                marginBottom: 6,
+              }}
             />
-            <Text style={{ fontSize: 8, fontWeight: "bold", textTransform: "uppercase" }}>
+            <Text
+              style={{
+                fontSize: 8,
+                fontWeight: "bold",
+                textTransform: "uppercase",
+              }}
+            >
               CLIENTE: {item.nombre}
             </Text>
           </View>

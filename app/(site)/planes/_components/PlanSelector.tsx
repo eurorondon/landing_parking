@@ -82,6 +82,9 @@ export default function PlanSelector() {
   const dias            = parseInt(sp.get("dias")  ?? "0", 10);
   const nocturno        = sp.get("nocturno") === "1";
   const baseTotal       = parseFloat(sp.get("baseTotal") ?? "0");
+  // Servicio de lavado elegido desde la sección de servicios
+  const lavadoId        = parseInt(sp.get("lavadoId") ?? "0", 10);
+  const lavadoNombre    = sp.get("lavadoNombre") ?? "";
 
   const [servicios, setServicios]   = useState<Servicio[]>([]);
   const [cargando, setCargando]     = useState(true);
@@ -95,12 +98,28 @@ export default function PlanSelector() {
       .finally(() => setCargando(false));
   }, []);
 
+  /**
+   * Calcula el precio final del plan:
+   * - Si el plan ya incluye limpieza → suma solo el costo del plan (sin extra)
+   * - Si el plan NO incluye limpieza y el usuario eligió un lavado extra
+   *   en ServiciosLimpieza → suma ese lavado como servicio adicional
+   */
   function getPrecio(plan: PlanDef): number {
     const base = baseTotal;
+
     if (plan.limpiezaId) {
+      // El plan ya incluye limpieza — no se añade el lavado extra para evitar
+      // cobrar dos veces el mismo servicio
       const svc = servicios.find((s) => s.id === plan.limpiezaId);
       return base + Number(svc?.costo ?? 0);
     }
+
+    if (lavadoId > 0) {
+      // El plan no tiene limpieza → se añade el lavado elegido en ServiciosLimpieza
+      const extraSvc = servicios.find((s) => s.id === lavadoId);
+      return base + Number(extraSvc?.costo ?? 0);
+    }
+
     return base;
   }
 
@@ -108,6 +127,12 @@ export default function PlanSelector() {
     if (seleccionando) return;
     setSeleccionando(plan.id);
     const precio = getPrecio(plan);
+
+    // El lavado extra solo se propaga al resumen si el plan no lo incluye ya.
+    // Si el plan ya incluye limpieza, mostrar el lavado extra causaría confusión
+    // (el usuario vería el servicio dos veces en el resumen).
+    const lavadoEsExtra = lavadoId > 0 && !plan.limpiezaId;
+
     const params = new URLSearchParams({
       entryDate, entryTime, exitDate, exitTime,
       terminalEntrada, terminalSalida, vehiculo,
@@ -117,6 +142,7 @@ export default function PlanSelector() {
       planNombre: plan.nombre,
       total:      String(precio),
       ...(plan.limpiezaId ? { limpiezaId: String(plan.limpiezaId) } : {}),
+      ...(lavadoEsExtra   ? { lavadoId: String(lavadoId), lavadoNombre } : {}),
     });
     router.push(`/reservar?${params.toString()}`);
   }
@@ -146,6 +172,13 @@ export default function PlanSelector() {
           )}
         </div>
 
+        {/* Aviso del lavado seleccionado previamente */}
+        {lavadoId > 0 && lavadoNombre && (
+          <div className="planes-lavado-aviso">
+            🧹 Has seleccionado <strong>{lavadoNombre}</strong> — elige un plan para incluirlo en tu reserva.
+          </div>
+        )}
+
         {nocturno && (
           <p className="planes-nocturno-aviso">
             🌙 Se aplica recargo nocturno por horario entre las 00:30 y las 03:30
@@ -162,6 +195,10 @@ export default function PlanSelector() {
             const precio = getPrecio(plan);
             const activo = seleccionando === plan.id;
             const apagado = seleccionando !== null && !activo;
+            // El plan ya incluye el lavado elegido (igual o mejor)
+            const incluyeLavado = lavadoId > 0 && !!plan.limpiezaId;
+            // El plan no tiene limpieza pero el usuario eligió un lavado extra
+            const tieneExtra    = lavadoId > 0 && !plan.limpiezaId;
 
             return (
               <div
@@ -170,9 +207,13 @@ export default function PlanSelector() {
                   "plan-card",
                   plan.destacado ? "plan-card--destacado" : "",
                   apagado ? "plan-card--apagado" : "",
+                  incluyeLavado ? "plan-card--lavado" : "",
                 ].join(" ")}
               >
-                {plan.badge && (
+                {incluyeLavado && (
+                  <span className="plan-badge plan-badge--lavado">🧹 Limpieza incluida</span>
+                )}
+                {!incluyeLavado && plan.badge && (
                   <span className="plan-badge">{plan.badge}</span>
                 )}
 
@@ -188,6 +229,12 @@ export default function PlanSelector() {
                   {plan.features.map((f) => (
                     <li key={f}><span className="plan-check">✓</span>{f}</li>
                   ))}
+                  {/* Muestra el lavado extra solo en el plan sin limpieza */}
+                  {tieneExtra && (
+                    <li className="plan-feature--extra">
+                      <span className="plan-check">✓</span>🧹 {lavadoNombre} (añadido)
+                    </li>
+                  )}
                 </ul>
 
                 <button

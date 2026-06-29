@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect } from "react";
 
 export default function Header() {
@@ -25,7 +26,14 @@ export default function Header() {
     <>
       <header>
         <a href="#" className="brand" onClick={close}>
-          <div className="logo-mark">✈</div>
+          <Image
+            src="/logo.jpg"
+            alt="Parking Aero Madrid"
+            width={38}
+            height={38}
+            className="logo-img"
+            priority
+          />
           <span className="brand-name">{"parking"}<span style={{ color: "#FF9500" }}>{"aero"}</span>{"madrid.es"}</span>
         </a>
 

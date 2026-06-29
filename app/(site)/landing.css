@@ -63,13 +63,14 @@ header {
 }
 
 .brand { display: flex; align-items: center; gap: 10px; }
-.logo-mark {
-  width: 34px; height: 34px; border-radius: 10px;
-  display: grid; place-items: center;
-  background: var(--orange);
-  color: #000;
-  font-size: 17px;
+/* .logo-mark conservado por compatibilidad — la imagen .logo-img lo reemplaza visualmente */
+.logo-mark { display: none; }
+.logo-img {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  object-fit: cover;
   flex-shrink: 0;
+  display: block;
 }
 .brand-name {
   display: inline;
@@ -896,6 +897,26 @@ footer a:hover { color: var(--orange); }
   box-shadow: 0 2px 8px rgba(255,149,0,.3);
 }
 .bform-vehicle-toggle button:hover:not(.active) { background: #ebebeb; color: #333; }
+
+/* Badge de servicio de lavado seleccionado */
+.bform-lavado-badge {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin: 0 22px 8px;
+  padding: 9px 14px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 10px;
+  font-size: 13px; font-weight: 600;
+  color: #6ee7b7;
+  animation: fadeIn .25s ease;
+}
+.bform-lavado-remove {
+  background: none; border: none; cursor: pointer;
+  font-size: 14px; color: #6ee7b7; opacity: .7;
+  padding: 0 2px; line-height: 1;
+  flex-shrink: 0;
+}
+.bform-lavado-remove:hover { opacity: 1; }
 
 /* Aviso nocturnidad */
 .bform-nocturno-aviso {
@@ -1782,6 +1803,18 @@ footer a:hover { color: var(--orange); }
 .planes-nocturno-aviso {
   font-size: 13px; color: #fbbf24; margin-top: 10px;
 }
+/* Aviso de lavado previamente elegido */
+.planes-lavado-aviso {
+  margin: 10px auto 0;
+  max-width: 600px;
+  text-align: center;
+  font-size: 13px; font-weight: 600;
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 10px;
+  padding: 10px 18px;
+}
 
 /* Grid de planes — 3 columnas centradas */
 .planes-grid {
@@ -1826,6 +1859,14 @@ footer a:hover { color: var(--orange); }
   padding: 4px 12px; border-radius: 20px;
   white-space: nowrap;
 }
+/* Badge verde para plan que incluye el lavado elegido */
+.plan-badge--lavado {
+  background: #10b981; color: #fff;
+}
+/* Resalte del plan que incluye lavado */
+.plan-card--lavado {
+  box-shadow: 0 0 0 2px #10b981, 0 16px 48px rgba(0,0,0,.5);
+}
 
 .plan-nombre {
   font-size: 18px; font-weight: 800; color: var(--white); margin: 0 0 2px;
@@ -1849,6 +1890,8 @@ footer a:hover { color: var(--orange); }
   font-size: 13px; color: var(--gray); line-height: 1.4;
 }
 .plan-check { color: #4ade80; font-weight: 700; flex-shrink: 0; }
+/* Feature de lavado extra añadido al plan sin limpieza */
+.plan-feature--extra { color: #6ee7b7; font-weight: 600; }
 
 .plan-btn {
   width: 100%; padding: 13px;
@@ -1899,6 +1942,7 @@ footer a:hover { color: var(--orange); }
 }
 .reservar-resumen-fila:last-of-type { border-bottom: none; }
 .reservar-resumen-fila--nocturno { color: #fbbf24; }
+.reservar-resumen-fila--lavado { color: #6ee7b7; }
 .reservar-resumen-fila--total {
   padding-top: 12px; margin-top: 4px;
   border-top: 1px solid var(--border-s); border-bottom: none;
@@ -2124,6 +2168,23 @@ footer a:hover { color: var(--orange); }
 .limpieza-btn--popular:hover {
   background: var(--orange-dark);
   border-color: var(--orange-dark);
+}
+
+/* Toast de confirmación de lavado */
+.limpieza-toast {
+  position: fixed;
+  top: 80px; left: 50%; transform: translateX(-50%);
+  z-index: 9999;
+  background: #064e3b;
+  color: #6ee7b7;
+  border: 1px solid rgba(110,231,183,.3);
+  border-radius: 12px;
+  padding: 13px 22px;
+  font-size: 14px; font-weight: 600;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  white-space: nowrap;
+  animation: fadeIn .25s ease;
+  pointer-events: none;
 }
 
 /* Nota informativa */

@@ -1,4 +1,16 @@
-import { NEGOCIO } from "@/lib/config";
+"use client";
+
+/**
+ * ServiciosLimpieza — Sección de lavado de vehículos.
+ *
+ * Comportamiento igual al dashboard (Seccion4):
+ * - "Solicitar" guarda el servicio en sessionStorage
+ * - Hace scroll al formulario de reserva (#calcular)
+ * - Muestra un toast de confirmación
+ * - El BookingForm lee el sessionStorage y muestra el badge de lavado incluido
+ */
+
+import { useState } from "react";
 
 const SERVICIOS = [
   {
@@ -30,18 +42,45 @@ const SERVICIOS = [
   },
 ];
 
-/** Mensaje predefinido de WhatsApp para solicitar limpieza */
-function waLimpieza(servicio: string) {
-  const msg = encodeURIComponent(
-    `Hola, me interesa añadir el servicio de "${servicio}" a mi reserva de parking. ¿Me podéis informar?`
-  );
-  return `${NEGOCIO.whatsappHref}?text=${msg}`;
-}
-
 export default function ServiciosLimpieza() {
+  const [toast, setToast] = useState<string | null>(null);
+
+  /** Equivalente a handleSelectService del dashboard */
+  function solicitar(id: number, nombre: string, precio: string) {
+    // 1. Guardar en sessionStorage (persiste si el usuario recarga)
+    sessionStorage.setItem("lavado_id",     String(id));
+    sessionStorage.setItem("lavado_nombre", nombre);
+    sessionStorage.setItem("lavado_precio", precio);
+
+    // 2. Notificar al BookingForm en tiempo real mediante evento personalizado
+    //    (el useEffect del form ya corrió al montar, así que no releerá sessionStorage)
+    window.dispatchEvent(
+      new CustomEvent("lavado-seleccionado", { detail: { id, nombre, precio } })
+    );
+
+    // 3. Scroll al formulario de reserva
+    const form = document.getElementById("calcular");
+    if (form) {
+      form.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // 4. Toast de confirmación (equivalente al toast del dashboard)
+    setToast("✅ Servicio agregado · Por favor completa la reserva.");
+    setTimeout(() => setToast(null), 4500);
+  }
+
   return (
     <section className="limpieza-section" id="servicios-limpieza">
       <div className="container">
+
+        {/* ── Toast de confirmación ── */}
+        {toast && (
+          <div className="limpieza-toast" role="status" aria-live="polite">
+            {toast}
+          </div>
+        )}
 
         {/* ── Cabecera ── */}
         <div className="limpieza-header">
@@ -75,23 +114,21 @@ export default function ServiciosLimpieza() {
               <p className="limpieza-card-precio">{s.precio}</p>
               <p className="limpieza-card-detalle">{s.detalle}</p>
 
-              <a
-                href={waLimpieza(s.nombre)}
-                target="_blank"
-                rel="noreferrer"
+              <button
+                type="button"
+                onClick={() => solicitar(s.id, s.nombre, s.precio)}
                 className={`limpieza-btn${s.popular ? " limpieza-btn--popular" : ""}`}
               >
-                Solicitar por WhatsApp
-              </a>
+                Solicitar
+              </button>
             </div>
           ))}
         </div>
 
         {/* ── Nota informativa ── */}
         <p className="limpieza-nota">
-          💡 El servicio de limpieza se coordina con tu reserva de parking.
-          Contáctanos por WhatsApp o al{" "}
-          <a href={NEGOCIO.telefonoHref}>{NEGOCIO.telefono}</a> para añadirlo.
+          💡 El servicio de limpieza se añade a tu reserva de parking.
+          Selecciónalo aquí y completa tu reserva en el formulario de arriba.
         </p>
 
       </div>

@@ -49,7 +49,7 @@ async function notificarDiscord(r: ReservaCompleta): Promise<void> {
           { name: "🌙 Días",             value: `${r.dias} día${r.dias !== 1 ? "s" : ""}`, inline: true },
           { name: "🛫 Terminal entrada", value: r.terminalEntrada,                inline: true },
           { name: "🛬 Terminal salida",  value: r.terminalSalida,                 inline: true },
-          { name: "💶 Total",            value: `**${formatoEuros(r.total)}**${planTexto}`, inline: true },
+          { name: "💶 Total",            value: `**${formatoEuros(r.total)}**${planTexto}${r.lavadoNombre ? ` · 🧹 ${r.lavadoNombre}` : ""}`, inline: true },
           { name: "👤 Cliente",          value: r.nombre,                         inline: true },
           { name: "📞 Teléfono",         value: r.telefono,                       inline: true },
           { name: "📧 Email",            value: r.email,                          inline: true },
@@ -137,7 +137,7 @@ export async function POST(request: Request) {
       checkOut:    reserva.salida,
       status:      "confirmed",
       price:       reserva.total,
-      notes:       `Recibida desde la web · Terminal salida: ${reserva.terminalSalida}${reserva.planNombre ? ` · Plan: ${reserva.planNombre}` : ""}`,
+      notes:       `Recibida desde la web · Terminal salida: ${reserva.terminalSalida}${reserva.planNombre ? ` · Plan: ${reserva.planNombre}` : ""}${reserva.lavadoNombre ? ` · Lavado: ${reserva.lavadoNombre}` : ""}`,
     });
     reservaId = creada.id;
   } catch (err) {
@@ -208,9 +208,24 @@ function cabecera(titulo: string, subtitulo: string) {
   <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);border-radius:12px 12px 0 0;">
     <tr>
       <td style="padding:28px 32px;">
-        <div style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:${NARANJA};margin-bottom:8px;">
-          ${NEGOCIO.nombre}
-        </div>
+        <table cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
+          <tr>
+            <td style="vertical-align:middle;padding-right:14px;">
+              <img src="https://parkingaeromadrid.es/logo.jpg"
+                   alt="${NEGOCIO.nombre}"
+                   width="52" height="52"
+                   style="display:block;border-radius:10px;border:2px solid rgba(255,255,255,.15);" />
+            </td>
+            <td style="vertical-align:middle;">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:${NARANJA};">
+                ${NEGOCIO.nombre}
+              </div>
+              <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;">
+                Aeropuerto Madrid-Barajas
+              </div>
+            </td>
+          </tr>
+        </table>
         <div style="font-size:22px;font-weight:800;color:#ffffff;line-height:1.3;">
           ${titulo}
         </div>
@@ -280,6 +295,7 @@ function construirEmailCliente(r: ReservaCompleta): string {
                 ${fila("🛬 Terminal salida",  r.terminalSalida)}
                 ${fila("🚗 Vehículo",         `${vehiculoIcon} · ${r.modelo} · <code>${r.matricula.toUpperCase()}</code>`)}
                 ${fila("💶 Total estimado",   `<span style="color:${NARANJA};font-size:16px;">${formatoEuros(r.total)}</span>${planTexto}`)}
+                ${r.lavadoNombre ? fila("🧹 Lavado incluido", r.lavadoNombre) : ""}
               </table>
             </td>
           </tr>

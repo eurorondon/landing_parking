@@ -11,10 +11,15 @@ export const metadata: Metadata = {
   title: "Parking Aero Madrid | Reserva en Barajas sin estrés",
   description:
     "Reserva tu parking en Madrid-Barajas en menos de 1 minuto. Entrega y recogida en terminal, servicio 24 horas y sin pago anticipado.",
+  icons: {
+    icon:  "/logo.jpg",
+    apple: "/logo.jpg",
+  },
   openGraph: {
     title: "Parking Aero Madrid",
     description:
       "Deja tu coche en la terminal y viaja sin estrés. Reserva online sin pago anticipado.",
+    images: [{ url: "/logo.jpg", width: 512, height: 512, alt: "Parking Aero Madrid" }],
     locale: "es_ES",
     type: "website",
   },

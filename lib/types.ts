@@ -33,4 +33,6 @@ export interface ReservaCompleta extends DatosCliente {
   /** Plan seleccionado (1=Estándar, 2=Premium, 3=Priority, 4=Económico) */
   plan?: number;
   planNombre?: string;
+  /** Servicio de lavado adicional elegido desde ServiciosLimpieza */
+  lavadoNombre?: string;
 }

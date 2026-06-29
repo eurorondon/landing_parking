@@ -40,6 +40,7 @@ export default function ReservaForm() {
   const planNombre      = sp.get("planNombre") ?? "Estándar";
   const total           = parseFloat(sp.get("total") ?? "0");
   const nocturno        = sp.get("nocturno") === "1";
+  const lavadoNombre    = sp.get("lavadoNombre") ?? "";
 
   const [cliente, setCliente]   = useState<DatosCliente>(clienteVacio);
   const [enviando, setEnviando] = useState(false);
@@ -74,6 +75,7 @@ export default function ReservaForm() {
       total,
       plan,
       planNombre,
+      ...(lavadoNombre ? { lavadoNombre } : {}),
     };
 
     try {
@@ -151,6 +153,12 @@ export default function ReservaForm() {
             <span>Plan</span>
             <strong>{planNombre}</strong>
           </div>
+          {lavadoNombre && (
+            <div className="reservar-resumen-fila reservar-resumen-fila--lavado">
+              <span>🧹 Lavado</span>
+              <strong>{lavadoNombre}</strong>
+            </div>
+          )}
           {nocturno && (
             <div className="reservar-resumen-fila reservar-resumen-fila--nocturno">
               <span>🌙 Recargo nocturno</span>
