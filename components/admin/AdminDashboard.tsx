@@ -15,18 +15,20 @@ import CalendarSection from "./CalendarSection";
 import ClientsSection from "./ClientsSection";
 import ReportsSection from "./ReportsSection";
 import SettingsSection from "./SettingsSection";
+import PlanningSection from "./PlanningSection";
 import ReservationFormModal from "./ReservationFormModal";
 import DetailModal from "./DetailModal";
 
-type Section = "home" | "reservations" | "calendar" | "clients" | "reports" | "settings";
+type Section = "home" | "reservations" | "calendar" | "clients" | "reports" | "planning" | "settings";
 
 const TITLES: Record<Section, string> = {
-  home: "Inicio",
+  home:         "Inicio",
   reservations: "Reservas",
-  calendar: "Calendario",
-  clients: "Clientes",
-  reports: "Reportes",
-  settings: "Configuración",
+  calendar:     "Calendario",
+  clients:      "Clientes",
+  reports:      "Reportes",
+  planning:     "Planificación",
+  settings:     "Configuración",
 };
 
 interface Toast { id: number; msg: string; type?: "success" | "error"; }
@@ -183,8 +185,9 @@ export default function AdminDashboard() {
     { sec: "calendar", icon: "📅", label: "Calendario" },
   ];
   const navItems2: { sec: Section; icon: string; label: string }[] = [
-    { sec: "clients", icon: "👥", label: "Clientes" },
-    { sec: "reports", icon: "📊", label: "Reportes" },
+    { sec: "clients",  icon: "👥", label: "Clientes"       },
+    { sec: "reports",  icon: "📊", label: "Reportes"       },
+    { sec: "planning", icon: "🗓️", label: "Planificación"  },
   ];
 
   return (
@@ -266,7 +269,8 @@ export default function AdminDashboard() {
               )}
               {section === "calendar" && <CalendarSection reservas={reservas} onDetail={setDetailId} />}
               {section === "clients" && <ClientsSection reservas={reservas} />}
-              {section === "reports" && <ReportsSection reservas={reservas} />}
+              {section === "reports"  && <ReportsSection  reservas={reservas} />}
+              {section === "planning" && <PlanningSection />}
               {section === "settings" && (
                 <SettingsSection
                   config={config}

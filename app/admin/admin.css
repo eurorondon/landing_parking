@@ -413,3 +413,80 @@ select.filter-select:focus{border-color:var(--teal-400);}
 }
 /* sidebar overlay */
 #sb-overlay{position:fixed;inset:0;z-index:49;background:rgba(0,0,0,.4);}
+
+/* ── BOTONES EXTRA ── */
+.btn-outline{background:none;border:1.5px solid var(--gray-300);color:var(--gray-600);}
+.btn-outline:hover{border-color:var(--teal-400);color:var(--teal-600);background:var(--teal-100);}
+.btn-teal{background:var(--teal-500);color:#fff;}
+.btn-teal:hover{background:var(--teal-600);}
+.btn-xs{padding:4px 9px;font-size:11.5px;}
+.text-muted{color:var(--gray-400);}
+
+/* ── ESTADO (status badges) ── */
+.status-badge{display:inline-block;padding:2px 8px;border-radius:50px;
+  font-size:11px;font-weight:500;background:var(--gray-100);color:var(--gray-600);}
+.status-confirmed{background:var(--blue-bg);color:var(--blue-text);}
+.status-inside{background:var(--green-bg);color:var(--green-text);}
+
+/* ── TERMINAL & RESERVA ID ── */
+.terminal-badge{display:inline-block;padding:2px 8px;border-radius:4px;
+  font-size:11.5px;font-weight:600;background:var(--teal-100);color:var(--teal-700);
+  font-family:'Manrope',sans-serif;letter-spacing:.04em;}
+.reservation-id{font-family:'Manrope',sans-serif;font-size:13px;
+  font-weight:600;color:var(--teal-600);}
+
+/* ── ALERTA ── */
+.alert{padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;}
+.alert-error{background:var(--red-bg);color:var(--red-text);border:1px solid #fecaca;}
+
+/* ── PAGE DESC ── */
+.page-desc{font-size:12.5px;color:var(--gray-500);margin-top:2px;}
+.page-header-left{display:flex;flex-direction:column;gap:2px;}
+
+/* ══ PLANNING ══════════════════════════════════════════════════════════════ */
+
+.planning-wrap{display:flex;flex-direction:column;gap:20px;}
+
+/* Barra de fecha */
+.planning-datebar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:var(--white);border-radius:var(--radius-md);
+  padding:12px 16px;border:1px solid var(--gray-200);
+  box-shadow:var(--shadow-sm);margin-bottom:4px;}
+.planning-date-input{
+  padding:6px 10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);
+  font-size:13px;font-family:'Inter',sans-serif;color:var(--gray-800);
+  background:var(--white);outline:none;cursor:pointer;margin-left:auto;}
+.planning-date-input:focus{border-color:var(--teal-400);}
+
+/* Bloque de tabla (Entradas / Salidas) */
+.planning-table-block{
+  background:var(--white);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);border:1px solid var(--gray-200);overflow:hidden;}
+.planning-table-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-bottom:1px solid var(--gray-100);}
+.planning-table-title{
+  font-family:'Manrope',sans-serif;font-size:15px;font-weight:600;color:var(--gray-900);}
+.planning-badge{
+  background:var(--teal-100);color:var(--teal-700);border-radius:50px;
+  font-size:11.5px;font-weight:600;padding:2px 10px;}
+
+/* Celdas especiales */
+.planning-hora{font-family:'Manrope',sans-serif;font-size:14px;color:var(--gray-900);}
+.planning-matricula{
+  font-family:'Courier New',monospace;font-size:13.5px;font-weight:700;
+  background:var(--gray-100);padding:2px 6px;border-radius:4px;letter-spacing:.08em;}
+
+/* Botones de cola de impresión PDF */
+.botones-tickets{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+/* Responsive */
+@media(max-width:900px){
+  .planning-table-header{flex-direction:column;align-items:flex-start;gap:10px;}
+  .botones-tickets{flex-wrap:wrap;}
+}
+@media(max-width:768px){
+  .planning-datebar{gap:6px;}
+  .planning-date-input{margin-left:0;width:100%;}
+}
