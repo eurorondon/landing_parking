@@ -600,7 +600,7 @@ footer { padding: 52px 0 30px; background: #000; border-top: 1px solid var(--bor
 footer h4 { color: #fff; margin: 0 0 14px; font-weight: 700; font-size: 13px; }
 footer p, footer a { font-size: 13px; color: rgba(255,255,255,.85); line-height: 1.75; display: block; margin: 6px 0; }
 footer a:hover { color: var(--orange); }
-.copyright { border-top: 1px solid var(--border); margin-top: 34px; padding-top: 20px; font-size: 12px; color: rgba(255,255,255,.7); }
+.copyright { border-top: 1px solid var(--border); margin-top: 34px; padding-top: 20px; font-size: 12px; color: #fff; }
 
 /* ──────────────────────────────────────────
    MODAL (BookingModal — datos de cliente)
@@ -828,7 +828,7 @@ footer a:hover { color: var(--orange); }
   display: grid; place-items: center; font-size: 22px; flex-shrink: 0;
 }
 .bform-title { font-size: 22px; font-weight: 800; color: #111; letter-spacing: -.035em; margin: 0; line-height: 1.15; }
-.bform-subtitle { font-size: 14px; color: #888; line-height: 1.5; margin: 0 0 14px; }
+.bform-subtitle { font-size: 14px; color: #fff; line-height: 1.5; margin: 0 0 14px; }
 .bform-trust-badge {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 13px; border-radius: 999px;
@@ -839,7 +839,7 @@ footer a:hover { color: var(--orange); }
 /* Grid de campos */
 .bform-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; padding: 0 22px; }
 .bform-field  { display: flex; flex-direction: column; gap: 5px; }
-.bform-label  { font-size: 12px; font-weight: 600; color: #999; letter-spacing: .01em; }
+.bform-label  { font-size: 12px; font-weight: 600; color: #fff; letter-spacing: .01em; }
 
 /* Input con icono */
 .bform-icon-wrap { position: relative; display: block; }
@@ -877,7 +877,7 @@ footer a:hover { color: var(--orange); }
   border-color: rgba(255,149,0,.6);
   box-shadow: 0 0 0 3px rgba(255,149,0,.12);
 }
-.bform-card .select-chevron { color: #ccc; }
+.bform-card .select-chevron { color: #fff; }
 
 /* Toggle de vehículo dentro de bform-card (tema claro) */
 .bform-vehicle-toggle {
@@ -947,8 +947,8 @@ footer a:hover { color: var(--orange); }
   display: flex; align-items: center; gap: 8px;
   margin: 12px 22px 22px;
   padding: 12px 15px;
-  background: #f4f4f2; border-radius: 12px;
-  font-size: 13px; color: #777; line-height: 1.45;
+  background: rgba(255,255,255,.07); border-radius: 12px;
+  font-size: 13px; color: #fff; line-height: 1.45;
 }
 
 /* ──────────────────────────────────────────
@@ -1202,7 +1202,7 @@ footer a:hover { color: var(--orange); }
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: #9CA3AF;
+  color: #fff;
   margin: 0;
 }
 .sticky-phone-number {
@@ -1214,7 +1214,7 @@ footer a:hover { color: var(--orange); }
 .sticky-phone-number:hover { text-decoration: underline; }
 .sticky-phone-hint {
   font-size: 11px;
-  color: #9CA3AF;
+  color: #fff;
   text-align: center;
   margin: 0;
 }
@@ -2013,7 +2013,7 @@ footer a:hover { color: var(--orange); }
   max-width: 520px;
   margin: 0 auto;
   font-size: 15px;
-  color: rgba(255,255,255,.65);
+  color: #fff;
   line-height: 1.7;
 }
 
@@ -2079,7 +2079,7 @@ footer a:hover { color: var(--orange); }
 
 .limpieza-card-lema {
   font-size: 13px;
-  color: rgba(255,255,255,.5);
+  color: #fff;
 }
 
 .limpieza-card-precio {
@@ -2092,7 +2092,7 @@ footer a:hover { color: var(--orange); }
 
 .limpieza-card-detalle {
   font-size: 13px;
-  color: rgba(255,255,255,.6);
+  color: #fff;
   line-height: 1.65;
   flex: 1;
 }
@@ -2131,7 +2131,7 @@ footer a:hover { color: var(--orange); }
   text-align: center;
   margin-top: 48px;
   font-size: 14px;
-  color: rgba(255,255,255,.45);
+  color: #fff;
 }
 .limpieza-nota a {
   color: var(--orange);
