@@ -1972,3 +1972,174 @@ footer a:hover { color: var(--orange); }
   .reservar-fields { grid-template-columns: 1fr; }
   .reservar-field--full { grid-column: 1; }
 }
+
+/* ──────────────────────────────────────────
+   SERVICIOS DE LIMPIEZA
+   ────────────────────────────────────────── */
+.limpieza-section {
+  padding: 100px 0 80px;
+  background: var(--bg-card-s);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.limpieza-header {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.limpieza-label {
+  display: inline-block;
+  color: var(--orange);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.limpieza-titulo {
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 800;
+  letter-spacing: -.03em;
+  color: var(--white);
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+
+.limpieza-titulo-accent { color: var(--orange); }
+
+.limpieza-desc {
+  max-width: 520px;
+  margin: 0 auto;
+  font-size: 15px;
+  color: rgba(255,255,255,.65);
+  line-height: 1.7;
+}
+
+/* Grid de cards */
+.limpieza-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+/* Card base */
+.limpieza-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+}
+.limpieza-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255,149,0,.35);
+  box-shadow: 0 20px 50px rgba(0,0,0,.4);
+}
+
+/* Card destacada */
+.limpieza-card--popular {
+  border-color: var(--orange);
+  background: rgba(255,149,0,.07);
+  box-shadow: 0 0 0 1px var(--orange), 0 20px 50px rgba(255,149,0,.1);
+}
+
+.limpieza-badge {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--orange);
+  color: #000;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 16px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.limpieza-card-icon {
+  font-size: 36px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.limpieza-card-nombre {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -.02em;
+}
+
+.limpieza-card-lema {
+  font-size: 13px;
+  color: rgba(255,255,255,.5);
+}
+
+.limpieza-card-precio {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--orange);
+  letter-spacing: -.03em;
+  margin: 4px 0;
+}
+
+.limpieza-card-detalle {
+  font-size: 13px;
+  color: rgba(255,255,255,.6);
+  line-height: 1.65;
+  flex: 1;
+}
+
+/* Botón de solicitud */
+.limpieza-btn {
+  display: block;
+  text-align: center;
+  margin-top: 8px;
+  padding: 13px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  background: rgba(255,255,255,.08);
+  color: var(--white);
+  border: 1px solid var(--border);
+  transition: background .2s, border-color .2s;
+  cursor: pointer;
+}
+.limpieza-btn:hover {
+  background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.25);
+}
+.limpieza-btn--popular {
+  background: var(--orange);
+  color: #000;
+  border-color: var(--orange);
+}
+.limpieza-btn--popular:hover {
+  background: var(--orange-dark);
+  border-color: var(--orange-dark);
+}
+
+/* Nota informativa */
+.limpieza-nota {
+  text-align: center;
+  margin-top: 48px;
+  font-size: 14px;
+  color: rgba(255,255,255,.45);
+}
+.limpieza-nota a {
+  color: var(--orange);
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .limpieza-grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+  .limpieza-card--popular { order: -1; }
+}

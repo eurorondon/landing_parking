@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Select from "./ui/Select";
 import { OPCIONES_TERMINAL } from "@/lib/config";
-import { entradaPorDefecto, salidaPorDefecto, OPCIONES_HORA, aFechaInput } from "@/lib/datetime";
+import { getNearestSlot, salidaPorDefecto, OPCIONES_HORA, aFechaInput } from "@/lib/datetime";
 import {
   calculateRawParkingDays,
   aplicaNocturnidad,
@@ -20,21 +20,35 @@ import type { DatosReserva } from "@/lib/types";
  * La nocturnidad (00:30–03:30) suma el coste del servicio id=11.
  */
 export default function BookingForm() {
+  // ── Estado de fechas vacío hasta que el cliente monte ───────────────────────
+  // Las fechas se calculan SIEMPRE en el cliente para evitar el desfase de
+  // zona horaria del SSR (el servidor corre en UTC, el usuario está en UTC+2).
   const [reserva, setReserva] = useState<DatosReserva>({
-    vehiculo: "car",
-    entryDate: entradaPorDefecto(),
-    entryTime: "08:00",
-    exitDate: salidaPorDefecto(),
-    exitTime: "18:00",
+    vehiculo:        "car",
+    entryDate:       "",      // se rellena en useEffect (cliente)
+    entryTime:       "",      // se rellena en useEffect (cliente)
+    exitDate:        "",      // se rellena en useEffect (cliente)
+    exitTime:        "18:00",
     terminalEntrada: "T1",
-    terminalSalida: "T1",
+    terminalSalida:  "T1",
   });
-  const [calculo, setCalculo]   = useState<CalculoPrecio | null>(null);
+  const [hoy, setHoy]         = useState("");   // también se rellena en cliente
+  const [calculo, setCalculo] = useState<CalculoPrecio | null>(null);
   const [cargando, setCargando] = useState(false);
   const router = useRouter();
 
-  // Fecha mínima seleccionable: hoy (se recalcula en cada render para no quedar obsoleto)
-  const hoy = aFechaInput(new Date());
+  // Inicializa fechas y hora en el cliente (nunca en SSR)
+  useEffect(() => {
+    const todayStr  = aFechaInput(new Date());
+    const slotInicio = getNearestSlot();
+    setHoy(todayStr);
+    setReserva(r => ({
+      ...r,
+      entryDate: todayStr,
+      entryTime: slotInicio,
+      exitDate:  salidaPorDefecto(),
+    }));
+  }, []);
 
   // Recalcula precio desde la BD cuando cambian fechas u horas
   useEffect(() => {
@@ -76,13 +90,28 @@ export default function BookingForm() {
   function actualizar(campo: keyof DatosReserva, valor: string) {
     setReserva((r) => {
       const nuevo = { ...r, [campo]: valor };
+
+      // Si la fecha de entrada cambia a hoy → asegura que la hora no sea pasada
+      if (campo === "entryDate" && valor === hoy) {
+        const minSlot = getNearestSlot();
+        if (!r.entryTime || r.entryTime < minSlot) {
+          nuevo.entryTime = minSlot;
+        }
+      }
+
       // Si la nueva fecha de entrada es posterior a la salida, adelanta la salida
       if (campo === "entryDate" && valor > r.exitDate) {
         nuevo.exitDate = valor;
       }
+
       return nuevo;
     });
   }
+
+  // Opciones de hora de entrada: si la fecha es hoy, solo muestra slots futuros
+  const opcionesHoraEntrada = (reserva.entryDate === hoy && hoy)
+    ? OPCIONES_HORA.filter(h => h >= getNearestSlot())
+    : OPCIONES_HORA;
 
   function verPlanes() {
     if (!calculo) {
@@ -150,7 +179,7 @@ export default function BookingForm() {
               <Select
                 ariaLabel="Hora de entrada"
                 value={reserva.entryTime}
-                opciones={OPCIONES_HORA}
+                opciones={opcionesHoraEntrada}
                 onChange={(v) => actualizar("entryTime", v)}
               />
             </div>

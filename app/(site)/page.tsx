@@ -4,6 +4,7 @@ import BookingForm from "@/components/BookingForm";
 import TrustBar from "@/components/TrustBar";
 import Benefits from "@/components/Benefits";
 import HowItWorks from "@/components/HowItWorks";
+import ServiciosLimpieza from "@/components/ServiciosLimpieza";
 import FAQ from "@/components/FAQ";
 import SeoHubSection from "@/components/SeoHubSection";
 import FinalCTA from "@/components/FinalCTA";
@@ -27,6 +28,7 @@ export default function Home() {
         <TrustBar />
         <Benefits />
         <HowItWorks />
+        <ServiciosLimpieza />
         <FAQ />
 
         {/* ── Hub de enlaces internos: landing SEO + blog ── */}
