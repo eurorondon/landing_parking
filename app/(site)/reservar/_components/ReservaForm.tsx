@@ -45,6 +45,7 @@ export default function ReservaForm() {
   const [enviando, setEnviando] = useState(false);
   const [enviada, setEnviada]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
+  const [reservaId, setReservaId] = useState<number | string | null>(null);
 
   function actualizar(campo: keyof DatosCliente, valor: string) {
     setCliente((c) => ({ ...c, [campo]: valor }));
@@ -82,6 +83,23 @@ export default function ReservaForm() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error();
+
+      const data = await res.json();
+      const id   = data.reservaId ?? null;
+      setReservaId(id);
+
+      // ── DataLayer: evento de conversión para GTM/GA4 ──────────────────────
+      if (typeof window !== "undefined") {
+        (window as any).dataLayer = (window as any).dataLayer ?? [];
+        (window as any).dataLayer.push({
+          event:             "reserva_confirmada",
+          transaction_id:    id,
+          transaction_value: Math.round(total * 100) / 100,
+          currency:          "EUR",
+          plan:              planNombre,
+        });
+      }
+
       setEnviada(true);
     } catch {
       setError("No se pudo enviar la reserva. Inténtalo de nuevo o llámanos por teléfono.");

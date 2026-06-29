@@ -123,8 +123,9 @@ export async function POST(request: Request) {
 
   // ── Persistir en MySQL via Prisma ────────────────────────────────────────────
   const cfg = await getConfig();
+  let reservaId: number | string | null = null;
   try {
-    await createFullReservation({
+    const creada = await createFullReservation({
       name:        reserva.nombre.trim(),
       phone:       reserva.telefono.trim(),
       email:       reserva.email.trim(),
@@ -138,6 +139,7 @@ export async function POST(request: Request) {
       price:       reserva.total,
       notes:       `Recibida desde la web · Terminal salida: ${reserva.terminalSalida}${reserva.planNombre ? ` · Plan: ${reserva.planNombre}` : ""}`,
     });
+    reservaId = creada.id;
   } catch (err) {
     // No interrumpimos el flujo: el correo de confirmación sigue enviándose
     console.error("[reserva] Error al guardar en BD:", err);
@@ -152,7 +154,7 @@ export async function POST(request: Request) {
   if (!smtpOk) {
     console.log("📩 [SIMULADO] Reserva confirmada (configura SMTP_HOST/USER/PASS para envío real):");
     console.log(JSON.stringify(reserva, null, 2));
-    return NextResponse.json({ ok: true, simulado: true });
+    return NextResponse.json({ ok: true, simulado: true, reservaId });
   }
 
   const mailFrom  = process.env.MAIL_FROM  || `"${NEGOCIO.nombre}" <${process.env.SMTP_USER}>`;
@@ -179,7 +181,7 @@ export async function POST(request: Request) {
       html:    construirEmailAdmin(reserva),
     }).catch((err: Error) => console.error("[reserva] Error al enviar aviso al admin:", err));
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, reservaId });
   } catch (error) {
     console.error("[reserva] Error enviando correo al cliente:", error);
     return NextResponse.json({ ok: false, error: "Error al enviar la confirmación" }, { status: 500 });
