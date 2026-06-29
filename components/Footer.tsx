@@ -1,4 +1,5 @@
 import { NEGOCIO } from "@/lib/config";
+import CookieResetButton from "@/components/CookieResetButton";
 
 export default function Footer() {
   return (
@@ -39,6 +40,8 @@ export default function Footer() {
             <h4>Legal</h4>
             <a href="/aviso-legal">Aviso legal</a>
             <a href="/privacidad">Privacidad</a>
+            <a href="/cookies">Política de cookies</a>
+            <CookieResetButton />
           </div>
         </div>
         <div className="copyright">

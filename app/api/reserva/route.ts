@@ -1,21 +1,96 @@
 import { NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 import { NEGOCIO } from "@/lib/config";
 import { formatoLegible } from "@/lib/datetime";
 import { formatoEuros } from "@/lib/pricing";
 import type { ReservaCompleta } from "@/lib/types";
 import { getConfig, createFullReservation } from "@/lib/store";
 
+// ── Color naranja de la marca en formato decimal (Discord embed) ──
+const DISCORD_COLOR = 0xFF9500; // #FF9500
+
+/**
+ * Crea el transporte SMTP de Nodemailer con las variables de entorno.
+ */
+function crearTransporte() {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 465,
+    secure: process.env.SMTP_SECURE !== "false", // true por defecto (puerto 465)
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false, // Evita errores con certificados autofirmados
+    },
+  });
+}
+
+/**
+ * Envía un embed a Discord con los datos de la reserva.
+ * Fire-and-forget: si falla no interrumpe el flujo principal.
+ */
+async function notificarDiscord(r: ReservaCompleta): Promise<void> {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  if (!webhookUrl) return;
+
+  const vehiculoIcon = r.vehiculo === "moto" ? "🏍️" : "🚗";
+  const planTexto    = r.planNombre ? ` · Plan ${r.planNombre}` : "";
+
+  const payload = {
+    embeds: [
+      {
+        title: "🚗 Nueva reserva recibida",
+        color: DISCORD_COLOR,
+        fields: [
+          { name: "📅 Entrada",          value: formatoLegible(r.entrada),       inline: true },
+          { name: "📅 Salida",           value: formatoLegible(r.salida),        inline: true },
+          { name: "🌙 Días",             value: `${r.dias} día${r.dias !== 1 ? "s" : ""}`, inline: true },
+          { name: "🛫 Terminal entrada", value: r.terminalEntrada,                inline: true },
+          { name: "🛬 Terminal salida",  value: r.terminalSalida,                 inline: true },
+          { name: "💶 Total",            value: `**${formatoEuros(r.total)}**${planTexto}`, inline: true },
+          { name: "👤 Cliente",          value: r.nombre,                         inline: true },
+          { name: "📞 Teléfono",         value: r.telefono,                       inline: true },
+          { name: "📧 Email",            value: r.email,                          inline: true },
+          { name: `${vehiculoIcon} Vehículo`, value: `${r.modelo} · \`${r.matricula.toUpperCase()}\``, inline: false },
+        ],
+        footer:    { text: NEGOCIO.nombre },
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  };
+
+  try {
+    const res = await fetch(webhookUrl, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      console.error("[discord] Error al enviar notificación:", res.status, await res.text());
+    }
+  } catch (err) {
+    console.error("[discord] Excepción al enviar notificación:", err);
+  }
+}
+
 /**
  * ============================================================
  *  API DE RESERVAS — guarda en MySQL/Prisma + envía correos
  *
  *  La reserva se persiste en la misma base de datos MySQL que
- *  usa el panel parkingplus-dashboard (tablas: clientes, coches, reservas).
+ *  usa el panel parkingplus-dashboard.
  *
  *  Variables necesarias en .env.local:
  *    DATABASE_URL=mysql://user:pass@host:3306/nombre_db
- *    RESEND_API_KEY=re_xxxx     (opcional — para envío real de correos)
- *    EMAIL_FROM="Parking Aero Madrid <reservas@parkingaeromadrid.es>"
+ *    SMTP_HOST=mail.parkingaeromadrid.es   (o IP del servidor)
+ *    SMTP_PORT=465
+ *    SMTP_SECURE=true
+ *    SMTP_USER=reserva@parkingaeromadrid.es
+ *    SMTP_PASS=xxxx
+ *    MAIL_FROM="Parking Aero Madrid <reserva@parkingaeromadrid.es>"
+ *    MAIL_ADMIN=parkingaeromadrid@gmail.com
  * ============================================================
  */
 
@@ -46,7 +121,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // ── Persistir en MySQL via Prisma (misma BD que el panel) ────────────────
+  // ── Persistir en MySQL via Prisma ────────────────────────────────────────────
   const cfg = await getConfig();
   try {
     await createFullReservation({
@@ -64,137 +139,269 @@ export async function POST(request: Request) {
       notes:       `Recibida desde la web · Terminal salida: ${reserva.terminalSalida}${reserva.planNombre ? ` · Plan: ${reserva.planNombre}` : ""}`,
     });
   } catch (err) {
-    // No interrumpimos el flujo: el email de confirmación sigue enviándose
+    // No interrumpimos el flujo: el correo de confirmación sigue enviándose
     console.error("[reserva] Error al guardar en BD:", err);
   }
 
-  // ── Envío de correos ───────────────────────────────────────────────────────
-  const apiKey = process.env.RESEND_API_KEY;
-  const emailDueno = cfg.ownerEmail || NEGOCIO.emailDueno;
+  // ── Notificación Discord (fire-and-forget) ──────────────────────────────────
+  notificarDiscord(reserva).catch(() => {/* ya logueado dentro */});
 
-  if (!apiKey) {
-    console.log("📩 [SIMULADO] Reserva confirmada (configura RESEND_API_KEY para envío real):");
+  // ── Envío de correos via SMTP (Nodemailer) ──────────────────────────────────
+  const smtpOk = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
+
+  if (!smtpOk) {
+    console.log("📩 [SIMULADO] Reserva confirmada (configura SMTP_HOST/USER/PASS para envío real):");
     console.log(JSON.stringify(reserva, null, 2));
     return NextResponse.json({ ok: true, simulado: true });
   }
 
-  const enviarEmail = (destinatario: string, replyTo: string, subject: string, html: string) =>
-    fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from:     process.env.EMAIL_FROM ?? "Parking Aero Madrid <onboarding@resend.dev>",
-        to:       [destinatario],
-        reply_to: replyTo,
-        subject,
-        html,
-      }),
-    });
+  const mailFrom  = process.env.MAIL_FROM  || `"${NEGOCIO.nombre}" <${process.env.SMTP_USER}>`;
+  const mailAdmin = process.env.MAIL_ADMIN || (cfg.ownerEmail ?? NEGOCIO.emailDueno);
+  const transporter = crearTransporte();
 
   try {
     // 1. Confirmación al cliente
-    const resCliente = await enviarEmail(
-      reserva.email,
-      emailDueno,
-      `✅ Reserva confirmada · ${NEGOCIO.nombre} · ${formatoLegible(reserva.entrada)}`,
-      construirEmailCliente(reserva),
-    );
-    if (!resCliente.ok) {
-      const detalle = await resCliente.text();
-      console.error("Error de Resend (confirmación al cliente):", detalle);
-      return NextResponse.json(
-        { ok: false, error: "No se pudo enviar la confirmación" },
-        { status: 502 },
-      );
-    }
+    await transporter.sendMail({
+      from:     mailFrom,
+      to:       reserva.email,
+      replyTo:  mailAdmin,
+      subject:  `✅ Reserva confirmada · ${NEGOCIO.nombre} · ${formatoLegible(reserva.entrada)}`,
+      html:     construirEmailCliente(reserva),
+    });
+    console.log(`✅ Correo de confirmación enviado a ${reserva.email}`);
 
-    // 2. Aviso al dueño del parking
-    const resDueno = await enviarEmail(
-      emailDueno,
-      reserva.email,
-      `🚗 Nueva reserva: ${reserva.nombre} · ${formatoLegible(reserva.entrada)} · ${reserva.terminalEntrada}`,
-      construirEmailHtml(reserva),
-    );
-    if (!resDueno.ok) {
-      console.error("Error de Resend (aviso al dueño):", await resDueno.text());
-    }
+    // 2. Aviso al admin / dueño del parking
+    transporter.sendMail({
+      from:    `"Reservas Web" <${process.env.SMTP_USER}>`,
+      to:      mailAdmin,
+      replyTo: reserva.email,
+      subject: `🚗 Nueva reserva: ${reserva.nombre} · ${formatoLegible(reserva.entrada)} · ${reserva.terminalEntrada}`,
+      html:    construirEmailAdmin(reserva),
+    }).catch((err: Error) => console.error("[reserva] Error al enviar aviso al admin:", err));
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("Error enviando la reserva:", error);
-    return NextResponse.json({ ok: false, error: "Error interno" }, { status: 500 });
+    console.error("[reserva] Error enviando correo al cliente:", error);
+    return NextResponse.json({ ok: false, error: "Error al enviar la confirmación" }, { status: 500 });
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PLANTILLAS DE CORREO
+// ─────────────────────────────────────────────────────────────────────────────
+
+const NARANJA  = "#FF9500";
+const NARANJA2 = "#E08600";
+
+/** Fila de tabla compartida en ambos correos */
+const fila = (etiqueta: string, valor: string) => `
+  <tr>
+    <td style="padding:9px 14px;color:#6b7280;font-size:14px;white-space:nowrap;border-bottom:1px solid #f3f4f6;">${etiqueta}</td>
+    <td style="padding:9px 14px;color:#111827;font-size:14px;font-weight:600;border-bottom:1px solid #f3f4f6;">${valor}</td>
+  </tr>`;
+
+/** Cabecera HTML compartida */
+function cabecera(titulo: string, subtitulo: string) {
+  return `
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);border-radius:12px 12px 0 0;">
+    <tr>
+      <td style="padding:28px 32px;">
+        <div style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:${NARANJA};margin-bottom:8px;">
+          ${NEGOCIO.nombre}
+        </div>
+        <div style="font-size:22px;font-weight:800;color:#ffffff;line-height:1.3;">
+          ${titulo}
+        </div>
+        <div style="font-size:14px;color:rgba(255,255,255,.65);margin-top:6px;">
+          ${subtitulo}
+        </div>
+      </td>
+    </tr>
+  </table>`;
+}
+
+/** Pie HTML compartido */
+function pie() {
+  return `
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:0 0 12px 12px;border-top:1px solid #e5e7eb;">
+    <tr>
+      <td style="padding:20px 32px;text-align:center;">
+        <p style="margin:0 0 6px;font-size:13px;color:#6b7280;">
+          ¿Tienes alguna duda? Contáctanos:
+        </p>
+        <p style="margin:0;font-size:13px;">
+          <a href="mailto:${NEGOCIO.emailContacto}" style="color:${NARANJA};font-weight:600;text-decoration:none;">${NEGOCIO.emailContacto}</a>
+          &nbsp;·&nbsp;
+          <a href="${NEGOCIO.telefonoHref}" style="color:${NARANJA};font-weight:600;text-decoration:none;">${NEGOCIO.telefono}</a>
+        </p>
+        <p style="margin:12px 0 0;font-size:11px;color:#9ca3af;">
+          Por favor, no responda directamente a este mensaje si fue enviado automáticamente.
+        </p>
+      </td>
+    </tr>
+  </table>`;
 }
 
 /** Correo de confirmación que recibe el cliente */
 function construirEmailCliente(r: ReservaCompleta): string {
-  const fila = (etiqueta: string, valor: string) => `
-    <tr>
-      <td style="padding:8px 12px;color:#64748b;font-size:14px;">${etiqueta}</td>
-      <td style="padding:8px 12px;color:#0f172a;font-size:14px;font-weight:600;">${valor}</td>
-    </tr>`;
+  const vehiculoIcon = r.vehiculo === "moto" ? "🏍️ Moto" : "🚗 Coche";
+  const planTexto    = r.planNombre ? ` · Plan <strong>${r.planNombre}</strong>` : "";
 
-  return `
-  <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;">
-    <div style="background:#2c616e;border-radius:12px 12px 0 0;padding:20px 24px;">
-      <h1 style="color:#ffffff;font-size:18px;margin:0;">✅ Tu reserva está confirmada · ${NEGOCIO.nombre}</h1>
-    </div>
-    <div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;padding:8px 12px 16px;">
-      <p style="padding:8px 12px 0;color:#334155;font-size:14px;line-height:1.6;">
-        Hola ${r.nombre}: hemos registrado tu reserva. Estos son los datos:
-      </p>
-      <table style="width:100%;border-collapse:collapse;">
-        ${fila("Entrada",          formatoLegible(r.entrada))}
-        ${fila("Salida",           formatoLegible(r.salida))}
-        ${fila("Terminal entrada", r.terminalEntrada)}
-        ${fila("Terminal salida",  r.terminalSalida)}
-        ${fila("Vehículo",         `${r.vehiculo === "moto" ? "🏍️ Moto" : "🚗 Coche"} · ${r.modelo} · ${r.matricula}`)}
-        ${fila("Total estimado",   formatoEuros(r.total))}
-      </table>
-      <p style="padding:8px 12px 0;color:#334155;font-size:14px;line-height:1.6;">
-        💳 No pagas nada por adelantado: el pago se realiza al entregar el vehículo.<br>
-        Si necesitas modificar o cancelar la reserva, responde a este correo o
-        llámanos al ${NEGOCIO.telefono}.
-      </p>
-    </div>
-  </div>`;
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Reserva confirmada · ${NEGOCIO.nombre}</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+          <tr><td>${cabecera("✅ Tu reserva está confirmada", "Hemos registrado todos los datos. Aquí tienes el resumen:")}</td></tr>
+
+          <!-- RESUMEN RESERVA -->
+          <tr>
+            <td style="padding:24px 32px 8px;">
+              <p style="margin:0 0 4px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${NARANJA};">
+                Datos de la reserva
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+                ${fila("📅 Entrada",          formatoLegible(r.entrada))}
+                ${fila("📅 Salida",           formatoLegible(r.salida))}
+                ${fila("🛫 Terminal entrada", r.terminalEntrada)}
+                ${fila("🛬 Terminal salida",  r.terminalSalida)}
+                ${fila("🚗 Vehículo",         `${vehiculoIcon} · ${r.modelo} · <code>${r.matricula.toUpperCase()}</code>`)}
+                ${fila("💶 Total estimado",   `<span style="color:${NARANJA};font-size:16px;">${formatoEuros(r.total)}</span>${planTexto}`)}
+              </table>
+            </td>
+          </tr>
+
+          <!-- INSTRUCCIONES -->
+          <tr>
+            <td style="padding:24px 32px 8px;">
+              <p style="margin:0 0 4px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${NARANJA};">
+                ¿Qué hacer a continuación?
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px 24px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:12px 16px;background:#fff8f0;border-left:3px solid ${NARANJA};border-radius:0 6px 6px 0;margin-bottom:10px;display:block;">
+                    <p style="margin:0 0 4px;font-weight:700;font-size:14px;color:#111827;">🛫 Al inicio del viaje</p>
+                    <p style="margin:0;font-size:13px;color:#374151;line-height:1.5;">
+                      Llama al <strong>${NEGOCIO.telefono}</strong> aproximadamente <strong>20 minutos antes</strong> de llegar al aeropuerto.
+                      Te confirmaremos el punto de encuentro y realizaremos una inspección del vehículo.
+                    </p>
+                  </td>
+                </tr>
+                <tr><td style="height:10px;"></td></tr>
+                <tr>
+                  <td style="padding:12px 16px;background:#fff8f0;border-left:3px solid ${NARANJA2};border-radius:0 6px 6px 0;">
+                    <p style="margin:0 0 4px;font-weight:700;font-size:14px;color:#111827;">🛬 Al regreso del viaje</p>
+                    <p style="margin:0;font-size:13px;color:#374151;line-height:1.5;">
+                      Llama al <strong>${NEGOCIO.telefono}</strong> en cuanto recojas tu equipaje.
+                      Te indicaremos el punto de entrega del vehículo.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- AVISO PAGO -->
+          <tr>
+            <td style="padding:0 32px 24px;">
+              <div style="padding:14px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;color:#166534;line-height:1.6;">
+                💳 <strong>No pagas nada por adelantado.</strong> El pago se realiza directamente al entregar el vehículo en el parking.
+              </div>
+            </td>
+          </tr>
+
+          <!-- PIE -->
+          <tr><td>${pie()}</td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }
 
-/** Correo de aviso al dueño del parking */
-function construirEmailHtml(r: ReservaCompleta): string {
-  const fila = (etiqueta: string, valor: string) => `
-    <tr>
-      <td style="padding:8px 12px;color:#64748b;font-size:14px;">${etiqueta}</td>
-      <td style="padding:8px 12px;color:#0f172a;font-size:14px;font-weight:600;">${valor}</td>
-    </tr>`;
+/** Correo de aviso al administrador / dueño del parking */
+function construirEmailAdmin(r: ReservaCompleta): string {
+  const vehiculoIcon = r.vehiculo === "moto" ? "🏍️ Moto" : "🚗 Coche";
+  const planTexto    = r.planNombre ? ` · Plan ${r.planNombre}` : "";
 
-  return `
-  <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;">
-    <div style="background:#2c616e;border-radius:12px 12px 0 0;padding:20px 24px;">
-      <h1 style="color:#ffffff;font-size:18px;margin:0;">Nueva reserva · ${NEGOCIO.nombre}</h1>
-    </div>
-    <div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;padding:8px 12px 16px;">
-      <h2 style="font-size:14px;color:#334155;padding:8px 12px 0;">📅 Datos de la reserva</h2>
-      <table style="width:100%;border-collapse:collapse;">
-        ${fila("Entrada",          formatoLegible(r.entrada))}
-        ${fila("Salida",           formatoLegible(r.salida))}
-        ${fila("Terminal entrada", r.terminalEntrada)}
-        ${fila("Terminal salida",  r.terminalSalida)}
-        ${fila("Días",             String(r.dias))}
-        ${fila("Precio total",     formatoEuros(r.total))}
-      </table>
-      <h2 style="font-size:14px;color:#334155;padding:8px 12px 0;">👤 Datos del cliente</h2>
-      <table style="width:100%;border-collapse:collapse;">
-        ${fila("Nombre",   r.nombre)}
-        ${fila("Email",    r.email)}
-        ${fila("Teléfono", r.telefono)}
-        ${fila("Vehículo", r.vehiculo === "moto" ? "🏍️ Moto" : "🚗 Coche")}
-        ${fila("Matrícula", r.matricula)}
-        ${fila("Modelo",    r.modelo)}
-      </table>
-    </div>
-  </div>`;
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Nueva reserva · ${NEGOCIO.nombre}</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+          <tr><td>${cabecera("🚗 Nueva reserva recibida", `${formatoLegible(r.entrada)} · ${r.terminalEntrada}`)}</td></tr>
+
+          <!-- DATOS RESERVA -->
+          <tr>
+            <td style="padding:24px 32px 8px;">
+              <p style="margin:0 0 4px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${NARANJA};">
+                📅 Reserva
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+                ${fila("Entrada",          formatoLegible(r.entrada))}
+                ${fila("Salida",           formatoLegible(r.salida))}
+                ${fila("Días",             `${r.dias} día${r.dias !== 1 ? "s" : ""}`)}
+                ${fila("Terminal entrada", r.terminalEntrada)}
+                ${fila("Terminal salida",  r.terminalSalida)}
+                ${fila("Precio total",     `<strong style="color:${NARANJA};font-size:15px;">${formatoEuros(r.total)}</strong>${planTexto}`)}
+              </table>
+            </td>
+          </tr>
+
+          <!-- DATOS CLIENTE -->
+          <tr>
+            <td style="padding:20px 32px 8px;">
+              <p style="margin:0 0 4px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${NARANJA};">
+                👤 Cliente
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px 24px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+                ${fila("Nombre",    r.nombre)}
+                ${fila("Email",     `<a href="mailto:${r.email}" style="color:${NARANJA};text-decoration:none;">${r.email}</a>`)}
+                ${fila("Teléfono",  `<a href="tel:${r.telefono.replace(/\s/g,"")}" style="color:${NARANJA};text-decoration:none;">${r.telefono}</a>`)}
+                ${fila("Vehículo",  vehiculoIcon)}
+                ${fila("Matrícula", `<code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;">${r.matricula.toUpperCase()}</code>`)}
+                ${fila("Modelo",    r.modelo)}
+              </table>
+            </td>
+          </tr>
+
+          <!-- PIE -->
+          <tr><td>${pie()}</td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }

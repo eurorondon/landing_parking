@@ -9,18 +9,22 @@
 export const NEGOCIO = {
   nombre: "Parking Aero Madrid",
 
-  // ⚠️ CAMBIAR: email del dueño del parking (recibe las reservas)
-  emailDueno: "dueno@parkingaeromadrid.es",
+  // ⚠️ CAMBIAR: razón social y NIF reales del negocio
+  razonSocial: "Parking Aero Madrid S.L.",
+  nif: "B00000000",
 
-  // ⚠️ CAMBIAR: teléfono de contacto real
-  telefono: "+34 600 000 000",
-  telefonoHref: "tel:+34600000000",
+  // email del dueño del parking (recibe las reservas)
+  emailDueno: "parkingaeromadrid@gmail.com",
 
-  // ⚠️ CAMBIAR: WhatsApp real (formato internacional sin espacios)
-  whatsappHref: "https://wa.me/34600000000",
+  // teléfono de contacto real
+  telefono: "+34 632 868 936",
+  telefonoHref: "tel:+34632868936",
 
-  // ⚠️ CAMBIAR: email público de atención al cliente
-  emailContacto: "info@parkingaeromadrid.es",
+  // WhatsApp real (formato internacional sin espacios)
+  whatsappHref: "https://wa.me/34632868936",
+
+  // email público de atención al cliente
+  emailContacto: "parkingaeromadrid@gmail.com",
 
   // ⚠️ CAMBIAR: dirección real del parking
   direccion: "Av. de la Hispanidad, s/n · 28042 Madrid (junto a Aeropuerto Madrid-Barajas)",
