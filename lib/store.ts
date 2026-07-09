@@ -496,6 +496,77 @@ export async function saveConfig(cfg: AdminConfig): Promise<void> {
   await fs.writeFile(CFG_FILE, JSON.stringify(cfg, null, 2), "utf8");
 }
 
+// ── Precios base editables (registro_precios + servicios id=4) ─────────────────
+//
+// El precio del parking sale de `registro_precios` (una fila por nº de días) y
+// el seguro de `servicios` id=4. Aquí se leen como 3 parámetros editables y se
+// pueden regenerar desde el panel. Esta landing es la ÚNICA dueña de la BD, así
+// que regenerar la tabla no entra en conflicto con ningún otro sistema.
+
+export interface PricingParams {
+  basePrice:      number; // base/plan de la reserva (día 1 = base + dayPrice)
+  dayPrice:       number; // coste por día
+  insurancePrice: number; // seguro (servicios id=4)
+}
+
+/** Valores por defecto (coinciden con la BD actual) */
+export const DEFAULT_PRICING: PricingParams = { basePrice: 19.98, dayPrice: 6, insurancePrice: 1.98 };
+
+/** Cap de estancia larga: a partir de este nº de días el precio del parking es plano */
+export const DIAS_CAP = 18;
+
+const r2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Lee los precios base derivándolos de registro_precios + servicios id=4 */
+export async function getPricingParams(): Promise<PricingParams> {
+  const db = await getPrisma();
+  if (!db) return { ...DEFAULT_PRICING };
+  try {
+    const [f1, f2, seguro] = await Promise.all([
+      db.registro_precios.findFirst({ where: { cantidad: 1 }, orderBy: { id: "asc" } }),
+      db.registro_precios.findFirst({ where: { cantidad: 2 }, orderBy: { id: "asc" } }),
+      db.servicios.findFirst({ where: { id: 4 }, select: { costo: true } }),
+    ]);
+    const dayPrice  = f1 && f2 ? Number(f2.costo) - Number(f1.costo) : DEFAULT_PRICING.dayPrice;
+    const basePrice = f1 ? Number(f1.costo) - dayPrice : DEFAULT_PRICING.basePrice;
+    const insurancePrice = seguro ? Number(seguro.costo) : DEFAULT_PRICING.insurancePrice;
+    return { basePrice: r2(basePrice), dayPrice: r2(dayPrice), insurancePrice: r2(insurancePrice) };
+  } catch {
+    return { ...DEFAULT_PRICING };
+  }
+}
+
+/**
+ * Regenera `registro_precios` (filas 1..30, id_lista=1) con costo = base + día×N
+ * hasta DIAS_CAP y plano después, y actualiza el seguro (servicios id=4).
+ * Todo en una transacción. La lógica de lectura (lib/precio-db.ts) queda intacta.
+ */
+export async function savePricingParams(p: PricingParams): Promise<PricingParams> {
+  const db = await getPrisma();
+  const base   = Number(p.basePrice)      || 0;
+  const dia    = Number(p.dayPrice)       || 0;
+  const seguro = Number(p.insurancePrice) || 0;
+  if (!db) return { basePrice: base, dayPrice: dia, insurancePrice: seguro };
+
+  const costoDe = (n: number) => r2(base + dia * Math.min(n, DIAS_CAP));
+
+  const filas = await db.registro_precios.findMany({ where: { id_lista: 1 }, select: { cantidad: true } });
+  const existentes = new Set(filas.map((f) => f.cantidad));
+
+  const ops = [];
+  for (let n = 1; n <= 30; n++) {
+    if (existentes.has(n)) {
+      ops.push(db.registro_precios.updateMany({ where: { id_lista: 1, cantidad: n }, data: { costo: costoDe(n) } }));
+    } else {
+      ops.push(db.registro_precios.create({ data: { id_lista: 1, cantidad: n, costo: costoDe(n) } }));
+    }
+  }
+  ops.push(db.servicios.updateMany({ where: { id: 4 }, data: { costo: seguro } }));
+  await db.$transaction(ops);
+
+  return { basePrice: base, dayPrice: dia, insurancePrice: seguro };
+}
+
 // ── Datos de demostración (fallback sin DATABASE_URL) ─────────────────────────
 
 function fmtLocal(d: Date): string {
@@ -503,16 +574,13 @@ function fmtLocal(d: Date): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-// Valores aproximados SOLO para los datos demo (el precio real sale de la BD:
-// registro_precios + servicios). Reflejan la estructura base + €/día + seguro.
-const DEMO_BASE   = 19.98; // base/plan incluido en registro_precios (día 1)
-const DEMO_DIA    = 6;     // coste por día
-const DEMO_SEGURO = 1.98;  // servicios id=4
-
+// Estimación SOLO para los datos demo (sin BD). Usa los mismos valores por
+// defecto y el cap de estancia larga que el cálculo real.
 function estimarPrecioDemo(type: VehicleType, checkIn: string, checkOut: string): number {
   const dias    = calculateRawParkingDays(new Date(checkIn), new Date(checkOut));
+  const parking = DEFAULT_PRICING.basePrice + DEFAULT_PRICING.dayPrice * Math.min(dias, DIAS_CAP);
   const recargo = type === "autocaravana" ? DEFAULT_CONFIG.autocaravanaSurcharge * dias : 0;
-  return Math.round((DEMO_BASE + DEMO_DIA * dias + DEMO_SEGURO + recargo) * 100) / 100;
+  return Math.round((parking + DEFAULT_PRICING.insurancePrice + recargo) * 100) / 100;
 }
 
 export function buildDemo(): ReservaAdmin[] {
