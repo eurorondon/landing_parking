@@ -145,8 +145,8 @@ export default function ReservationFormModal({ config, editing, onClose, onSave 
                   <label className={`radio-opt${form.vehicleType === "car" ? " selected" : ""}`} onClick={() => set("vehicleType", "car")}>
                     🚗 Coche
                   </label>
-                  <label className={`radio-opt${form.vehicleType === "moto" ? " selected" : ""}`} onClick={() => set("vehicleType", "moto")}>
-                    🏍️ Moto
+                  <label className={`radio-opt${form.vehicleType === "autocaravana" ? " selected" : ""}`} onClick={() => set("vehicleType", "autocaravana")}>
+                    🚐 Autocaravana
                   </label>
                 </div>
                 {err("vehicleType")}

@@ -111,23 +111,25 @@ export default function BookingForm() {
     }
 
     setCargando(true);
-    fetch(`/api/precio?dias=${dias}${nocturno ? "&nocturno=1" : ""}`)
+    const vehiculoParam = reserva.vehiculo === "autocaravana" ? "&vehiculo=autocaravana" : "";
+    fetch(`/api/precio?dias=${dias}${nocturno ? "&nocturno=1" : ""}${vehiculoParam}`)
       .then((r) => {
         if (!r.ok) throw new Error("Error en la respuesta del servidor");
         return r.json();
       })
-      .then((data: { costo_parking: number; costo_seguro: number; costo_nocturnidad: number; total: number }) => {
+      .then((data: { costo_parking: number; costo_seguro: number; costo_nocturnidad: number; costo_autocaravana: number; total: number }) => {
         setCalculo({
           dias,
           costoParking:     data.costo_parking,
           costoSeguro:      data.costo_seguro,
           costoNocturnidad: nocturno ? data.costo_nocturnidad : 0,
+          costoAutocaravana: data.costo_autocaravana ?? 0,
           total:            data.total,
         });
       })
       .catch(() => setCalculo(null))
       .finally(() => setCargando(false));
-  }, [reserva.entryDate, reserva.entryTime, reserva.exitDate, reserva.exitTime]);
+  }, [reserva.entryDate, reserva.entryTime, reserva.exitDate, reserva.exitTime, reserva.vehiculo]);
 
   function actualizar(campo: keyof DatosReserva, valor: string) {
     setReserva((r) => {
@@ -302,11 +304,11 @@ export default function BookingForm() {
               </button>
               <button
                 type="button"
-                className={reserva.vehiculo === "moto" ? "active" : ""}
-                onClick={() => actualizar("vehiculo", "moto")}
-                aria-pressed={reserva.vehiculo === "moto"}
+                className={reserva.vehiculo === "autocaravana" ? "active" : ""}
+                onClick={() => actualizar("vehiculo", "autocaravana")}
+                aria-pressed={reserva.vehiculo === "autocaravana"}
               >
-                🏍️ Moto
+                🚐 Autocaravana
               </button>
             </div>
           </div>
@@ -334,6 +336,13 @@ export default function BookingForm() {
         {isNocturno && (
           <div className="bform-nocturno-aviso">
             🌙 Se aplica recargo nocturno de {formatoEuros(calculo!.costoNocturnidad)} por horario entre las 00:30 y las 03:30
+          </div>
+        )}
+
+        {/* ── Aviso recargo autocaravana ── */}
+        {calculo && calculo.costoAutocaravana > 0 && (
+          <div className="bform-nocturno-aviso">
+            🚐 Se aplica recargo de autocaravana de {formatoEuros(calculo.costoAutocaravana)} ({calculo.dias} {calculo.dias === 1 ? "día" : "días"})
           </div>
         )}
 

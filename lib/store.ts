@@ -100,13 +100,15 @@ type DbReserva = {
 
 /** Extrae el tipo de vehículo del campo observaciones */
 function extractVehicleType(obs: string | null): VehicleType {
-  if (obs?.startsWith("[moto]")) return "moto";
+  // Las motos ya no se ofrecen: los registros legacy con prefijo [moto] se
+  // interpretan como autocaravana.
+  if (obs?.startsWith("[autocaravana]") || obs?.startsWith("[moto]")) return "autocaravana";
   return "car";
 }
 
 /** Elimina el prefijo de tipo de vehículo de las notas */
 function cleanNotes(obs: string | null): string {
-  return (obs ?? "").replace(/^\[(car|moto)\]\s*/, "");
+  return (obs ?? "").replace(/^\[(car|moto|autocaravana)\]\s*/, "");
 }
 
 /** Formatea un Date a "YYYY-MM-DDTHH:mm" en hora local del servidor */
@@ -520,14 +522,14 @@ export function buildDemo(): ReservaAdmin[] {
 
   return [
     mk(0,  5,  "inside",    "car",  "T4", "Carlos Martínez Ruiz",   "+34 678 123 456", "carlos@gmail.com",      "1234ABC", "Toyota Corolla"),
-    mk(0,  3,  "inside",    "moto", "T2", "Ana López Pérez",        "+34 612 234 567", "ana@outlook.com",       "5678DEF", "Honda CB500"),
+    mk(0,  3,  "inside",    "autocaravana", "T2", "Ana López Pérez",        "+34 612 234 567", "ana@outlook.com",       "5678DEF", "Fiat Ducato Camper"),
     mk(0,  7,  "confirmed", "car",  "T1", "Pedro Sánchez García",   "+34 645 345 678", "pedro@gmail.com",       "9012GHI", "Volkswagen Golf"),
     mk(0,  2,  "confirmed", "car",  "T3", "Laura Fernández Costa",  "+34 699 456 789", "laura@hotmail.com",     "3456JKL", "BMW Serie 3"),
     mk(1,  6,  "confirmed", "car",  "T4", "Miguel Torres Alba",     "+34 677 567 890", "miguel@empresa.com",    "7890MNO", "Seat León"),
-    mk(1,  4,  "confirmed", "moto", "T1", "Sara González Ruiz",     "+34 654 678 901", "sara@gmail.com",        "1234PQR", "Yamaha MT-07"),
+    mk(1,  4,  "confirmed", "autocaravana", "T1", "Sara González Ruiz",     "+34 654 678 901", "sara@gmail.com",        "1234PQR", "Volkswagen California"),
     mk(-1, 2,  "inside",    "car",  "T2", "Javier Ramírez López",   "+34 688 789 012", "javier@correo.com",     "5678STU", "Ford Focus"),
     mk(-3, -1, "finished",  "car",  "T3", "María Blanco Díaz",      "+34 611 890 123", "maria@gmail.com",       "9012VWX", "Kia Sportage"),
-    mk(-5, -2, "finished",  "moto", "T4", "Roberto Moreno Cano",    "+34 622 901 234", "roberto@gmail.com",     "3456YZA", "Kawasaki Z650"),
+    mk(-5, -2, "finished",  "autocaravana", "T4", "Roberto Moreno Cano",    "+34 622 901 234", "roberto@gmail.com",     "3456YZA", "Mercedes Marco Polo"),
     mk(-2, -1, "cancelled", "car",  "T1", "Elena Jiménez Vega",     "+34 633 012 345", "elena@outlook.com",     "7890BCD", "Renault Clio"),
     mk(2,  8,  "confirmed", "car",  "T2", "Francisco Navarro Rojo", "+34 644 123 456", "francisco@hotmail.com", "1234EFG", "Peugeot 308"),
     mk(3,  10, "confirmed", "car",  "T4", "Isabel Castro Fuentes",  "+34 655 234 567", "isabel@gmail.com",      "5678HIJ", "Nissan Qashqai"),

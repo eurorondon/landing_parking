@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { getConfig } from "@/lib/store";
 
 /**
  * GET /api/precio?dias=N[&nocturno=1]
@@ -56,6 +57,12 @@ export async function GET(request: Request) {
     // Días de parking ya calculados (usar calculateRawParkingDays en cliente)
     const dias     = parseInt(searchParams.get("dias")    || "0", 10);
     const nocturno = searchParams.get("nocturno") === "1";
+    const esAutocaravana = searchParams.get("vehiculo") === "autocaravana";
+
+    // Recargo por día de autocaravana (configurable desde el panel)
+    const recargoAutocaravanaDia = esAutocaravana
+      ? Number((await getConfig()).autocaravanaSurcharge || 0)
+      : 0;
 
     // Consultar seguro (id=4) y nocturnidad (id=11) en paralelo
     const [seguro, nocturnidadSvc] = await Promise.all([
@@ -68,7 +75,7 @@ export async function GET(request: Request) {
 
     if (dias <= 0) {
       const total = costoSeguro + (nocturno ? costoNocturnidad : 0);
-      return NextResponse.json({ costo_parking: 0, costo_seguro: costoSeguro, costo_nocturnidad: costoNocturnidad, total });
+      return NextResponse.json({ costo_parking: 0, costo_seguro: costoSeguro, costo_nocturnidad: costoNocturnidad, costo_autocaravana: 0, total });
     }
 
     // Derivar precioDia, planCosto y precioBloque desde la tabla
@@ -105,12 +112,14 @@ export async function GET(request: Request) {
       costoParking = calcularPrecioParking(dias, precioBloque, precioDia, planCosto, temporadaRate);
     }
 
-    const total = costoParking + costoSeguro + (nocturno ? costoNocturnidad : 0);
+    const costoAutocaravana = dias * recargoAutocaravanaDia;
+    const total = costoParking + costoSeguro + (nocturno ? costoNocturnidad : 0) + costoAutocaravana;
 
     return NextResponse.json({
       costo_parking:     costoParking,
       costo_seguro:      costoSeguro,
       costo_nocturnidad: costoNocturnidad,  // siempre devuelto; cliente decide si aplica
+      costo_autocaravana: costoAutocaravana, // recargo total autocaravana (0 si no aplica)
       total,
     });
   } catch (error) {

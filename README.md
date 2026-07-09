@@ -39,7 +39,7 @@ Las reservas y la configuración se guardan en archivos JSON en `data/` (vía `l
 | Email del dueño (respaldo) | `lib/config.ts` → `NEGOCIO.emailDueno` (editable también desde /admin → Configuración) |
 | Teléfono, WhatsApp, dirección | `lib/config.ts` → `NEGOCIO` |
 | **Tarifas de la landing** | `lib/pricing.ts` → `TARIFAS` |
-| **Tarifas del panel** (coche/moto por día) | /admin → Configuración (o `lib/admin.ts` → `DEFAULT_CONFIG`) |
+| **Tarifas del panel** (coche por día + recargo autocaravana €/día) | /admin → Configuración (o `lib/admin.ts` → `DEFAULT_CONFIG`) |
 | Textos legales | `app/(site)/privacidad/` y `app/(site)/aviso-legal/` |
 | Clave de envío de correo | `.env.local` → `RESEND_API_KEY` (ver `.env.local.example`) |
 
@@ -77,4 +77,4 @@ data/          # reservas y configuración (generado, fuera de git)
 ## Lógica de precios
 
 - **Landing** (`lib/pricing.ts`): 1–6 días `18€ + 5€/día` · 7–14 días `45€ + 4€/día extra` · 15+ días `76€ + 3,50€/día extra`.
-- **Panel** (`lib/admin.ts` + Configuración): tarifa por día según vehículo (coche/moto) con mínimo de días y precio mínimo. Se aplica a reservas creadas o editadas desde el panel.
+- **Panel** (`lib/admin.ts` + Configuración): tarifa por día del coche más un recargo por día para autocaravana (`autocaravanaSurcharge`), con mínimo de días y precio mínimo. Se aplica a reservas creadas o editadas desde el panel. El mismo recargo se aplica en la web pública vía `/api/precio?vehiculo=autocaravana`.

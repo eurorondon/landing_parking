@@ -66,7 +66,7 @@ export default function ReservaTable({ rows, onDetail, onEdit, onDelete }: Props
               <div>
                 <div className="res-card-name">{r.name}</div>
                 <div className="res-card-sub">
-                  <span>{r.vehicleType === "car" ? "🚗" : "🏍️"} {r.plate}</span>
+                  <span>{r.vehicleType === "car" ? "🚗" : "🚐"} {r.plate}</span>
                   <span>· {r.terminal}</span>
                   {r.model && <span>· {r.model}</span>}
                 </div>

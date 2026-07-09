@@ -23,7 +23,7 @@ function MiniList({ rows, emptyMsg, onDetail }: { rows: ReservaAdmin[]; emptyMsg
           onClick={() => onDetail(r.id)}
         >
           <div style={{ width: 36, height: 36, borderRadius: 9, background: "var(--teal-100)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
-            {r.vehicleType === "car" ? "🚗" : "🏍️"}
+            {r.vehicleType === "car" ? "🚗" : "🚐"}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13.5, fontWeight: 500, color: "var(--gray-900)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>

@@ -3,7 +3,7 @@ import type { Terminal } from "./config";
 
 /** Datos que el usuario elige en el calculador del hero */
 export interface DatosReserva {
-  vehiculo: VehicleType; // "car" | "moto"
+  vehiculo: VehicleType; // "car" | "autocaravana"
   entryDate: string; // "2026-06-15"
   entryTime: string; // "08:00"
   exitDate: string;

@@ -17,6 +17,8 @@ export interface CalculoPrecio {
   costoSeguro:      number;
   /** 0 cuando no aplica nocturnidad */
   costoNocturnidad: number;
+  /** 0 cuando el vehículo no es autocaravana; recargo total (dias × €/día) */
+  costoAutocaravana: number;
   total:            number;
 }
 

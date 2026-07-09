@@ -35,7 +35,7 @@ async function notificarDiscord(r: ReservaCompleta): Promise<void> {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
   if (!webhookUrl) return;
 
-  const vehiculoIcon = r.vehiculo === "moto" ? "🏍️" : "🚗";
+  const vehiculoIcon = r.vehiculo === "autocaravana" ? "🚐" : "🚗";
   const planTexto    = r.planNombre ? ` · Plan ${r.planNombre}` : "";
 
   const payload = {
@@ -129,7 +129,7 @@ export async function POST(request: Request) {
       name:        reserva.nombre.trim(),
       phone:       reserva.telefono.trim(),
       email:       reserva.email.trim(),
-      vehicleType: reserva.vehiculo === "moto" ? "moto" : "car",
+      vehicleType: reserva.vehiculo === "autocaravana" ? "autocaravana" : "car",
       plate:       reserva.matricula.trim().toUpperCase(),
       model:       reserva.modelo.trim(),
       terminal:    reserva.terminalEntrada,
@@ -261,7 +261,7 @@ function pie() {
 
 /** Correo de confirmación que recibe el cliente */
 function construirEmailCliente(r: ReservaCompleta): string {
-  const vehiculoIcon = r.vehiculo === "moto" ? "🏍️ Moto" : "🚗 Coche";
+  const vehiculoIcon = r.vehiculo === "autocaravana" ? "🚐 Autocaravana" : "🚗 Coche";
   const planTexto    = r.planNombre ? ` · Plan <strong>${r.planNombre}</strong>` : "";
 
   return `<!DOCTYPE html>
@@ -355,7 +355,7 @@ function construirEmailCliente(r: ReservaCompleta): string {
 
 /** Correo de aviso al administrador / dueño del parking */
 function construirEmailAdmin(r: ReservaCompleta): string {
-  const vehiculoIcon = r.vehiculo === "moto" ? "🏍️ Moto" : "🚗 Coche";
+  const vehiculoIcon = r.vehiculo === "autocaravana" ? "🚐 Autocaravana" : "🚗 Coche";
   const planTexto    = r.planNombre ? ` · Plan ${r.planNombre}` : "";
 
   return `<!DOCTYPE html>

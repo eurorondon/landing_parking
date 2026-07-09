@@ -6,8 +6,8 @@ export function Badge({ status }: { status: ReservaStatus }) {
 
 export function TypeBadge({ type }: { type: VehicleType }) {
   return (
-    <span className={`badge ${type === "car" ? "badge-car" : "badge-moto"}`}>
-      {type === "car" ? "🚗 Coche" : "🏍️ Moto"}
+    <span className={`badge ${type === "car" ? "badge-car" : "badge-autocaravana"}`}>
+      {type === "car" ? "🚗 Coche" : "🚐 Autocaravana"}
     </span>
   );
 }

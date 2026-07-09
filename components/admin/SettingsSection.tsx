@@ -34,8 +34,8 @@ export default function SettingsSection({ config, onSave, onClearAll, onRestoreD
             <input className="form-input" type="number" step="0.01" min="0" value={form.carPrice} onChange={num("carPrice")} />
           </div>
           <div className="form-group" style={{ marginBottom: 12 }}>
-            <label className="form-label">Precio moto (€/día)</label>
-            <input className="form-input" type="number" step="0.01" min="0" value={form.motoPrice} onChange={num("motoPrice")} />
+            <label className="form-label">Recargo autocaravana (€/día)</label>
+            <input className="form-input" type="number" step="0.01" min="0" value={form.autocaravanaSurcharge} onChange={num("autocaravanaSurcharge")} />
           </div>
           <div className="form-group" style={{ marginBottom: 12 }}>
             <label className="form-label">Precio valet (€/reserva)</label>

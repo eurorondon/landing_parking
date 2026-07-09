@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   }
 
   const cfg = await getConfig();
-  const vehicleType = body.vehicleType === "moto" ? "moto" : "car";
+  const vehicleType = body.vehicleType === "autocaravana" ? "autocaravana" : "car";
 
   const nueva = await createFullReservation({
     name:        body.name!.trim(),

@@ -37,8 +37,8 @@ export default function ReportsSection({ reservas }: { reservas: ReservaAdmin[] 
   const maxStat = Math.max(...Object.values(statCount)) || 1;
 
   const cars = reservas.filter((r) => r.vehicleType === "car").length;
-  const motos = reservas.filter((r) => r.vehicleType === "moto").length;
-  const totalVeh = cars + motos || 1;
+  const autocaravanas = reservas.filter((r) => r.vehicleType === "autocaravana").length;
+  const totalVeh = cars + autocaravanas || 1;
 
   const days7 = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(today);
@@ -56,7 +56,7 @@ export default function ReportsSection({ reservas }: { reservas: ReservaAdmin[] 
     { icon: "📅", color: "#e0f0ff", val: fmtCurrency(monthIncome), label: "Ingresos este mes" },
     { icon: "📋", color: "#ede9fe", val: reservas.length, label: "Total reservas" },
     { icon: "🚗", color: "#fef3c7", val: cars, label: "Reservas coche" },
-    { icon: "🏍️", color: "#fff7ed", val: motos, label: "Reservas moto" },
+    { icon: "🚐", color: "#fff7ed", val: autocaravanas, label: "Reservas autocaravana" },
   ];
 
   return (
@@ -114,9 +114,9 @@ export default function ReportsSection({ reservas }: { reservas: ReservaAdmin[] 
               </div>
               <div style={{ width: 1, height: 60, background: "var(--gray-200)" }} />
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 36 }}>🏍️</div>
-                <div style={{ fontFamily: "'Manrope',sans-serif", fontSize: 28, fontWeight: 600, color: "var(--amber)" }}>{motos}</div>
-                <div style={{ fontSize: 12, color: "var(--gray-400)" }}>Motos ({((motos / totalVeh) * 100).toFixed(0)}%)</div>
+                <div style={{ fontSize: 36 }}>🚐</div>
+                <div style={{ fontFamily: "'Manrope',sans-serif", fontSize: 28, fontWeight: 600, color: "var(--amber)" }}>{autocaravanas}</div>
+                <div style={{ fontSize: 12, color: "var(--gray-400)" }}>Autocaravanas ({((autocaravanas / totalVeh) * 100).toFixed(0)}%)</div>
               </div>
             </div>
           </div>

@@ -69,7 +69,7 @@ export default function ReservationsSection({ reservas, onDetail, onEdit, onDele
         <select className="filter-select" value={type} onChange={(e) => { setType(e.target.value as "" | VehicleType); setPage(0); }}>
           <option value="">Todo tipo</option>
           <option value="car">Coche</option>
-          <option value="moto">Moto</option>
+          <option value="autocaravana">Autocaravana</option>
         </select>
         <select className="filter-select" value={terminal} onChange={(e) => { setTerminal(e.target.value); setPage(0); }}>
           <option value="">Todas terminales</option>

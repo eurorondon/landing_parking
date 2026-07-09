@@ -57,7 +57,7 @@ export default function CalendarSection({ reservas, onDetail }: Props) {
             style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--gray-100)", cursor: "pointer" }}
             onClick={() => onDetail(r.id)}
           >
-            <div style={{ fontSize: 15 }}>{r.vehicleType === "car" ? "🚗" : "🏍️"}</div>
+            <div style={{ fontSize: 15 }}>{r.vehicleType === "car" ? "🚗" : "🚐"}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13.5, fontWeight: 500 }}>{r.name}</div>
               <div style={{ fontSize: 12, color: "var(--gray-400)" }}>{r.plate} · {r.terminal}</div>

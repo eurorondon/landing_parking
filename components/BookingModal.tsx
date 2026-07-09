@@ -67,19 +67,21 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
     const nocturno = aplicaNocturnidad(reserva.entryTime, reserva.exitTime);
     if (dias <= 0) { setCalculo(null); return; }
 
-    fetch(`/api/precio?dias=${dias}${nocturno ? "&nocturno=1" : ""}`)
+    const vehiculoParam = reserva.vehiculo === "autocaravana" ? "&vehiculo=autocaravana" : "";
+    fetch(`/api/precio?dias=${dias}${nocturno ? "&nocturno=1" : ""}${vehiculoParam}`)
       .then((r) => r.ok ? r.json() : Promise.reject())
-      .then((data: { costo_parking: number; costo_seguro: number; costo_nocturnidad: number; total: number }) => {
+      .then((data: { costo_parking: number; costo_seguro: number; costo_nocturnidad: number; costo_autocaravana: number; total: number }) => {
         setCalculo({
           dias,
           costoParking:     data.costo_parking,
           costoSeguro:      data.costo_seguro,
           costoNocturnidad: nocturno ? data.costo_nocturnidad : 0,
+          costoAutocaravana: data.costo_autocaravana ?? 0,
           total:            data.total,
         });
       })
       .catch(() => setCalculo(null));
-  }, [reserva.entryDate, reserva.entryTime, reserva.exitDate, reserva.exitTime]);
+  }, [reserva.entryDate, reserva.entryTime, reserva.exitDate, reserva.exitTime, reserva.vehiculo]);
 
   function actualizar(campo: keyof DatosCliente, valor: string) {
     setCliente((c) => ({ ...c, [campo]: valor }));
@@ -164,11 +166,11 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
             </button>
             <button
               type="button"
-              className={reserva.vehiculo === "moto" ? "active" : ""}
-              onClick={() => cambiarReserva("vehiculo", "moto")}
+              className={reserva.vehiculo === "autocaravana" ? "active" : ""}
+              onClick={() => cambiarReserva("vehiculo", "autocaravana")}
               disabled={enviada}
             >
-              🏍️ Moto
+              🚐 Autocaravana
             </button>
           </div>
 

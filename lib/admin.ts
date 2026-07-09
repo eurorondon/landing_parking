@@ -5,7 +5,7 @@ import type { Terminal } from "./config";
  * (Se usan tanto en el cliente como en las API del servidor.)
  */
 
-export type VehicleType = "car" | "moto";
+export type VehicleType = "car" | "autocaravana";
 /**
  * Flujo de estados: la reserva entra confirmada por email al reservar y
  * se muestra como "Pendiente" (a la espera del vehículo) → "Activa"
@@ -32,7 +32,7 @@ export interface ReservaAdmin {
 
 export interface AdminConfig {
   carPrice: number;
-  motoPrice: number;
+  autocaravanaSurcharge: number; // recargo fijo por día para autocaravana (€/día sobre el precio de coche)
   valetPrice: number;     // suplemento fijo por servicio de valet (€/reserva)
   insurancePrice: number; // suplemento fijo por seguro (€/reserva)
   minDays: number;
@@ -46,7 +46,7 @@ export interface AdminConfig {
 /** ⚠️ CAMBIAR: valores por defecto de la configuración del negocio */
 export const DEFAULT_CONFIG: AdminConfig = {
   carPrice: 8.9,
-  motoPrice: 4.5,
+  autocaravanaSurcharge: 2,
   valetPrice: 10,
   insurancePrice: 5,
   minDays: 1,
@@ -72,8 +72,9 @@ export const STATUS_CLASS: Record<ReservaStatus, string> = {
 };
 
 /**
- * Precio según la configuración del panel: días × tarifa (coche o moto)
- * más los suplementos fijos de valet y seguro de cada reserva.
+ * Precio según la configuración del panel: días × tarifa (coche, más el
+ * recargo por día de autocaravana si aplica) más los suplementos fijos de
+ * valet y seguro de cada reserva.
  *
  * Los días se calculan con las horas reales y todo día empezado se
  * cobra completo (26 horas → 2 días). El precio mínimo de una reserva
@@ -90,7 +91,7 @@ export function calcAdminPrice(
   const d2 = new Date(checkOut).getTime();
   if (!Number.isFinite(d1) || !Number.isFinite(d2) || d2 <= d1) return 0;
   const days = Math.max(cfg.minDays, Math.ceil((d2 - d1) / 86400000));
-  const rate = type === "car" ? cfg.carPrice : cfg.motoPrice;
+  const rate = cfg.carPrice + (type === "autocaravana" ? (cfg.autocaravanaSurcharge || 0) : 0);
   const total = days * rate + (cfg.valetPrice || 0) + (cfg.insurancePrice || 0);
   return Math.round(total * 100) / 100;
 }

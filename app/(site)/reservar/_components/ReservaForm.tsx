@@ -34,7 +34,7 @@ export default function ReservaForm() {
   const exitTime        = sp.get("exitTime")        ?? "18:00";
   const terminalEntrada = sp.get("terminalEntrada") ?? "T1";
   const terminalSalida  = sp.get("terminalSalida")  ?? "T1";
-  const vehiculo        = (sp.get("vehiculo") ?? "car") as "car" | "moto";
+  const vehiculo        = (sp.get("vehiculo") ?? "car") as "car" | "autocaravana";
   const dias            = parseInt(sp.get("dias") ?? "0", 10);
   const plan            = parseInt(sp.get("plan") ?? "1", 10);
   const planNombre      = sp.get("planNombre") ?? "Estándar";
@@ -147,7 +147,7 @@ export default function ReservaForm() {
           </div>
           <div className="reservar-resumen-fila">
             <span>Vehículo</span>
-            <strong>{vehiculo === "moto" ? "🏍️ Moto" : "🚗 Coche"}</strong>
+            <strong>{vehiculo === "autocaravana" ? "🚐 Autocaravana" : "🚗 Coche"}</strong>
           </div>
           <div className="reservar-resumen-fila">
             <span>Plan</span>
