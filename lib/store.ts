@@ -19,12 +19,12 @@ import { promises as fs } from "fs";
 import path from "path";
 import {
   DEFAULT_CONFIG,
-  calcAdminPrice,
   type AdminConfig,
   type ReservaAdmin,
   type ReservaStatus,
   type VehicleType,
 } from "./admin";
+import { calculateRawParkingDays } from "./pricing";
 import type { Terminal } from "./config";
 
 // ── Config local (no va a la BD) ──────────────────────────────────────────────
@@ -503,6 +503,18 @@ function fmtLocal(d: Date): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
+// Valores aproximados SOLO para los datos demo (el precio real sale de la BD:
+// registro_precios + servicios). Reflejan la estructura base + €/día + seguro.
+const DEMO_BASE   = 19.98; // base/plan incluido en registro_precios (día 1)
+const DEMO_DIA    = 6;     // coste por día
+const DEMO_SEGURO = 1.98;  // servicios id=4
+
+function estimarPrecioDemo(type: VehicleType, checkIn: string, checkOut: string): number {
+  const dias    = calculateRawParkingDays(new Date(checkIn), new Date(checkOut));
+  const recargo = type === "autocaravana" ? DEFAULT_CONFIG.autocaravanaSurcharge * dias : 0;
+  return Math.round((DEMO_BASE + DEMO_DIA * dias + DEMO_SEGURO + recargo) * 100) / 100;
+}
+
 export function buildDemo(): ReservaAdmin[] {
   const mk = (
     offIn: number, offOut: number, status: ReservaStatus, type: VehicleType,
@@ -515,7 +527,7 @@ export function buildDemo(): ReservaAdmin[] {
     return {
       id: genId(), name, phone, email, plate: plate.toUpperCase(), model,
       vehicleType: type, terminal, checkIn, checkOut, status,
-      price: calcAdminPrice(DEFAULT_CONFIG, type, checkIn, checkOut),
+      price: estimarPrecioDemo(type, checkIn, checkOut),
       notes: "", createdAt: new Date().toISOString(),
     };
   };

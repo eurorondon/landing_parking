@@ -31,13 +31,12 @@ export interface ReservaAdmin {
 }
 
 export interface AdminConfig {
-  carPrice: number;
-  autocaravanaSurcharge: number; // recargo fijo por día para autocaravana (€/día sobre el precio de coche)
-  valetPrice: number;     // suplemento fijo por servicio de valet (€/reserva)
-  insurancePrice: number; // suplemento fijo por seguro (€/reserva)
-  minDays: number;
-  terminalSurcharge: boolean;
-  terminalSurchargeAmt: number;
+  /**
+   * Recargo fijo por día para autocaravana (€/día sobre el precio de coche).
+   * Única tarifa configurable desde el panel: el resto del precio (base, €/día
+   * y seguro) sale de la BD (registro_precios + servicios), igual para web y panel.
+   */
+  autocaravanaSurcharge: number;
   businessName: string;
   ownerEmail: string;
   ownerPhone: string;
@@ -45,13 +44,7 @@ export interface AdminConfig {
 
 /** ⚠️ CAMBIAR: valores por defecto de la configuración del negocio */
 export const DEFAULT_CONFIG: AdminConfig = {
-  carPrice: 8.9,
   autocaravanaSurcharge: 2,
-  valetPrice: 10,
-  insurancePrice: 5,
-  minDays: 1,
-  terminalSurcharge: false,
-  terminalSurchargeAmt: 2,
   businessName: "Parking Aero Madrid",
   ownerEmail: "admin@parkingaeromadrid.com",
   ownerPhone: "+34 91 000 0000",
@@ -70,31 +63,6 @@ export const STATUS_CLASS: Record<ReservaStatus, string> = {
   finished: "badge-finished",
   cancelled: "badge-cancelled",
 };
-
-/**
- * Precio según la configuración del panel: días × tarifa (coche, más el
- * recargo por día de autocaravana si aplica) más los suplementos fijos de
- * valet y seguro de cada reserva.
- *
- * Los días se calculan con las horas reales y todo día empezado se
- * cobra completo (26 horas → 2 días). El precio mínimo de una reserva
- * es, por tanto: 1 día + valet + seguro.
- */
-export function calcAdminPrice(
-  cfg: AdminConfig,
-  type: VehicleType,
-  checkIn: string,
-  checkOut: string
-): number {
-  if (!checkIn || !checkOut) return 0;
-  const d1 = new Date(checkIn).getTime();
-  const d2 = new Date(checkOut).getTime();
-  if (!Number.isFinite(d1) || !Number.isFinite(d2) || d2 <= d1) return 0;
-  const days = Math.max(cfg.minDays, Math.ceil((d2 - d1) / 86400000));
-  const rate = cfg.carPrice + (type === "autocaravana" ? (cfg.autocaravanaSurcharge || 0) : 0);
-  const total = days * rate + (cfg.valetPrice || 0) + (cfg.insurancePrice || 0);
-  return Math.round(total * 100) / 100;
-}
 
 export function fmtDate(dt: string): string {
   if (!dt) return "—";

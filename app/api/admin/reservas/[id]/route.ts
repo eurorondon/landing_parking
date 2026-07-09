@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { calcAdminPrice, type ReservaAdmin } from "@/lib/admin";
+import { type ReservaAdmin } from "@/lib/admin";
+import { calculateRawParkingDays, aplicaNocturnidad } from "@/lib/pricing";
+import { calcularPrecioReserva } from "@/lib/precio-db";
 import {
-  getConfig,
   getReservationById,
   updateReservationById,
   deleteReservationById,
@@ -25,13 +26,15 @@ export async function PATCH(request: Request, { params }: Params) {
     return NextResponse.json({ ok: false, error: "Reserva no encontrada" }, { status: 404 });
   }
 
-  // Si cambian fechas o tipo de vehículo, recalcular el precio con las tarifas del panel
+  // Si cambian fechas o tipo de vehículo, recalcular el precio con la fuente única (BD)
   if (body.checkIn || body.checkOut || body.vehicleType) {
-    const cfg     = await getConfig();
     const tipo    = body.vehicleType ?? actual.vehicleType;
     const entrada = body.checkIn     ?? actual.checkIn;
     const salida  = body.checkOut    ?? actual.checkOut;
-    body = { ...body, price: calcAdminPrice(cfg, tipo, entrada, salida) };
+    const dias     = calculateRawParkingDays(new Date(entrada), new Date(salida));
+    const nocturno = aplicaNocturnidad(entrada.slice(11, 16), salida.slice(11, 16));
+    const precio   = await calcularPrecioReserva({ dias, nocturno, esAutocaravana: tipo === "autocaravana" });
+    body = { ...body, price: precio.total };
   }
   if (body.plate) body.plate = body.plate.toUpperCase();
 

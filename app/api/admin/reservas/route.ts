@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { calcAdminPrice, type ReservaAdmin } from "@/lib/admin";
-import { getConfig, getReservations, saveReservations, createFullReservation } from "@/lib/store";
+import { type ReservaAdmin } from "@/lib/admin";
+import { calculateRawParkingDays, aplicaNocturnidad } from "@/lib/pricing";
+import { calcularPrecioReserva } from "@/lib/precio-db";
+import { getReservations, saveReservations, createFullReservation } from "@/lib/store";
 
 /** Lista todas las reservas (desde MySQL/Prisma o datos demo si no hay DATABASE_URL) */
 export async function GET() {
@@ -26,8 +28,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "La salida debe ser posterior a la entrada" }, { status: 400 });
   }
 
-  const cfg = await getConfig();
   const vehicleType = body.vehicleType === "autocaravana" ? "autocaravana" : "car";
+
+  // Precio desde la fuente única (misma BD que la web): días + nocturnidad + recargo
+  const dias     = calculateRawParkingDays(new Date(body.checkIn!), new Date(body.checkOut!));
+  const nocturno = aplicaNocturnidad(body.checkIn!.slice(11, 16), body.checkOut!.slice(11, 16));
+  const precio   = await calcularPrecioReserva({ dias, nocturno, esAutocaravana: vehicleType === "autocaravana" });
 
   const nueva = await createFullReservation({
     name:        body.name!.trim(),
@@ -40,7 +46,7 @@ export async function POST(request: Request) {
     checkIn:     body.checkIn!,
     checkOut:    body.checkOut!,
     status:      body.status ?? "confirmed",
-    price:       calcAdminPrice(cfg, vehicleType, body.checkIn!, body.checkOut!),
+    price:       precio.total,
     notes:       (body.notes ?? "").trim(),
   });
 

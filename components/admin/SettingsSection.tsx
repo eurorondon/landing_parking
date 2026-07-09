@@ -29,32 +29,17 @@ export default function SettingsSection({ config, onSave, onClearAll, onRestoreD
       <div className="settings-grid">
         <div className="setting-group">
           <div className="setting-group-title">💶 Tarifas</div>
-          <div className="form-group" style={{ marginBottom: 12 }}>
-            <label className="form-label">Precio coche (€/día)</label>
-            <input className="form-input" type="number" step="0.01" min="0" value={form.carPrice} onChange={num("carPrice")} />
-          </div>
-          <div className="form-group" style={{ marginBottom: 12 }}>
+          <div className="form-group" style={{ marginBottom: 16 }}>
             <label className="form-label">Recargo autocaravana (€/día)</label>
             <input className="form-input" type="number" step="0.01" min="0" value={form.autocaravanaSurcharge} onChange={num("autocaravanaSurcharge")} />
           </div>
-          <div className="form-group" style={{ marginBottom: 12 }}>
-            <label className="form-label">Precio valet (€/reserva)</label>
-            <input className="form-input" type="number" step="0.01" min="0" value={form.valetPrice} onChange={num("valetPrice")} />
-          </div>
-          <div className="form-group" style={{ marginBottom: 12 }}>
-            <label className="form-label">Precio seguro (€/reserva)</label>
-            <input className="form-input" type="number" step="0.01" min="0" value={form.insurancePrice} onChange={num("insurancePrice")} />
-          </div>
-          <div className="form-group" style={{ marginBottom: 16 }}>
-            <label className="form-label">Mínimo de días</label>
-            <input className="form-input" type="number" min="1" value={form.minDays} onChange={(e) => setForm((f) => ({ ...f, minDays: parseInt(e.target.value) || 1 }))} />
-          </div>
           <button className="btn btn-amber" onClick={() => onSave(form)}>Guardar tarifas</button>
           <p className="form-hint" style={{ marginTop: 10 }}>
-            Estas tarifas se aplican a las reservas creadas o editadas desde el panel.
-            El valet y el seguro se suman a cada reserva, y todo día empezado se
-            cobra completo, así que el precio mínimo es: 1 día + valet + seguro.
-            Las tarifas del calculador de la web se editan en <code>lib/pricing.ts</code>.
+            El precio del parking (base + €/día + seguro) sale de la base de datos
+            (<code>registro_precios</code> y <code>servicios</code>), la misma para la web
+            y el panel. Aquí solo se configura el recargo por día de las autocaravanas,
+            que se suma sobre el precio del coche tanto en la web como en las reservas
+            creadas desde el panel.
           </p>
         </div>
 

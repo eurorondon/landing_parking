@@ -1,14 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  calcAdminPrice,
   fmtCurrency,
   type AdminConfig,
   type ReservaAdmin,
   type ReservaStatus,
   type VehicleType,
 } from "@/lib/admin";
+import { calculateRawParkingDays, aplicaNocturnidad } from "@/lib/pricing";
 
 interface Props {
   config: AdminConfig;
@@ -52,7 +52,7 @@ function initialState(editing: ReservaAdmin | null): FormState {
   };
 }
 
-export default function ReservationFormModal({ config, editing, onClose, onSave }: Props) {
+export default function ReservationFormModal({ editing, onClose, onSave }: Props) {
   const [form, setForm] = useState<FormState>(() => initialState(editing));
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -61,10 +61,28 @@ export default function ReservationFormModal({ config, editing, onClose, onSave 
     setErrors((e) => ({ ...e, [campo]: "" }));
   };
 
-  const price = useMemo(
-    () => (form.vehicleType ? calcAdminPrice(config, form.vehicleType, form.checkIn, form.checkOut) : 0),
-    [config, form.vehicleType, form.checkIn, form.checkOut]
-  );
+  // Precio estimado desde la fuente única (/api/precio, misma BD que la web).
+  // Se recalcula al cambiar vehículo o fechas.
+  const [price, setPrice] = useState(0);
+  const [precioCargando, setPrecioCargando] = useState(false);
+
+  useEffect(() => {
+    const entrada = new Date(form.checkIn);
+    const salida  = new Date(form.checkOut);
+    if (!form.vehicleType || !Number.isFinite(entrada.getTime()) || !Number.isFinite(salida.getTime()) || salida <= entrada) {
+      setPrice(0);
+      return;
+    }
+    const dias     = calculateRawParkingDays(entrada, salida);
+    const nocturno = aplicaNocturnidad(form.checkIn.slice(11, 16), form.checkOut.slice(11, 16));
+    const vehiculoParam = form.vehicleType === "autocaravana" ? "&vehiculo=autocaravana" : "";
+    setPrecioCargando(true);
+    fetch(`/api/precio?dias=${dias}${nocturno ? "&nocturno=1" : ""}${vehiculoParam}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d: { total: number }) => setPrice(d.total))
+      .catch(() => setPrice(0))
+      .finally(() => setPrecioCargando(false));
+  }, [form.vehicleType, form.checkIn, form.checkOut]);
 
   function validate(): boolean {
     const e: Record<string, string> = {};
@@ -114,7 +132,7 @@ export default function ReservationFormModal({ config, editing, onClose, onSave 
         <div className="modal-body">
           <div className="price-preview">
             <span className="price-preview-label">Precio estimado</span>
-            <span className="price-preview-val">{price > 0 ? fmtCurrency(price) : "€ —"}</span>
+            <span className="price-preview-val">{precioCargando ? "…" : price > 0 ? fmtCurrency(price) : "€ —"}</span>
           </div>
 
           <div style={{ marginTop: 18 }}>
