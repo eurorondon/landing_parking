@@ -27,7 +27,7 @@ const TITLES: Record<Section, string> = {
   calendar:     "Calendario",
   clients:      "Clientes",
   reports:      "Reportes",
-  planning:     "Planificación",
+  planning:     "Planning",
   settings:     "Configuración",
 };
 
@@ -187,7 +187,7 @@ export default function AdminDashboard() {
   const navItems2: { sec: Section; icon: string; label: string }[] = [
     { sec: "clients",  icon: "👥", label: "Clientes"       },
     { sec: "reports",  icon: "📊", label: "Reportes"       },
-    { sec: "planning", icon: "🗓️", label: "Planificación"  },
+    { sec: "planning", icon: "🗓️", label: "Planning"  },
   ];
 
   return (
