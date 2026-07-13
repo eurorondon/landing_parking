@@ -1,9 +1,9 @@
 /** Utilidades de fechas compartidas entre el calculador, el modal y el email */
 
-/** Opciones de hora en pasos de 30 min: "00:00", "00:30", … "23:30" */
-export const OPCIONES_HORA = Array.from({ length: 48 }, (_, i) => {
+/** Opciones de hora en pasos de 15 min: "00:00", "00:15", "00:30", "00:45", … "23:45" */
+export const OPCIONES_HORA = Array.from({ length: 96 }, (_, i) => {
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(Math.floor(i / 2))}:${i % 2 === 0 ? "00" : "30"}`;
+  return `${pad(Math.floor(i / 4))}:${pad((i % 4) * 15)}`;
 });
 
 /** Convierte un Date a "YYYY-MM-DD" (hora LOCAL del cliente) para <input type="date"> */
@@ -25,18 +25,18 @@ export function salidaPorDefecto(): string {
 }
 
 /**
- * Devuelve el próximo slot de 30 min redondeado hacia arriba desde ahora.
+ * Devuelve el próximo slot de 15 min redondeado hacia arriba desde ahora.
  * Igual que getNearestSlot del dashboard, pero en formato "HH:MM".
  * Se usa como hora de entrada por defecto (siempre en el cliente, nunca en SSR).
  */
 export function getNearestSlot(): string {
   const now  = new Date();
   const mins = now.getHours() * 60 + now.getMinutes();
-  // Redondeamos hacia ARRIBA al siguiente slot de 30 min (+1 min de margen)
-  const rounded = Math.ceil((mins + 1) / 30) * 30;
+  // Redondeamos hacia ARRIBA al siguiente slot de 15 min (+1 min de margen)
+  const rounded = Math.ceil((mins + 1) / 15) * 15;
   const h = Math.floor(rounded / 60) % 24;
   const m = rounded % 60;
-  return `${String(h).padStart(2, "0")}:${m === 0 ? "00" : "30"}`;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 /** ("2026-06-15", "08:00") → "15 jun 2026 · 08:00" */

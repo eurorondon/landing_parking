@@ -15,7 +15,7 @@ export default function Hero() {
             {/* Stars badge */}
             <div className="hero-badge">
               <span className="hero-badge-stars">★★★★★</span>
-              <span>Más de 8.000 reservas realizadas</span>
+              <span>Más de 8.000 clientes satisfechos</span>
             </div>
 
             <h1>Parking Aeropuerto Madrid</h1>
@@ -27,16 +27,16 @@ export default function Hero() {
             <div className="hero-terminals">T1 · T2 · T4 &nbsp;&nbsp; Madrid-Barajas</div>
 
             <div className="hero-desc">
-              Servicio valet premium. Recogemos y entregamos tu coche
-              directamente en la terminal que elijas.
+              Recogemos tu coche en la terminal y te lo devolvemos allí mismo
+              a tu regreso. Sin autobuses. Sin esperas. Sin pagar por adelantado.
             </div>
 
             {/* 3 ventajas */}
             <div className="hero-feat-3">
               {[
-                { icon: "✈️", title: "Entrega y recogida en terminal", sub: "En T1, T2 y T4" },
-                { icon: "🚌", title: "Sin buses ni traslados", sub: "Olvídate de esperas" },
-                { icon: "🛡️", title: "Vigilancia 24h", sub: "Parking privado y seguro" },
+                { icon: "✈️", title: "Entrega en terminal", sub: "Recogida en tu regreso" },
+                { icon: "🚌", title: "Sin autobuses", sub: "Directo al aeropuerto" },
+                { icon: "🛡️", title: "Vigilancia 24h", sub: "Vehículo protegido" },
               ].map((f) => (
                 <div className="hero-feat-item" key={f.title}>
                   <div className="hero-feat-icon">{f.icon}</div>
@@ -49,8 +49,8 @@ export default function Hero() {
             {/* 2 ventajas */}
             <div className="hero-feat-2">
               {[
-                { icon: "💬", title: "Confirmación rápida", sub: "Por WhatsApp" },
-                { icon: "💳", title: "Sin pago anticipado", sub: "Pagas al entregar tu vehículo" },
+                { icon: "💬", title: "Reserva inmediata", sub: "Confirmación al instante" },
+                { icon: "💳", title: "Sin pago por adelantado", sub: "Paga al entregar" },
               ].map((f) => (
                 <div className="hero-feat-item" key={f.title}>
                   <div className="hero-feat-icon">{f.icon}</div>
@@ -63,10 +63,10 @@ export default function Hero() {
             {/* CTA calcular (solo visible en móvil; en desktop el form está a la derecha) */}
             <a className="cta-orange hero-cta-mobile" href="#calcular">
               <div className="cta-orange-top">
-                <span>CALCULAR MI PRECIO</span>
+                <span>CONSULTAR PRECIO</span>
                 <span className="cta-arrow">›</span>
               </div>
-              <div className="cta-sub-text">Precio al instante en menos de 1 minuto</div>
+              <div className="cta-sub-text">🟢 Sin compromiso • Pago al entregar • Confirmación inmediata</div>
             </a>
 
             {/* WhatsApp */}
@@ -88,7 +88,7 @@ export default function Hero() {
             <div className="hero-stats">
               <div className="hero-stat">
                 <span className="stat-icon">👥</span>
-                <div className="stat-text">Más de <b>8.000</b><br />reservas realizadas</div>
+                <div className="stat-text">Más de <b>8.000</b><br />clientes satisfechos</div>
               </div>
               <div className="hero-stat">
                 <span className="stat-icon">🛡️</span>
