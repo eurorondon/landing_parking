@@ -93,6 +93,13 @@ export default function BookingForm() {
     };
   }, []);
 
+  // Difunde el tipo de vehículo para que otras secciones (ServiciosLimpieza)
+  // puedan adaptar su texto (p. ej. ocultar "interior" en autocaravana).
+  useEffect(() => {
+    sessionStorage.setItem("vehiculo", reserva.vehiculo);
+    window.dispatchEvent(new CustomEvent("vehiculo-cambiado", { detail: reserva.vehiculo }));
+  }, [reserva.vehiculo]);
+
   // Recalcula precio desde la BD cuando cambian fechas u horas
   useEffect(() => {
     const entrada = new Date(`${reserva.entryDate}T${reserva.entryTime}`);

@@ -10,7 +10,12 @@
  * - El BookingForm lee el sessionStorage y muestra el badge de lavado incluido
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+/** Detalle "solo exterior" para autocaravana (oculta cualquier mención a interior) */
+const DETALLE_EXTERIOR = "Lavado a mano de la carrocería, llantas y de todo el exterior.";
+/** IDs de servicios cuyo texto menciona interior/tapicería */
+const SERVICIOS_CON_INTERIOR = [2, 3];
 
 const SERVICIOS = [
   {
@@ -44,6 +49,26 @@ const SERVICIOS = [
 
 export default function ServiciosLimpieza() {
   const [toast, setToast] = useState<string | null>(null);
+  const [esAutocaravana, setEsAutocaravana] = useState(false);
+
+  // Escucha el tipo de vehículo elegido en el formulario de reserva.
+  // Para autocaravana ocultamos el texto "interior": esos servicios se
+  // muestran solo como "Lavado" (el ID y el precio no cambian → se cobra igual).
+  useEffect(() => {
+    const leer = (v: string | null | undefined) => setEsAutocaravana(v === "autocaravana");
+    leer(sessionStorage.getItem("vehiculo"));
+    const onVehiculo = (e: Event) => leer((e as CustomEvent<string>).detail);
+    window.addEventListener("vehiculo-cambiado", onVehiculo);
+    return () => window.removeEventListener("vehiculo-cambiado", onVehiculo);
+  }, []);
+
+  /** Nombre/detalle a mostrar según el vehículo (autocaravana oculta "interior") */
+  function textos(s: (typeof SERVICIOS)[number]) {
+    if (esAutocaravana && SERVICIOS_CON_INTERIOR.includes(s.id)) {
+      return { nombre: "Lavado", detalle: DETALLE_EXTERIOR };
+    }
+    return { nombre: s.nombre, detalle: s.detalle };
+  }
 
   /** Equivalente a handleSelectService del dashboard */
   function solicitar(id: number, nombre: string, precio: string) {
@@ -98,7 +123,9 @@ export default function ServiciosLimpieza() {
 
         {/* ── Cards ── */}
         <div className="limpieza-grid">
-          {SERVICIOS.map((s) => (
+          {SERVICIOS.map((s) => {
+            const { nombre, detalle } = textos(s);
+            return (
             <div
               key={s.id}
               className={`limpieza-card${s.popular ? " limpieza-card--popular" : ""}`}
@@ -109,20 +136,21 @@ export default function ServiciosLimpieza() {
 
               <div className="limpieza-card-icon">{s.icon}</div>
 
-              <h3 className="limpieza-card-nombre">{s.nombre}</h3>
+              <h3 className="limpieza-card-nombre">{nombre}</h3>
               <p className="limpieza-card-lema">{s.lema}</p>
               <p className="limpieza-card-precio">{s.precio}</p>
-              <p className="limpieza-card-detalle">{s.detalle}</p>
+              <p className="limpieza-card-detalle">{detalle}</p>
 
               <button
                 type="button"
-                onClick={() => solicitar(s.id, s.nombre, s.precio)}
+                onClick={() => solicitar(s.id, nombre, s.precio)}
                 className={`limpieza-btn${s.popular ? " limpieza-btn--popular" : ""}`}
               >
                 Solicitar
               </button>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* ── Nota informativa ── */}

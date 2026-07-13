@@ -85,6 +85,9 @@ export default function PlanSelector() {
   // Servicio de lavado elegido desde la sección de servicios
   const lavadoId        = parseInt(sp.get("lavadoId") ?? "0", 10);
   const lavadoNombre    = sp.get("lavadoNombre") ?? "";
+  // Para autocaravanas ocultamos el texto "interior y exterior" del lavado:
+  // visualmente solo se anuncia "Lavado" (el precio y el correo no cambian).
+  const esAutocaravana  = vehiculo === "autocaravana";
 
   const [servicios, setServicios]   = useState<Servicio[]>([]);
   const [cargando, setCargando]     = useState(true);
@@ -226,9 +229,12 @@ export default function PlanSelector() {
                 </div>
 
                 <ul className="plan-features">
-                  {plan.features.map((f) => (
-                    <li key={f}><span className="plan-check">✓</span>{f}</li>
-                  ))}
+                  {plan.features.map((f) => {
+                    const texto = esAutocaravana
+                      ? f.replace("Lavado interior y exterior", "Lavado")
+                      : f;
+                    return <li key={f}><span className="plan-check">✓</span>{texto}</li>;
+                  })}
                   {/* Muestra el lavado extra solo en el plan sin limpieza */}
                   {tieneExtra && (
                     <li className="plan-feature--extra">
