@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Select from "./ui/Select";
+import DatePicker from "./ui/DatePicker";
 import { OPCIONES_TERMINAL } from "@/lib/config";
-import { getNearestSlot, salidaPorDefecto, OPCIONES_HORA, aFechaInput } from "@/lib/datetime";
+import { getNearestSlot, OPCIONES_HORA, aFechaInput } from "@/lib/datetime";
 import {
   calculateRawParkingDays,
   aplicaNocturnidad,
@@ -206,13 +207,13 @@ export default function BookingForm() {
             <span className="bform-label">Fecha de entrada</span>
             <div className="bform-icon-wrap">
               <span className="bform-field-icon"><CalendarIcon /></span>
-              <input
-                className="bform-input"
-                type="date"
+              <DatePicker
                 value={reserva.entryDate}
                 min={hoy}
-                onChange={(e) => actualizar("entryDate", e.target.value)}
-                aria-label="Fecha de entrada"
+                onChange={(v) => actualizar("entryDate", v)}
+                ariaLabel="Fecha de entrada"
+                title="Fecha de entrada"
+                placeholder="Entrada"
               />
             </div>
           </div>
@@ -235,13 +236,13 @@ export default function BookingForm() {
             <span className="bform-label">Fecha de salida</span>
             <div className="bform-icon-wrap">
               <span className="bform-field-icon"><CalendarIcon /></span>
-              <input
-                className="bform-input"
-                type="date"
+              <DatePicker
                 value={reserva.exitDate}
-                min={reserva.entryDate}
-                onChange={(e) => actualizar("exitDate", e.target.value)}
-                aria-label="Fecha de salida"
+                min={reserva.entryDate || hoy}
+                onChange={(v) => actualizar("exitDate", v)}
+                ariaLabel="Fecha de salida"
+                title="Fecha de salida"
+                placeholder="Salida"
               />
             </div>
           </div>

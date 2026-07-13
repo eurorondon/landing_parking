@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Select from "./ui/Select";
+import DatePicker from "./ui/DatePicker";
 import { OPCIONES_TERMINAL } from "@/lib/config";
 import { OPCIONES_HORA } from "@/lib/datetime";
 import { calculateRawParkingDays, aplicaNocturnidad, formatoEuros, type CalculoPrecio } from "@/lib/pricing";
@@ -177,12 +178,14 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
           <div className="form-grid" style={{ marginBottom: 12 }}>
             <div className="field">
               <label htmlFor="mEntryDate">Fecha entrada</label>
-              <input
-                id="mEntryDate"
-                type="date"
+              <DatePicker
                 value={reserva.entryDate}
-                onChange={(e) => cambiarReserva("entryDate", e.target.value)}
+                onChange={(v) => cambiarReserva("entryDate", v)}
                 disabled={enviada}
+                ariaLabel="Fecha entrada"
+                title="Fecha de entrada"
+                placeholder="Entrada"
+                triggerClassName="datepicker-trigger--dark"
               />
             </div>
             <div className="field">
@@ -198,12 +201,15 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
             </div>
             <div className="field">
               <label htmlFor="mExitDate">Fecha salida</label>
-              <input
-                id="mExitDate"
-                type="date"
+              <DatePicker
                 value={reserva.exitDate}
-                onChange={(e) => cambiarReserva("exitDate", e.target.value)}
+                min={reserva.entryDate}
+                onChange={(v) => cambiarReserva("exitDate", v)}
                 disabled={enviada}
+                ariaLabel="Fecha salida"
+                title="Fecha de salida"
+                placeholder="Salida"
+                triggerClassName="datepicker-trigger--dark"
               />
             </div>
             <div className="field">
