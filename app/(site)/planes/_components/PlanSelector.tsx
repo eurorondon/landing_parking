@@ -158,7 +158,7 @@ export default function PlanSelector() {
           ← Cambiar fechas
         </button>
 
-        <h1 className="planes-titulo">Elige tu plan de parking</h1>
+        <h1 className="planes-titulo">Reserva tu plaza</h1>
         <p className="planes-subtitulo">Aeropuerto de Madrid · Barajas</p>
 
         {/* Resumen de fechas */}

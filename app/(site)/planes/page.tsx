@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import PlanSelector from "./_components/PlanSelector";
 
 export const metadata = {
-  title: "Elige tu plan de parking · Parking Aero Madrid",
+  title: "Reserva tu plaza · Parking Aero Madrid",
   robots: "noindex",
 };
 

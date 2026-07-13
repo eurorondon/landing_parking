@@ -191,10 +191,6 @@ export default function BookingForm() {
 
         {/* ── Cabecera ── */}
         <div className="bform-header">
-          <div className="bform-title-row">
-            <div className="bform-title-icon">📅</div>
-            <h2 className="bform-title">¿Cuándo vuelas?</h2>
-          </div>
           <p className="bform-subtitle">
             Calcula tu precio y reserva en menos de 1 minuto.
           </p>

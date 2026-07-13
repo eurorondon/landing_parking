@@ -20,8 +20,8 @@ export const NEGOCIO = {
   telefono: "+34 632 868 936",
   telefonoHref: "tel:+34632868936",
 
-  // WhatsApp real (formato internacional sin espacios)
-  whatsappHref: "https://wa.me/34632868936",
+  // WhatsApp real (formato internacional sin espacios) con mensaje predefinido
+  whatsappHref: "https://wa.me/34632868936?text=" + encodeURIComponent("Hola, necesito información para el parking del aeropuerto de Madrid."),
 
   // email público de atención al cliente
   emailContacto: "parkingaeromadrid@gmail.com",
