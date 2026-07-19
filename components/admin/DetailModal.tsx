@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { fmtCurrency, fmtDateTime, type ReservaAdmin, type ReservaStatus } from "@/lib/admin";
 import { Badge, TypeBadge } from "./ui";
 
@@ -9,9 +10,27 @@ interface Props {
   onChangeStatus: (id: string, status: ReservaStatus) => void;
   onEdit: (r: ReservaAdmin) => void;
   onDelete: (id: string) => void;
+  /** Reenvía la confirmación; `guardar` decide si el correo se fija en la ficha */
+  onResendEmail: (id: string, email: string, guardar: boolean) => Promise<void>;
 }
 
-export default function DetailModal({ reserva: r, onClose, onChangeStatus, onEdit, onDelete }: Props) {
+export default function DetailModal({ reserva: r, onClose, onChangeStatus, onEdit, onDelete, onResendEmail }: Props) {
+  const [email, setEmail] = useState(r.email);
+  const [guardarEmail, setGuardarEmail] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+
+  // Solo tiene sentido guardar si el correo escrito difiere del de la ficha
+  const emailCambiado = email.trim() !== r.email.trim();
+
+  async function reenviar() {
+    setEnviando(true);
+    try {
+      await onResendEmail(r.id, email.trim(), emailCambiado && guardarEmail);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
   return (
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal wide">
@@ -56,6 +75,44 @@ export default function DetailModal({ reserva: r, onClose, onChangeStatus, onEdi
           <div className="price-preview" style={{ marginTop: 4 }}>
             <span className="price-preview-label">Precio total</span>
             <span className="price-preview-val">{fmtCurrency(r.price)}</span>
+          </div>
+
+          <div className="detail-section" style={{ marginTop: 16 }}>
+            <div className="detail-section-title">Confirmación por correo</div>
+            <p style={{ margin: "0 0 10px", fontSize: 13, color: "var(--gray-500)", lineHeight: 1.5 }}>
+              Reenvía el mismo correo de confirmación que se envió al reservar. Puedes
+              cambiar la dirección para enviarlo a otro sitio.
+            </p>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <input
+                className="form-input"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="correo@cliente.com"
+                style={{ flex: "1 1 240px" }}
+              />
+              <button
+                className="btn btn-amber"
+                onClick={reenviar}
+                disabled={enviando || !email.trim()}
+              >
+                {enviando ? "Enviando…" : "📧 Reenviar confirmación"}
+              </button>
+            </div>
+            {emailCambiado && (
+              <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, fontSize: 13, color: "var(--gray-600)", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={guardarEmail}
+                  onChange={(e) => setGuardarEmail(e.target.checked)}
+                />
+                Guardar <strong>{email.trim()}</strong> como correo del cliente
+                <span style={{ color: "var(--gray-500)" }}>
+                  (déjalo sin marcar para un envío puntual)
+                </span>
+              </label>
+            )}
           </div>
 
           {r.notes && (

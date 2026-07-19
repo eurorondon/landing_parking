@@ -138,6 +138,27 @@ export default function AdminDashboard() {
     }
   }
 
+  async function reenviarEmail(id: string, email: string, guardar: boolean) {
+    try {
+      const res = await fetch(`/api/admin/reservas/${id}/reenviar-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, guardar }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Error desconocido");
+      toast(
+        data.guardado
+          ? `Correo enviado a ${data.email} y guardado en la ficha`
+          : `Correo enviado a ${data.email}`,
+        "success",
+      );
+      if (data.guardado) await cargar();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "No se pudo enviar el correo", "error");
+    }
+  }
+
   async function guardarConfig(cfg: AdminConfig) {
     try {
       const res = await fetch("/api/admin/config", {
@@ -327,6 +348,7 @@ export default function AdminDashboard() {
           onChangeStatus={cambiarEstado}
           onEdit={abrirEditar}
           onDelete={eliminarReserva}
+          onResendEmail={reenviarEmail}
         />
       )}
     </div>
