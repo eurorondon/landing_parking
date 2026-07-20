@@ -14,7 +14,8 @@ interface Props {
   config: AdminConfig;
   editing: ReservaAdmin | null; // null = nueva reserva
   onClose: () => void;
-  onSave: (data: Partial<ReservaAdmin>) => void;
+  /** `enviarEmail` solo viaja al crear: decide si el cliente recibe la confirmación */
+  onSave: (data: Partial<ReservaAdmin> & { enviarEmail?: boolean }) => void;
 }
 
 interface FormState {
@@ -55,6 +56,9 @@ function initialState(editing: ReservaAdmin | null): FormState {
 export default function ReservationFormModal({ editing, onClose, onSave }: Props) {
   const [form, setForm] = useState<FormState>(() => initialState(editing));
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Al crear se avisa al cliente por defecto; al editar no se envía nada
+  // (para eso está el reenvío manual desde la ficha de la reserva).
+  const [enviarEmail, setEnviarEmail] = useState(true);
 
   const set = (campo: keyof FormState, valor: string) => {
     setForm((f) => ({ ...f, [campo]: valor }));
@@ -115,6 +119,7 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
       checkOut: form.checkOut,
       status: form.status,
       notes: form.notes.trim(),
+      ...(editing ? {} : { enviarEmail }),
     });
   }
 
@@ -218,6 +223,20 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
               <label className="form-label">Notas internas</label>
               <textarea className="form-textarea" value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Observaciones sobre la reserva…" />
             </div>
+
+            {!editing && (
+              <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16, fontSize: 13, color: "var(--gray-600)", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={enviarEmail}
+                  onChange={(e) => setEnviarEmail(e.target.checked)}
+                />
+                Enviar correo de confirmación al cliente
+                <span style={{ color: "var(--gray-500)" }}>
+                  (desmarca para altas antiguas o de teléfono)
+                </span>
+              </label>
+            )}
           </div>
         </div>
         <div className="modal-footer">

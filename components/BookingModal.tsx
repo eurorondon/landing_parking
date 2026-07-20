@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Select from "./ui/Select";
 import DatePicker from "./ui/DatePicker";
-import { OPCIONES_TERMINAL } from "@/lib/config";
+import { OPCIONES_TERMINAL, NEGOCIO } from "@/lib/config";
 import { OPCIONES_HORA } from "@/lib/datetime";
 import { calculateRawParkingDays, aplicaNocturnidad, formatoEuros, type CalculoPrecio } from "@/lib/pricing";
 import type { DatosCliente, DatosReserva } from "@/lib/types";
@@ -42,6 +42,8 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
   const [enviando, setEnviando] = useState(false);
   const [enviada, setEnviada] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // La reserva puede quedar registrada aunque el correo falle: se avisa en el mensaje de éxito
+  const [emailEnviado, setEmailEnviado] = useState(true);
   // El modal tiene su propio cálculo local por si el usuario cambia fechas dentro del modal
   const [calculo, setCalculo] = useState<CalculoPrecio | null>(calculoInicial);
 
@@ -126,6 +128,8 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
         }),
       });
       if (!res.ok) throw new Error("Respuesta no válida del servidor");
+      const data = await res.json().catch(() => ({}));
+      setEmailEnviado(data.emailEnviado !== false);
       setEnviada(true);
     } catch {
       setError("No se pudo enviar la reserva. Inténtalo de nuevo o llámanos por teléfono.");
@@ -355,9 +359,20 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
             )}
 
             <div className={`success${enviada ? " show" : ""}`}>
-              ✅ <strong>Reserva confirmada.</strong> Te hemos enviado la
-              confirmación a {cliente.email || "tu correo"}.
-              Recuerda: no pagas nada hasta entregar tu vehículo.
+              {emailEnviado ? (
+                <>
+                  ✅ <strong>Reserva confirmada.</strong> Te hemos enviado la
+                  confirmación a {cliente.email || "tu correo"}.
+                  Recuerda: no pagas nada hasta entregar tu vehículo.
+                </>
+              ) : (
+                <>
+                  ✅ <strong>Reserva confirmada.</strong> Ya está registrada, no hace falta
+                  repetirla. No hemos podido enviarte el correo: si no lo recibes en unos
+                  minutos, llámanos al <strong>{NEGOCIO.telefono}</strong>.
+                  Recuerda: no pagas nada hasta entregar tu vehículo.
+                </>
+              )}
             </div>
           </form>
         </div>

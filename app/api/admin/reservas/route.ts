@@ -3,6 +3,7 @@ import { type ReservaAdmin } from "@/lib/admin";
 import { calculateRawParkingDays, aplicaNocturnidad } from "@/lib/pricing";
 import { calcularPrecioReserva } from "@/lib/precio-db";
 import { getReservations, saveReservations, createFullReservation } from "@/lib/store";
+import { smtpConfigurado, enviarConfirmacionCliente, reservaAdminACompleta } from "@/lib/email";
 
 /** Lista todas las reservas (desde MySQL/Prisma o datos demo si no hay DATABASE_URL) */
 export async function GET() {
@@ -10,9 +11,16 @@ export async function GET() {
   return NextResponse.json({ ok: true, reservations });
 }
 
-/** Crea una reserva desde el panel de administración */
+/**
+ * Crea una reserva desde el panel de administración.
+ *
+ * Envía al cliente la misma confirmación que la web, salvo que el body traiga
+ * `enviarEmail: false` (casilla desmarcada en el formulario), útil para dar de
+ * alta reservas antiguas o de teléfono sin avisar al cliente. A diferencia de
+ * la web, aquí NO se manda el aviso al dueño: la reserva la está creando él.
+ */
 export async function POST(request: Request) {
-  let body: Partial<ReservaAdmin>;
+  let body: Partial<ReservaAdmin> & { enviarEmail?: boolean };
   try {
     body = await request.json();
   } catch {
@@ -50,7 +58,25 @@ export async function POST(request: Request) {
     notes:       (body.notes ?? "").trim(),
   });
 
-  return NextResponse.json({ ok: true, reservation: nueva });
+  // ── Confirmación al cliente ───────────────────────────────────────────────
+  // Un fallo de correo no invalida el alta: la reserva ya está en la BD, así que
+  // se informa con `emailEnviado` en vez de devolver error.
+  let emailEnviado = false;
+  if (body.enviarEmail !== false) {
+    if (!smtpConfigurado()) {
+      console.log(`📩 [SIMULADO] Reserva ${nueva.id} creada en el panel (configura SMTP_HOST/USER/PASS para envío real)`);
+    } else {
+      try {
+        await enviarConfirmacionCliente(reservaAdminACompleta(nueva));
+        console.log(`✅ Correo de confirmación enviado a ${nueva.email} (reserva ${nueva.id}, creada en el panel)`);
+        emailEnviado = true;
+      } catch (err) {
+        console.error("[admin/reservas] Error enviando la confirmación al cliente:", err);
+      }
+    }
+  }
+
+  return NextResponse.json({ ok: true, reservation: nueva, emailEnviado });
 }
 
 /** Borra TODAS las reservas (zona de peligro en Configuración) */

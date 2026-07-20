@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatoEuros } from "@/lib/pricing";
+import { NEGOCIO } from "@/lib/config";
 import type { DatosCliente, ReservaCompleta } from "@/lib/types";
 
 const clienteVacio: DatosCliente = {
@@ -47,6 +48,8 @@ export default function ReservaForm() {
   const [enviada, setEnviada]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
   const [reservaId, setReservaId] = useState<number | string | null>(null);
+  // La reserva puede quedar registrada aunque el correo falle: se avisa en la pantalla de éxito
+  const [emailEnviado, setEmailEnviado] = useState(true);
 
   function actualizar(campo: keyof DatosCliente, valor: string) {
     setCliente((c) => ({ ...c, [campo]: valor }));
@@ -89,6 +92,7 @@ export default function ReservaForm() {
       const data = await res.json();
       const id   = data.reservaId ?? null;
       setReservaId(id);
+      setEmailEnviado(data.emailEnviado !== false);
 
       // ── DataLayer: evento de conversión para GTM/GA4 ──────────────────────
       if (typeof window !== "undefined") {
@@ -180,10 +184,19 @@ export default function ReservaForm() {
             <div className="reservar-exito">
               <div className="reservar-exito-icon">✅</div>
               <h2>¡Reserva confirmada!</h2>
-              <p>
-                Te hemos enviado la confirmación a <strong>{cliente.email}</strong>.
-                Recuerda: no pagas nada hasta entregar tu vehículo.
-              </p>
+              {emailEnviado ? (
+                <p>
+                  Te hemos enviado la confirmación a <strong>{cliente.email}</strong>.
+                  Recuerda: no pagas nada hasta entregar tu vehículo.
+                </p>
+              ) : (
+                <p>
+                  Tu reserva <strong>ya está registrada</strong>, no hace falta repetirla.
+                  No hemos podido enviarte el correo de confirmación: si no lo recibes en unos
+                  minutos, llámanos al <strong>{NEGOCIO.telefono}</strong> y te lo confirmamos.
+                  Recuerda: no pagas nada hasta entregar tu vehículo.
+                </p>
+              )}
               <button className="plan-btn plan-btn--destacado" onClick={() => router.push("/")} type="button">
                 Volver al inicio
               </button>

@@ -86,7 +86,7 @@ export default function AdminDashboard() {
     setFormOpen(true);
   }
 
-  async function guardarReserva(data: Partial<ReservaAdmin>) {
+  async function guardarReserva(data: Partial<ReservaAdmin> & { enviarEmail?: boolean }) {
     try {
       const res = editing
         ? await fetch(`/api/admin/reservas/${editing.id}`, {
@@ -100,7 +100,20 @@ export default function AdminDashboard() {
             body: JSON.stringify(data),
           });
       if (!res.ok) throw new Error();
-      toast(editing ? "Reserva actualizada correctamente" : "Reserva creada correctamente", "success");
+      if (editing) {
+        toast("Reserva actualizada correctamente", "success");
+      } else {
+        // La reserva ya está guardada aunque el correo falle: se avisa sin marcarlo como error de alta
+        const { emailEnviado } = await res.json().catch(() => ({ emailEnviado: false }));
+        toast(
+          data.enviarEmail === false
+            ? "Reserva creada (sin enviar correo)"
+            : emailEnviado
+              ? "Reserva creada y correo enviado al cliente"
+              : "Reserva creada, pero no se pudo enviar el correo",
+          data.enviarEmail !== false && !emailEnviado ? "error" : "success",
+        );
+      }
       setFormOpen(false);
       setEditing(null);
       await cargar();
