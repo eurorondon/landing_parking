@@ -4,6 +4,7 @@ import { formatoLegible } from "@/lib/datetime";
 import { formatoEuros } from "@/lib/pricing";
 import type { ReservaCompleta } from "@/lib/types";
 import { getConfig, createFullReservation } from "@/lib/store";
+import { enviarReservaAParkingPlus } from "@/lib/parkingplus";
 import {
   crearTransporte,
   smtpConfigurado,
@@ -54,6 +55,32 @@ async function alertarCorreoFallidoDiscord(r: ReservaCompleta, reservaId: number
           { name: "📧 Email",    value: r.email,                       inline: true },
           { name: "📅 Entrada",  value: formatoLegible(r.entrada),     inline: true },
           { name: "🆔 Reserva",  value: reservaId ? `\`${reservaId}\`` : "⚠️ tampoco se guardó en BD", inline: true },
+        ],
+        footer:    { text: NEGOCIO.nombre },
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  });
+}
+
+/**
+ * Avisa de que la reserva NO llegó al panel de parkingplus (medio agencia).
+ * Requiere acción manual: registrarla a mano en el dashboard.
+ */
+async function alertarParkingPlusFallidoDiscord(r: ReservaCompleta, error: string): Promise<void> {
+  await enviarWebhookDiscord({
+    embeds: [
+      {
+        title:       "⚠️ Reserva NO registrada en ParkingPlus",
+        description: "La reserva se guardó en la landing, pero el envío al panel de parkingplus falló. Regístrala a mano en el dashboard (medio: Agencia).",
+        color:       DISCORD_ROJO,
+        fields: [
+          { name: "👤 Cliente",  value: r.nombre,                  inline: true },
+          { name: "📞 Teléfono", value: r.telefono,                inline: true },
+          { name: "📅 Entrada",  value: formatoLegible(r.entrada), inline: true },
+          { name: "📅 Salida",   value: formatoLegible(r.salida),  inline: true },
+          { name: "💶 Total",    value: formatoEuros(r.total),     inline: true },
+          { name: "❌ Error",    value: `\`${error.slice(0, 200)}\``, inline: false },
         ],
         footer:    { text: NEGOCIO.nombre },
         timestamp: new Date().toISOString(),
@@ -162,6 +189,19 @@ export async function POST(request: Request) {
   } catch (err) {
     // No interrumpimos el flujo: el correo de confirmación sigue enviándose
     console.error("[reserva] Error al guardar en BD:", err);
+  }
+
+  // ── Registro en parkingplus-dashboard como reserva de agencia ───────────────
+  // No bloquea el flujo: si falla, la reserva local sigue válida y se avisa
+  // por Discord para registrarla a mano en el panel.
+  try {
+    const envio = await enviarReservaAParkingPlus(reserva);
+    if (!envio.ok) {
+      alertarParkingPlusFallidoDiscord(reserva, envio.error ?? "desconocido")
+        .catch(() => {/* ya logueado dentro */});
+    }
+  } catch (err) {
+    console.error("[reserva] Error inesperado enviando a parkingplus:", err);
   }
 
   // ── Notificación Discord (fire-and-forget) ──────────────────────────────────
