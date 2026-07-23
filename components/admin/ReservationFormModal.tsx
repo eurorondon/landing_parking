@@ -14,8 +14,8 @@ interface Props {
   config: AdminConfig;
   editing: ReservaAdmin | null; // null = nueva reserva
   onClose: () => void;
-  /** `enviarEmail` solo viaja al crear: decide si el cliente recibe la confirmación */
-  onSave: (data: Partial<ReservaAdmin> & { enviarEmail?: boolean }) => void;
+  /** `enviarEmail` y `enviarParkingPlus` solo viajan al crear */
+  onSave: (data: Partial<ReservaAdmin> & { enviarEmail?: boolean; enviarParkingPlus?: boolean }) => void;
 }
 
 interface FormState {
@@ -59,6 +59,8 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
   // Al crear se avisa al cliente por defecto; al editar no se envía nada
   // (para eso está el reenvío manual desde la ficha de la reserva).
   const [enviarEmail, setEnviarEmail] = useState(true);
+  // Al crear también se registra en parkingplus (medio Agencia) por defecto
+  const [enviarParkingPlus, setEnviarParkingPlus] = useState(true);
 
   const set = (campo: keyof FormState, valor: string) => {
     setForm((f) => ({ ...f, [campo]: valor }));
@@ -125,7 +127,7 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
       checkOut: form.checkOut,
       status: form.status,
       notes: form.notes.trim(),
-      ...(editing ? {} : { enviarEmail }),
+      ...(editing ? {} : { enviarEmail, enviarParkingPlus }),
     });
   }
 
@@ -238,17 +240,30 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
             </div>
 
             {!editing && (
-              <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16, fontSize: 13, color: "var(--gray-600)", cursor: "pointer" }}>
-                <input
-                  type="checkbox"
-                  checked={enviarEmail}
-                  onChange={(e) => setEnviarEmail(e.target.checked)}
-                />
-                Enviar correo de confirmación al cliente
-                <span style={{ color: "var(--gray-500)" }}>
-                  (desmarca para altas antiguas o de teléfono)
-                </span>
-              </label>
+              <>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16, fontSize: 13, color: "var(--gray-600)", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={enviarEmail}
+                    onChange={(e) => setEnviarEmail(e.target.checked)}
+                  />
+                  Enviar correo de confirmación al cliente
+                  <span style={{ color: "var(--gray-500)" }}>
+                    (desmarca para altas antiguas o de teléfono)
+                  </span>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, fontSize: 13, color: "var(--gray-600)", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={enviarParkingPlus}
+                    onChange={(e) => setEnviarParkingPlus(e.target.checked)}
+                  />
+                  Registrar también en ParkingPlus
+                  <span style={{ color: "var(--gray-500)" }}>
+                    (medio Agencia, igual que las reservas de la web)
+                  </span>
+                </label>
+              </>
             )}
           </div>
         </div>

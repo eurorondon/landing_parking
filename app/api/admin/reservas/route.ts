@@ -4,6 +4,7 @@ import { calculateRawParkingDays, aplicaNocturnidad } from "@/lib/pricing";
 import { calcularPrecioReserva } from "@/lib/precio-db";
 import { getReservations, saveReservations, createFullReservation } from "@/lib/store";
 import { smtpConfigurado, enviarConfirmacionCliente, reservaAdminACompleta } from "@/lib/email";
+import { enviarReservaAParkingPlus } from "@/lib/parkingplus";
 
 /** Lista todas las reservas (desde MySQL/Prisma o datos demo si no hay DATABASE_URL) */
 export async function GET() {
@@ -18,9 +19,12 @@ export async function GET() {
  * `enviarEmail: false` (casilla desmarcada en el formulario), útil para dar de
  * alta reservas antiguas o de teléfono sin avisar al cliente. A diferencia de
  * la web, aquí NO se manda el aviso al dueño: la reserva la está creando él.
+ *
+ * También registra la reserva en parkingplus-dashboard (medio Agencia), igual
+ * que la web, salvo que el body traiga `enviarParkingPlus: false`.
  */
 export async function POST(request: Request) {
-  let body: Partial<ReservaAdmin> & { enviarEmail?: boolean };
+  let body: Partial<ReservaAdmin> & { enviarEmail?: boolean; enviarParkingPlus?: boolean };
   try {
     body = await request.json();
   } catch {
@@ -58,6 +62,22 @@ export async function POST(request: Request) {
     notes:       (body.notes ?? "").trim(),
   });
 
+  // ── Registro en parkingplus-dashboard (medio Agencia) ─────────────────────
+  // Igual que la web: un fallo no invalida el alta local; se informa con
+  // `parkingplusEnviado` para que el panel avise y se registre a mano.
+  let parkingplusEnviado = false;
+  if (body.enviarParkingPlus !== false) {
+    try {
+      const envio = await enviarReservaAParkingPlus(reservaAdminACompleta(nueva));
+      parkingplusEnviado = envio.ok;
+      if (!envio.ok) {
+        console.error("[admin/reservas] Fallo al registrar en parkingplus:", envio.error);
+      }
+    } catch (err) {
+      console.error("[admin/reservas] Error inesperado enviando a parkingplus:", err);
+    }
+  }
+
   // ── Confirmación al cliente ───────────────────────────────────────────────
   // Un fallo de correo no invalida el alta: la reserva ya está en la BD, así que
   // se informa con `emailEnviado` en vez de devolver error.
@@ -77,7 +97,13 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, reservation: nueva, emailEnviado });
+  return NextResponse.json({
+    ok: true,
+    reservation: nueva,
+    emailEnviado,
+    // "omitido" cuando el admin desmarcó la casilla (no es un fallo)
+    parkingplusEnviado: body.enviarParkingPlus === false ? "omitido" : parkingplusEnviado,
+  });
 }
 
 /** Borra TODAS las reservas (zona de peligro en Configuración) */

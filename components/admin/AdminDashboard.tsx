@@ -88,7 +88,7 @@ export default function AdminDashboard() {
     setFormOpen(true);
   }
 
-  async function guardarReserva(data: Partial<ReservaAdmin> & { enviarEmail?: boolean }) {
+  async function guardarReserva(data: Partial<ReservaAdmin> & { enviarEmail?: boolean; enviarParkingPlus?: boolean }) {
     try {
       const res = editing
         ? await fetch(`/api/admin/reservas/${editing.id}`, {
@@ -105,8 +105,11 @@ export default function AdminDashboard() {
       if (editing) {
         toast("Reserva actualizada correctamente", "success");
       } else {
-        // La reserva ya está guardada aunque el correo falle: se avisa sin marcarlo como error de alta
-        const { emailEnviado } = await res.json().catch(() => ({ emailEnviado: false }));
+        // La reserva ya está guardada aunque el correo o parkingplus fallen:
+        // se avisa sin marcarlo como error de alta
+        const { emailEnviado, parkingplusEnviado } = await res.json().catch(
+          () => ({ emailEnviado: false, parkingplusEnviado: false }),
+        );
         toast(
           data.enviarEmail === false
             ? "Reserva creada (sin enviar correo)"
@@ -115,6 +118,10 @@ export default function AdminDashboard() {
               : "Reserva creada, pero no se pudo enviar el correo",
           data.enviarEmail !== false && !emailEnviado ? "error" : "success",
         );
+        // "omitido" = casilla desmarcada a propósito; false = fallo real
+        if (parkingplusEnviado === false && data.enviarParkingPlus !== false) {
+          toast("No se registró en ParkingPlus: hazlo a mano en el dashboard", "error");
+        }
       }
       setFormOpen(false);
       setEditing(null);
