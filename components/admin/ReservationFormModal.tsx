@@ -69,12 +69,15 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
   // Se recalcula al cambiar vehículo o fechas.
   const [price, setPrice] = useState(0);
   const [precioCargando, setPrecioCargando] = useState(false);
+  // > 0 cuando las horas de entrada/salida caen en el rango nocturno (00:30–03:30)
+  const [costoNocturnidad, setCostoNocturnidad] = useState(0);
 
   useEffect(() => {
     const entrada = new Date(form.checkIn);
     const salida  = new Date(form.checkOut);
     if (!form.vehicleType || !Number.isFinite(entrada.getTime()) || !Number.isFinite(salida.getTime()) || salida <= entrada) {
       setPrice(0);
+      setCostoNocturnidad(0);
       return;
     }
     const dias     = calculateRawParkingDays(entrada, salida);
@@ -83,8 +86,11 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
     setPrecioCargando(true);
     fetch(`/api/precio?dias=${dias}${nocturno ? "&nocturno=1" : ""}${vehiculoParam}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d: { total: number }) => setPrice(d.total))
-      .catch(() => setPrice(0))
+      .then((d: { total: number; costo_nocturnidad: number }) => {
+        setPrice(d.total);
+        setCostoNocturnidad(nocturno ? Number(d.costo_nocturnidad || 0) : 0);
+      })
+      .catch(() => { setPrice(0); setCostoNocturnidad(0); })
       .finally(() => setPrecioCargando(false));
   }, [form.vehicleType, form.checkIn, form.checkOut]);
 
@@ -139,6 +145,13 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
             <span className="price-preview-label">Precio estimado</span>
             <span className="price-preview-val">{precioCargando ? "…" : price > 0 ? fmtCurrency(price) : "€ —"}</span>
           </div>
+
+          {/* Mismo aviso de nocturnidad que ve el cliente en la web */}
+          {!precioCargando && costoNocturnidad > 0 && (
+            <div className="nocturno-aviso">
+              🌙 Incluye recargo nocturno de {fmtCurrency(costoNocturnidad)} por horario entre las 00:30 y las 03:30
+            </div>
+          )}
 
           <div style={{ marginTop: 18 }}>
             <div className="modal-divider">Datos del cliente</div>
