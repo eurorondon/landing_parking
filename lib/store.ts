@@ -232,6 +232,14 @@ export async function createFullReservation(params: {
   status:      ReservaStatus;
   price:       number;
   notes:       string;
+  /** Cupón ya validado; `price` debe llegar YA descontado */
+  cupon?: {
+    codigo:    string;
+    tipo:      "porcentaje" | "fijo";
+    valor:     number;
+    /** importe descontado en € */
+    descuento: number;
+  };
 }): Promise<ReservaAdmin> {
   const db = await getPrisma();
   if (!db) {
@@ -339,7 +347,14 @@ export async function createFullReservation(params: {
       estatus:                STATUS_TO_ESTATUS[params.status],
       medio_reserva:          MEDIO_WEB,
       id_tipo_pago:           idTipoPago,
-      descuento:              "NO",
+      // Campos de cupón (mismas columnas que usa parkingplus):
+      // monto_des es Int en la BD, así que el importe exacto va también en observaciones
+      descuento:              params.cupon ? "SI" : "NO",
+      ...(params.cupon ? {
+        cupon:           params.cupon.codigo,
+        porcentaje_cupo: params.cupon.tipo === "porcentaje" ? params.cupon.valor : null,
+        monto_des:       Math.round(params.cupon.descuento),
+      } : {}),
       condiciones:            1,
       cod_valid:              "0",
       canceled_by:            0,

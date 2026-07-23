@@ -2068,6 +2068,47 @@ footer a:hover { color: var(--orange); }
   text-align: center;
 }
 
+/* Cupón promocional (resumen de la reserva) */
+.reservar-cupon-wrap { display: flex; gap: 8px; margin: 12px 0 4px; }
+.reservar-cupon-input {
+  flex: 1; min-width: 0;
+  padding: 10px 12px;
+  border: 1px dashed rgba(255,255,255,.2);
+  border-radius: 10px; font-size: 13px; font-family: inherit;
+  color: var(--white); background: rgba(255,255,255,.05);
+  text-transform: uppercase;
+  transition: border .18s, box-shadow .18s;
+}
+.reservar-cupon-input::placeholder { color: rgba(255,255,255,.3); text-transform: none; }
+.reservar-cupon-input:focus {
+  outline: none; border-color: rgba(255,149,0,.5);
+  box-shadow: 0 0 0 3px rgba(255,149,0,.12);
+}
+.reservar-cupon-btn {
+  padding: 10px 16px;
+  border: 1px solid rgba(255,149,0,.5); border-radius: 10px;
+  background: rgba(255,149,0,.12); color: var(--naranja, #FF9500);
+  font-size: 13px; font-weight: 700; font-family: inherit;
+  cursor: pointer; transition: background .18s;
+}
+.reservar-cupon-btn:hover:not(:disabled) { background: rgba(255,149,0,.22); }
+.reservar-cupon-btn:disabled { opacity: .5; cursor: not-allowed; }
+.reservar-resumen-fila--cupon { color: #4ade80; }
+.reservar-cupon-descuento { color: #4ade80; display: inline-flex; align-items: center; gap: 6px; }
+.reservar-cupon-quitar {
+  border: none; background: rgba(255,255,255,.1); color: var(--white);
+  width: 18px; height: 18px; line-height: 1; border-radius: 50%;
+  font-size: 13px; cursor: pointer; padding: 0;
+}
+.reservar-cupon-quitar:hover { background: rgba(239,68,68,.4); }
+.reservar-cupon-error {
+  font-size: 12px; color: #fca5a5; margin: 6px 0 0;
+}
+.reservar-total-antes {
+  color: var(--gray-dim); text-decoration: line-through;
+  font-weight: 400; margin-right: 8px; font-size: 13px;
+}
+
 /* Formulario */
 .reservar-form-wrap {
   background: #111; border: 1px solid var(--border);

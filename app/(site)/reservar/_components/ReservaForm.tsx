@@ -51,6 +51,41 @@ export default function ReservaForm() {
   // La reserva puede quedar registrada aunque el correo falle: se avisa en la pantalla de éxito
   const [emailEnviado, setEmailEnviado] = useState(true);
 
+  // ── Cupón promocional (se valida contra /api/cupon; el servidor revalida al confirmar) ──
+  const [cuponInput, setCuponInput]       = useState("");
+  const [cupon, setCupon]                 = useState<{ codigo: string; descuento: number } | null>(null);
+  const [cuponError, setCuponError]       = useState<string | null>(null);
+  const [cuponCargando, setCuponCargando] = useState(false);
+
+  const totalFinal = cupon ? Math.round((total - cupon.descuento) * 100) / 100 : total;
+
+  async function aplicarCupon() {
+    const codigo = cuponInput.trim().toUpperCase();
+    if (!codigo) return;
+    setCuponCargando(true);
+    setCuponError(null);
+    try {
+      const res  = await fetch(`/api/cupon?codigo=${encodeURIComponent(codigo)}&total=${total}`);
+      const data = await res.json();
+      if (data.valido) {
+        setCupon({ codigo: data.codigo, descuento: data.descuento });
+      } else {
+        setCupon(null);
+        setCuponError(data.motivo ?? "El código no es válido.");
+      }
+    } catch {
+      setCuponError("No se pudo validar el código. Inténtalo de nuevo.");
+    } finally {
+      setCuponCargando(false);
+    }
+  }
+
+  function quitarCupon() {
+    setCupon(null);
+    setCuponInput("");
+    setCuponError(null);
+  }
+
   function actualizar(campo: keyof DatosCliente, valor: string) {
     setCliente((c) => ({ ...c, [campo]: valor }));
     setError(null);
@@ -75,10 +110,11 @@ export default function ReservaForm() {
       terminalEntrada: terminalEntrada as any,
       terminalSalida:  terminalSalida  as any,
       dias,
-      total,
+      total: totalFinal,
       plan,
       planNombre,
       ...(lavadoNombre ? { lavadoNombre } : {}),
+      ...(cupon ? { cuponCodigo: cupon.codigo, cuponDescuento: cupon.descuento, totalSinDescuento: total } : {}),
     };
 
     try {
@@ -100,9 +136,11 @@ export default function ReservaForm() {
         (window as any).dataLayer.push({
           event:             "reserva_confirmada",
           transaction_id:    id,
-          transaction_value: Math.round(total * 100) / 100,
+          transaction_value: Math.round(totalFinal * 100) / 100,
           currency:          "EUR",
           plan:              planNombre,
+          // Cupón aplicado (vacío si no hay): permite medir campañas en GA4/Ads
+          coupon:            cupon?.codigo ?? "",
         });
       }
 
@@ -169,9 +207,55 @@ export default function ReservaForm() {
               <strong>incluido</strong>
             </div>
           )}
+
+          {/* ── Cupón promocional ── */}
+          {cupon ? (
+            <div className="reservar-resumen-fila reservar-resumen-fila--cupon">
+              <span>🎟️ Cupón <strong>{cupon.codigo}</strong></span>
+              <strong className="reservar-cupon-descuento">
+                −{formatoEuros(cupon.descuento)}
+                <button
+                  type="button"
+                  className="reservar-cupon-quitar"
+                  onClick={quitarCupon}
+                  disabled={enviando}
+                  aria-label="Quitar cupón"
+                  title="Quitar cupón"
+                >
+                  ×
+                </button>
+              </strong>
+            </div>
+          ) : (
+            <div className="reservar-cupon-wrap">
+              <input
+                type="text"
+                className="reservar-cupon-input"
+                placeholder="¿Tienes un código promocional?"
+                value={cuponInput}
+                onChange={(e) => { setCuponInput(e.target.value.toUpperCase()); setCuponError(null); }}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); aplicarCupon(); } }}
+                disabled={enviando || cuponCargando}
+                maxLength={50}
+              />
+              <button
+                type="button"
+                className="reservar-cupon-btn"
+                onClick={aplicarCupon}
+                disabled={enviando || cuponCargando || !cuponInput.trim()}
+              >
+                {cuponCargando ? "…" : "Aplicar"}
+              </button>
+            </div>
+          )}
+          {cuponError && <p className="reservar-cupon-error">{cuponError}</p>}
+
           <div className="reservar-resumen-fila reservar-resumen-fila--total">
             <span>Total estimado</span>
-            <strong>{formatoEuros(total)}</strong>
+            <strong>
+              {cupon && <span className="reservar-total-antes">{formatoEuros(total)}</span>}
+              {formatoEuros(totalFinal)}
+            </strong>
           </div>
           <p className="reservar-resumen-nota">
             💳 Sin pago anticipado — pagas al entregar el vehículo
@@ -269,7 +353,7 @@ export default function ReservaForm() {
                 type="submit"
                 disabled={enviando}
               >
-                {enviando ? "Enviando reserva…" : `Confirmar reserva · ${formatoEuros(total)}`}
+                {enviando ? "Enviando reserva…" : `Confirmar reserva · ${formatoEuros(totalFinal)}`}
               </button>
 
               <p className="reservar-legal">

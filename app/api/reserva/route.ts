@@ -4,6 +4,7 @@ import { formatoLegible } from "@/lib/datetime";
 import { formatoEuros } from "@/lib/pricing";
 import type { ReservaCompleta } from "@/lib/types";
 import { getConfig, createFullReservation } from "@/lib/store";
+import { validarCupon, calcularDescuento, registrarUsoCupon, type TipoCupon } from "@/lib/cupones";
 import { enviarReservaAParkingPlus } from "@/lib/parkingplus";
 import {
   crearTransporte,
@@ -109,6 +110,7 @@ async function notificarDiscord(r: ReservaCompleta): Promise<void> {
           { name: "🛫 Terminal entrada", value: r.terminalEntrada,                inline: true },
           { name: "🛬 Terminal salida",  value: r.terminalSalida,                 inline: true },
           { name: "💶 Total",            value: `**${formatoEuros(r.total)}**${planTexto}${r.lavadoNombre ? ` · 🧹 ${r.lavadoNombre}` : ""}`, inline: true },
+          ...(r.cuponCodigo ? [{ name: "🎟️ Cupón", value: `${r.cuponCodigo} (−${formatoEuros(r.cuponDescuento ?? 0)})`, inline: true }] : []),
           { name: "👤 Cliente",          value: r.nombre,                         inline: true },
           { name: "📞 Teléfono",         value: r.telefono,                       inline: true },
           { name: "📧 Email",            value: r.email,                          inline: true },
@@ -167,6 +169,25 @@ export async function POST(request: Request) {
     );
   }
 
+  // ── Cupón promocional: revalidar en servidor y recalcular el total ──────────
+  // El cliente ya validó el código en /api/cupon, pero el total definitivo se
+  // calcula aquí para que nadie pueda inventarse un descuento desde el navegador.
+  let cuponAplicado: { codigo: string; tipo: TipoCupon; valor: number; descuento: number } | undefined;
+  if (reserva.cuponCodigo) {
+    const resultado = await validarCupon(reserva.cuponCodigo);
+    if (!resultado.valido) {
+      return NextResponse.json(
+        { ok: false, error: `El código promocional no se pudo aplicar: ${resultado.motivo} Quítalo e inténtalo de nuevo.` },
+        { status: 400 },
+      );
+    }
+    const base      = Number(reserva.totalSinDescuento ?? reserva.total);
+    const descuento = calcularDescuento(base, resultado.tipo, resultado.valor);
+    reserva.total           = Math.round((base - descuento) * 100) / 100;
+    reserva.cuponDescuento  = descuento;
+    cuponAplicado = { codigo: resultado.codigo, tipo: resultado.tipo, valor: resultado.valor, descuento };
+  }
+
   // ── Persistir en MySQL via Prisma ────────────────────────────────────────────
   const cfg = await getConfig();
   let reservaId: number | string | null = null;
@@ -183,9 +204,15 @@ export async function POST(request: Request) {
       checkOut:    reserva.salida,
       status:      "confirmed",
       price:       reserva.total,
-      notes:       `Recibida desde la web · Terminal salida: ${reserva.terminalSalida}${reserva.planNombre ? ` · Plan: ${reserva.planNombre}` : ""}${reserva.lavadoNombre ? ` · Lavado: ${reserva.lavadoNombre}` : ""}`,
+      notes:       `Recibida desde la web · Terminal salida: ${reserva.terminalSalida}${reserva.planNombre ? ` · Plan: ${reserva.planNombre}` : ""}${reserva.lavadoNombre ? ` · Lavado: ${reserva.lavadoNombre}` : ""}${cuponAplicado ? ` · Cupón: ${cuponAplicado.codigo} (−${formatoEuros(cuponAplicado.descuento)})` : ""}`,
+      cupon:       cuponAplicado,
     });
     reservaId = creada.id;
+    // El uso se contabiliza solo cuando la reserva quedó registrada
+    if (cuponAplicado) {
+      registrarUsoCupon(cuponAplicado.codigo).catch((err) =>
+        console.error("[reserva] Error al registrar uso del cupón:", err));
+    }
   } catch (err) {
     // No interrumpimos el flujo: el correo de confirmación sigue enviándose
     console.error("[reserva] Error al guardar en BD:", err);

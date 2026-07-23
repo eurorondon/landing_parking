@@ -40,4 +40,10 @@ export interface ReservaCompleta extends DatosCliente {
    * no menciona "Autocaravana" (solo modelo y matrícula).
    */
   ocultarAutocaravana?: boolean;
+  /** Código promocional introducido (el servidor lo revalida y recalcula) */
+  cuponCodigo?: string;
+  /** Total antes del descuento; el servidor calcula el descuento sobre él */
+  totalSinDescuento?: number;
+  /** Importe descontado en € (informativo, para correos y desglose) */
+  cuponDescuento?: number;
 }

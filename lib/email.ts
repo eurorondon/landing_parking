@@ -206,6 +206,7 @@ export function construirEmailCliente(r: ReservaCompleta): string {
                 ${fila("🛫 Terminal entrada", r.terminalEntrada)}
                 ${fila("🛬 Terminal salida",  r.terminalSalida)}
                 ${fila("🚗 Vehículo",         vehiculoValor)}
+                ${r.cuponCodigo ? fila("🎟️ Descuento", `${r.cuponCodigo} · <span style="color:#16a34a;">−${formatoEuros(r.cuponDescuento ?? 0)}</span>`) : ""}
                 ${fila("💶 Total estimado",   `<span style="color:${NARANJA};font-size:16px;">${formatoEuros(r.total)}</span>${planTexto}`)}
                 ${r.lavadoNombre ? fila("🧹 Lavado incluido", r.lavadoNombre) : ""}
               </table>
@@ -300,6 +301,7 @@ export function construirEmailAdmin(r: ReservaCompleta): string {
                 ${fila("Días",             `${r.dias} día${r.dias !== 1 ? "s" : ""}`)}
                 ${fila("Terminal entrada", r.terminalEntrada)}
                 ${fila("Terminal salida",  r.terminalSalida)}
+                ${r.cuponCodigo ? fila("Cupón", `${r.cuponCodigo} · −${formatoEuros(r.cuponDescuento ?? 0)}`) : ""}
                 ${fila("Precio total",     `<strong style="color:${NARANJA};font-size:15px;">${formatoEuros(r.total)}</strong>${planTexto}`)}
               </table>
             </td>

@@ -367,3 +367,24 @@ model encuesta_inicial {
 
   @@map("encuesta_inicial")
 }
+
+/// Cupones de descuento de la landing (tabla propia, NO existe en parkingplus).
+/// El código usado y el importe descontado se guardan en reservas
+/// (cupon, porcentaje_cupo, monto_des, descuento="SI").
+model cupones {
+  id           Int       @id @default(autoincrement())
+  codigo       String    @unique @db.VarChar(50)
+  /// "porcentaje" (valor = %) o "fijo" (valor = € a descontar)
+  tipo         String    @default("porcentaje") @db.VarChar(10)
+  valor        Decimal   @db.Decimal(10, 2)
+  valido_desde DateTime? @db.DateTime(0)
+  valido_hasta DateTime? @db.DateTime(0)
+  /// null = usos ilimitados
+  max_usos     Int?
+  usos         Int       @default(0)
+  activo       Boolean   @default(true)
+  /// Origen/campaña, ej. "Google Ads Verano 2026"
+  campana      String?   @db.VarChar(100)
+  created_at   DateTime  @default(now()) @db.DateTime(0)
+  updated_at   DateTime  @default(now()) @db.DateTime(0)
+}
