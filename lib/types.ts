@@ -35,4 +35,9 @@ export interface ReservaCompleta extends DatosCliente {
   planNombre?: string;
   /** Servicio de lavado adicional elegido desde ServiciosLimpieza */
   lavadoNombre?: string;
+  /**
+   * true en altas hechas desde el panel: el correo de confirmación
+   * no menciona "Autocaravana" (solo modelo y matrícula).
+   */
+  ocultarAutocaravana?: boolean;
 }

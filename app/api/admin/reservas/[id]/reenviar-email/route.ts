@@ -59,8 +59,9 @@ export async function POST(request: Request, { params }: Params) {
 
   try {
     // El contenido se construye siempre con los datos reales de la reserva;
-    // solo cambia el destinatario del sobre.
-    await enviarConfirmacionCliente({ ...reservaAdminACompleta(reserva), email: destinatario });
+    // solo cambia el destinatario del sobre. Como el reenvío sale del panel,
+    // el correo tampoco menciona "Autocaravana" (igual que el alta del admin).
+    await enviarConfirmacionCliente({ ...reservaAdminACompleta(reserva), email: destinatario, ocultarAutocaravana: true });
     console.log(`✅ Correo de confirmación reenviado a ${destinatario} (reserva ${id})`);
     return NextResponse.json({ ok: true, email: destinatario, guardado: guardar });
   } catch (err) {

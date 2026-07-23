@@ -67,7 +67,8 @@ export async function POST(request: Request) {
       console.log(`📩 [SIMULADO] Reserva ${nueva.id} creada en el panel (configura SMTP_HOST/USER/PASS para envío real)`);
     } else {
       try {
-        await enviarConfirmacionCliente(reservaAdminACompleta(nueva));
+        // ocultarAutocaravana: en altas del panel el correo no menciona el tipo de vehículo
+        await enviarConfirmacionCliente({ ...reservaAdminACompleta(nueva), ocultarAutocaravana: true });
         console.log(`✅ Correo de confirmación enviado a ${nueva.email} (reserva ${nueva.id}, creada en el panel)`);
         emailEnviado = true;
       } catch (err) {

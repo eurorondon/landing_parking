@@ -165,7 +165,15 @@ function pie() {
 
 /** Correo de confirmación que recibe el cliente */
 export function construirEmailCliente(r: ReservaCompleta): string {
+  // En altas desde el panel (ocultarAutocaravana) no se menciona el tipo:
+  // la fila queda solo con modelo y matrícula.
+  const ocultarTipo  = r.vehiculo === "autocaravana" && r.ocultarAutocaravana;
   const vehiculoIcon = r.vehiculo === "autocaravana" ? "🚐 Autocaravana" : "🚗 Coche";
+  const vehiculoValor = [
+    ocultarTipo ? "" : vehiculoIcon,
+    r.modelo,
+    `<code>${r.matricula.toUpperCase()}</code>`,
+  ].filter(Boolean).join(" · ");
   const planTexto    = r.planNombre ? ` · Plan <strong>${r.planNombre}</strong>` : "";
 
   return `<!DOCTYPE html>
@@ -197,7 +205,7 @@ export function construirEmailCliente(r: ReservaCompleta): string {
                 ${fila("📅 Salida",           formatoLegible(r.salida))}
                 ${fila("🛫 Terminal entrada", r.terminalEntrada)}
                 ${fila("🛬 Terminal salida",  r.terminalSalida)}
-                ${fila("🚗 Vehículo",         `${vehiculoIcon} · ${r.modelo} · <code>${r.matricula.toUpperCase()}</code>`)}
+                ${fila("🚗 Vehículo",         vehiculoValor)}
                 ${fila("💶 Total estimado",   `<span style="color:${NARANJA};font-size:16px;">${formatoEuros(r.total)}</span>${planTexto}`)}
                 ${r.lavadoNombre ? fila("🧹 Lavado incluido", r.lavadoNombre) : ""}
               </table>
