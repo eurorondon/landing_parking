@@ -107,13 +107,21 @@ export async function GET(req: NextRequest) {
         .join(" ")
         .toUpperCase() || "—";
 
+      // La fecha/hora "de pared" que eligió el cliente vive en los campos
+      // _completa (@db.DateTime, con fecha real → desfase DST correcto).
+      // Las columnas @db.Time/@db.Date pierden el contexto de fecha y quedan
+      // 1h desfasadas en verano; usamos _completa como fuente y hacemos
+      // fallback a las columnas sueltas solo para registros antiguos sin _completa.
+      const entradaFuente = (r.fecha_entrada_completa as Date | null) ?? null;
+      const salidaFuente  = (r.fecha_salida_completa  as Date | null) ?? null;
+
       return {
         id:               r.id,
         nro_reserva:      String(r.nro_reserva),
-        fecha_entrada:    fechaDB(r.fecha_entrada),
-        hora_entrada:     horaDB(r.hora_entrada as Date | null),
-        fecha_salida:     fechaDB(r.fecha_salida),
-        hora_salida:      horaDB(r.hora_salida as Date | null),
+        fecha_entrada:    fechaDB(entradaFuente ?? r.fecha_entrada),
+        hora_entrada:     horaDB(entradaFuente ?? (r.hora_entrada as Date | null)),
+        fecha_salida:     fechaDB(salidaFuente ?? r.fecha_salida),
+        hora_salida:      horaDB(salidaFuente ?? (r.hora_salida as Date | null)),
         terminal_entrada: r.terminal_entrada,
         terminal_salida:  r.terminal_salida,
         monto_total:      total,
