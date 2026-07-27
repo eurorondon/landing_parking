@@ -19,6 +19,12 @@ export const ID_SERVICIO_PARKING     = 6;
 export const ID_SERVICIO_SEGURO      = 4;
 export const ID_SERVICIO_NOCTURNIDAD = 11;
 
+/**
+ * Servicios de lavado que se pueden contratar aparte del plan.
+ * Misma lista que el resto de proyectos (useServicios → serviciosExtrasLimpieza).
+ */
+export const ID_SERVICIOS_LAVADO = [1, 2, 3, 8];
+
 /** Lavado que ya lleva incluido cada plan (mismo mapa que /planes → PlanSelector) */
 export const LIMPIEZA_POR_PLAN: Record<number, number> = {
   2: 1, // Premium  → Lavado Exterior

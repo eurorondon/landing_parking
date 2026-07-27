@@ -88,7 +88,7 @@ export default function AdminDashboard() {
     setFormOpen(true);
   }
 
-  async function guardarReserva(data: Partial<ReservaAdmin> & { enviarEmail?: boolean; enviarParkingPlus?: boolean }) {
+  async function guardarReserva(data: Partial<ReservaAdmin> & { enviarEmail?: boolean; enviarParkingPlus?: boolean; servicios?: number[] }) {
     try {
       const res = editing
         ? await fetch(`/api/admin/reservas/${editing.id}`, {

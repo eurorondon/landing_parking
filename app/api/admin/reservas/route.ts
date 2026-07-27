@@ -5,6 +5,8 @@ import { calcularPrecioReserva } from "@/lib/precio-db";
 import { getReservations, saveReservations, createFullReservation } from "@/lib/store";
 import { smtpConfigurado, enviarConfirmacionCliente, reservaAdminACompleta } from "@/lib/email";
 import { enviarReservaAParkingPlus } from "@/lib/parkingplus";
+import { ID_SERVICIOS_LAVADO } from "@/lib/servicios-reserva";
+import { prisma } from "@/lib/prisma";
 
 /** Lista todas las reservas (desde MySQL/Prisma o datos demo si no hay DATABASE_URL) */
 export async function GET() {
@@ -24,7 +26,12 @@ export async function GET() {
  * que la web, salvo que el body traiga `enviarParkingPlus: false`.
  */
 export async function POST(request: Request) {
-  let body: Partial<ReservaAdmin> & { enviarEmail?: boolean; enviarParkingPlus?: boolean };
+  let body: Partial<ReservaAdmin> & {
+    enviarEmail?: boolean;
+    enviarParkingPlus?: boolean;
+    /** IDs de servicios de lavado elegidos en el formulario */
+    servicios?: number[];
+  };
   try {
     body = await request.json();
   } catch {
@@ -47,6 +54,20 @@ export async function POST(request: Request) {
   const nocturno = aplicaNocturnidad(body.checkIn!.slice(11, 16), body.checkOut!.slice(11, 16));
   const precio   = await calcularPrecioReserva({ dias, nocturno, esAutocaravana: vehicleType === "autocaravana" });
 
+  // Lavados: el precio se lee de la BD, nunca del navegador. Los IDs que no
+  // sean un servicio de lavado válido se descartan.
+  const idsLavado = (body.servicios ?? [])
+    .map(Number)
+    .filter((id) => ID_SERVICIOS_LAVADO.includes(id));
+  const lavados = idsLavado.length > 0
+    ? await prisma.servicios.findMany({
+        where:  { id: { in: idsLavado }, estatus: 1 },
+        select: { id: true, nombre_servicio: true, costo: true },
+      })
+    : [];
+  const costoLavados = lavados.reduce((acc, s) => acc + Number(s.costo), 0);
+  const total        = Math.round((precio.total + costoLavados) * 100) / 100;
+
   const nueva = await createFullReservation({
     name:        body.name!.trim(),
     phone:       body.phone!.trim(),
@@ -59,9 +80,23 @@ export async function POST(request: Request) {
     checkIn:     body.checkIn!,
     checkOut:    body.checkOut!,
     status:      body.status ?? "confirmed",
-    price:       precio.total,
-    notes:       (body.notes ?? "").trim(),
+    price:       total,
+    servicios:   lavados.map((s) => s.id),
+    // El lavado se anota también en las notas: es de donde lo recupera
+    // `reservaAdminACompleta` al reenviar el correo desde la ficha.
+    notes: [
+      (body.notes ?? "").trim(),
+      lavados.length > 0 ? `Lavado: ${lavados.map((s) => s.nombre_servicio).join(", ")}` : "",
+    ].filter(Boolean).join(" · "),
   });
+
+  // El lavado no tiene columna propia en `reservas`: viaja en el objeto que
+  // alimentan el correo y ParkingPlus (que sí lo registra como servicio).
+  const completa = {
+    ...reservaAdminACompleta(nueva),
+    servicios:    lavados.map((s) => s.id),
+    lavadoNombre: lavados.map((s) => s.nombre_servicio).join(" · ") || undefined,
+  };
 
   // ── Registro en parkingplus-dashboard (medio Agencia) ─────────────────────
   // Igual que la web: un fallo no invalida el alta local; se informa con
@@ -69,7 +104,7 @@ export async function POST(request: Request) {
   let parkingplusEnviado = false;
   if (body.enviarParkingPlus !== false) {
     try {
-      const envio = await enviarReservaAParkingPlus(reservaAdminACompleta(nueva));
+      const envio = await enviarReservaAParkingPlus(completa);
       parkingplusEnviado = envio.ok;
       if (!envio.ok) {
         console.error("[admin/reservas] Fallo al registrar en parkingplus:", envio.error);
@@ -89,7 +124,7 @@ export async function POST(request: Request) {
     } else {
       try {
         // ocultarAutocaravana: en altas del panel el correo no menciona el tipo de vehículo
-        await enviarConfirmacionCliente({ ...reservaAdminACompleta(nueva), ocultarAutocaravana: true });
+        await enviarConfirmacionCliente({ ...completa, ocultarAutocaravana: true });
         console.log(`✅ Correo de confirmación enviado a ${nueva.email} (reserva ${nueva.id}, creada en el panel)`);
         emailEnviado = true;
       } catch (err) {

@@ -10,13 +10,20 @@ import {
 } from "@/lib/admin";
 import { calculateRawParkingDays, aplicaNocturnidad } from "@/lib/pricing";
 import { OPCIONES_TERMINAL } from "@/lib/config";
+import { ID_SERVICIOS_LAVADO } from "@/lib/servicios-reserva";
+
+interface ServicioLavado {
+  id: number;
+  nombre_servicio: string;
+  costo: number;
+}
 
 interface Props {
   config: AdminConfig;
   editing: ReservaAdmin | null; // null = nueva reserva
   onClose: () => void;
-  /** `enviarEmail` y `enviarParkingPlus` solo viajan al crear */
-  onSave: (data: Partial<ReservaAdmin> & { enviarEmail?: boolean; enviarParkingPlus?: boolean }) => void;
+  /** `enviarEmail`, `enviarParkingPlus` y `servicios` solo viajan al crear */
+  onSave: (data: Partial<ReservaAdmin> & { enviarEmail?: boolean; enviarParkingPlus?: boolean; servicios?: number[] }) => void;
 }
 
 interface FormState {
@@ -26,6 +33,8 @@ interface FormState {
   terminalEntrada: string; terminalSalida: string;
   checkIn: string; checkOut: string;
   status: ReservaStatus; notes: string;
+  /** id del servicio de lavado, "" = sin lavado */
+  lavadoId: string;
 }
 
 function fmtLocal(d: Date): string {
@@ -41,6 +50,8 @@ function initialState(editing: ReservaAdmin | null): FormState {
       terminalEntrada: editing.terminalEntrada, terminalSalida: editing.terminalSalida,
       checkIn: editing.checkIn, checkOut: editing.checkOut,
       status: editing.status, notes: editing.notes,
+      // El lavado solo se elige al crear: editar una reserva no recalcula servicios
+      lavadoId: "",
     };
   }
   const tomorrow = new Date();
@@ -53,7 +64,7 @@ function initialState(editing: ReservaAdmin | null): FormState {
     name: "", phone: "", email: "", vehicleType: "", plate: "", model: "",
     terminalEntrada: "", terminalSalida: "",
     checkIn: fmtLocal(tomorrow), checkOut: fmtLocal(nextWeek),
-    status: "confirmed", notes: "",
+    status: "confirmed", notes: "", lavadoId: "",
   };
 }
 
@@ -77,6 +88,20 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
   const [precioCargando, setPrecioCargando] = useState(false);
   // > 0 cuando las horas de entrada/salida caen en el rango nocturno (00:30–03:30)
   const [costoNocturnidad, setCostoNocturnidad] = useState(0);
+
+  // Servicios de lavado contratables (mismos IDs que el resto de proyectos)
+  const [lavados, setLavados] = useState<ServicioLavado[]>([]);
+  useEffect(() => {
+    fetch("/api/servicios")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d: { servicios: ServicioLavado[] }) =>
+        setLavados((d.servicios ?? []).filter((s) => ID_SERVICIOS_LAVADO.includes(s.id))))
+      .catch(() => setLavados([]));
+  }, []);
+
+  const lavadoElegido = lavados.find((s) => String(s.id) === form.lavadoId) ?? null;
+  const costoLavado   = Number(lavadoElegido?.costo ?? 0);
+  const precioTotal   = price > 0 ? price + costoLavado : price;
 
   useEffect(() => {
     const entrada = new Date(form.checkIn);
@@ -133,7 +158,7 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
       checkOut: form.checkOut,
       status: form.status,
       notes: form.notes.trim(),
-      ...(editing ? {} : { enviarEmail, enviarParkingPlus }),
+      ...(editing ? {} : { enviarEmail, enviarParkingPlus, servicios: lavadoElegido ? [lavadoElegido.id] : [] }),
     });
   }
 
@@ -151,7 +176,7 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
         <div className="modal-body">
           <div className="price-preview">
             <span className="price-preview-label">Precio estimado</span>
-            <span className="price-preview-val">{precioCargando ? "…" : price > 0 ? fmtCurrency(price) : "€ —"}</span>
+            <span className="price-preview-val">{precioCargando ? "…" : precioTotal > 0 ? fmtCurrency(precioTotal) : "€ —"}</span>
           </div>
 
           {/* Mismo aviso de nocturnidad que ve el cliente en la web */}
@@ -204,6 +229,19 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
                 <label className="form-label">Modelo</label>
                 <input className="form-input" value={form.model} onChange={(e) => set("model", e.target.value)} placeholder="Toyota Corolla" />
               </div>
+              {!editing && (
+                <div className="form-group span-2">
+                  <label className="form-label">Servicio de lavado</label>
+                  <select className="form-select" value={form.lavadoId} onChange={(e) => set("lavadoId", e.target.value)}>
+                    <option value="">Sin lavado</option>
+                    {lavados.map((s) => (
+                      <option key={s.id} value={String(s.id)}>
+                        {s.nombre_servicio} · {fmtCurrency(Number(s.costo))}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
             <div className="modal-divider">Fechas y terminales</div>
