@@ -18,6 +18,7 @@ export interface DatosCliente {
   nombre: string;
   telefono: string;
   email: string;
+  /** Opcional: el cliente puede no saberla al reservar */
   matricula: string;
   modelo: string;
 }
@@ -27,8 +28,9 @@ export interface ReservaCompleta extends DatosCliente {
   vehiculo: VehicleType;
   entrada: string; // "2026-06-15T08:00"
   salida: string;
-  terminalEntrada: Terminal;
-  terminalSalida: Terminal;
+  /** "" cuando el cliente no la indicó (campo opcional) */
+  terminalEntrada: Terminal | "";
+  terminalSalida: Terminal | "";
   dias: number;
   total: number;
   /** Plan seleccionado (1=Estándar, 2=Premium, 3=Priority, 4=Económico) */

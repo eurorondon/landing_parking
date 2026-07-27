@@ -956,6 +956,7 @@ footer a:hover { color: var(--orange); }
 .bform-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; padding: 0 22px; }
 .bform-field  { display: flex; flex-direction: column; gap: 5px; }
 .bform-label  { font-size: 12px; font-weight: 600; color: #fff; letter-spacing: .01em; }
+.bform-opcional { font-weight: 500; opacity: .55; }
 
 /* Input con icono */
 .bform-icon-wrap { position: relative; display: block; }
@@ -2127,6 +2128,7 @@ footer a:hover { color: var(--orange); }
 .reservar-field label {
   font-size: 12px; font-weight: 600; color: var(--gray-dim);
 }
+.reservar-opcional { font-weight: 500; opacity: .55; }
 .reservar-field input {
   padding: 12px 14px;
   border: 1px solid rgba(255,255,255,.12);

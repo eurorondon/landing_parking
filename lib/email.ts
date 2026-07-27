@@ -101,6 +101,9 @@ export function reservaAdminACompleta(r: ReservaAdmin): ReservaCompleta {
 const NARANJA  = "#FF9500";
 const NARANJA2 = "#E08600";
 
+/** Matrícula y terminales son opcionales en la web; el aviso al dueño lo marca */
+const PENDIENTE = `<span style="color:#9ca3af;">Sin indicar · pendiente de confirmar</span>`;
+
 /** Fila de tabla compartida en ambos correos */
 const fila = (etiqueta: string, valor: string) => `
   <tr>
@@ -171,10 +174,12 @@ export function construirEmailCliente(r: ReservaCompleta): string {
   // la fila queda solo con modelo y matrícula.
   const ocultarTipo  = r.vehiculo === "autocaravana" && r.ocultarAutocaravana;
   const vehiculoIcon = r.vehiculo === "autocaravana" ? "🚐 Autocaravana" : "🚗 Coche";
+  // La matrícula es opcional: si no la dio, la fila se queda sin ella
+  const matricula = r.matricula?.trim().toUpperCase();
   const vehiculoValor = [
     ocultarTipo ? "" : vehiculoIcon,
     r.modelo,
-    `<code>${r.matricula.toUpperCase()}</code>`,
+    matricula ? `<code>${matricula}</code>` : "",
   ].filter(Boolean).join(" · ");
   const planTexto    = r.planNombre ? ` · Plan <strong>${r.planNombre}</strong>` : "";
 
@@ -205,8 +210,8 @@ export function construirEmailCliente(r: ReservaCompleta): string {
               <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
                 ${fila("📅 Entrada",          formatoLegible(r.entrada))}
                 ${fila("📅 Salida",           formatoLegible(r.salida))}
-                ${fila("🛫 Terminal entrada", r.terminalEntrada)}
-                ${fila("🛬 Terminal salida",  r.terminalSalida)}
+                ${r.terminalEntrada ? fila("🛫 Terminal entrada", r.terminalEntrada) : ""}
+                ${r.terminalSalida  ? fila("🛬 Terminal salida",  r.terminalSalida)  : ""}
                 ${fila("🚗 Vehículo",         vehiculoValor)}
                 ${r.cuponCodigo ? fila("🎟️ Descuento", `${r.cuponCodigo} · <span style="color:#16a34a;">−${formatoEuros(r.cuponDescuento ?? 0)}</span>`) : ""}
                 ${fila("💶 Total estimado",   `<span style="color:${NARANJA};font-size:16px;">${formatoEuros(r.total)}</span>${planTexto}`)}
@@ -285,7 +290,7 @@ export function construirEmailAdmin(r: ReservaCompleta): string {
     <tr>
       <td align="center">
         <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);">
-          <tr><td>${cabecera("🚗 Nueva reserva recibida", `${formatoLegible(r.entrada)} · ${r.terminalEntrada}`)}</td></tr>
+          <tr><td>${cabecera("🚗 Nueva reserva recibida", [formatoLegible(r.entrada), r.terminalEntrada].filter(Boolean).join(" · "))}</td></tr>
 
           <!-- DATOS RESERVA -->
           <tr>
@@ -301,8 +306,8 @@ export function construirEmailAdmin(r: ReservaCompleta): string {
                 ${fila("Entrada",          formatoLegible(r.entrada))}
                 ${fila("Salida",           formatoLegible(r.salida))}
                 ${fila("Días",             `${r.dias} día${r.dias !== 1 ? "s" : ""}`)}
-                ${fila("Terminal entrada", r.terminalEntrada)}
-                ${fila("Terminal salida",  r.terminalSalida)}
+                ${fila("Terminal entrada", r.terminalEntrada || PENDIENTE)}
+                ${fila("Terminal salida",  r.terminalSalida  || PENDIENTE)}
                 ${r.cuponCodigo ? fila("Cupón", `${r.cuponCodigo} · −${formatoEuros(r.cuponDescuento ?? 0)}`) : ""}
                 ${fila("Precio total",     `<strong style="color:${NARANJA};font-size:15px;">${formatoEuros(r.total)}</strong>${planTexto}`)}
               </table>
@@ -324,7 +329,9 @@ export function construirEmailAdmin(r: ReservaCompleta): string {
                 ${fila("Email",     `<a href="mailto:${r.email}" style="color:${NARANJA};text-decoration:none;">${r.email}</a>`)}
                 ${fila("Teléfono",  `<a href="tel:${r.telefono.replace(/\s/g,"")}" style="color:${NARANJA};text-decoration:none;">${r.telefono}</a>`)}
                 ${fila("Vehículo",  vehiculoIcon)}
-                ${fila("Matrícula", `<code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;">${r.matricula.toUpperCase()}</code>`)}
+                ${fila("Matrícula", r.matricula?.trim()
+                  ? `<code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;">${r.matricula.toUpperCase()}</code>`
+                  : PENDIENTE)}
                 ${fila("Modelo",    r.modelo)}
               </table>
             </td>

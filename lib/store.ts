@@ -229,8 +229,9 @@ export async function createFullReservation(params: {
   vehicleType: VehicleType;
   plate:       string;
   model:       string;
-  terminalEntrada: Terminal;
-  terminalSalida:  Terminal;
+  /** "" si el cliente no la indicó: es un campo opcional en la web */
+  terminalEntrada: Terminal | "";
+  terminalSalida:  Terminal | "";
   checkIn:     string;   // "2026-06-15T09:00"
   checkOut:    string;
   status:      ReservaStatus;
@@ -292,9 +293,11 @@ export async function createFullReservation(params: {
   const marca  = parts.length > 1 ? parts[0] : params.model;
   const modelo = parts.length > 1 ? parts.slice(1).join(" ") : null;
 
-  let coche = await db.coches.findFirst({
-    where: { matricula: plate, estatus_coche: 1 },
-  });
+  // Sin matrícula no se puede reutilizar: todos los coches sin matrícula
+  // comparten el mismo valor "" y acabarían colgando de la misma ficha.
+  let coche = plate
+    ? await db.coches.findFirst({ where: { matricula: plate, estatus_coche: 1 } })
+    : null;
   if (!coche) {
     coche = await db.coches.create({
       data: {

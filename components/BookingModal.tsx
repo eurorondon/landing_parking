@@ -32,7 +32,9 @@ function validarCliente(c: DatosCliente): string | null {
     return "Escribe un teléfono válido (mínimo 8 dígitos).";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c.email.trim()))
     return "Escribe un correo electrónico válido.";
-  if (c.matricula.trim().length < 4) return "Escribe la matrícula del vehículo.";
+  // Opcional: solo se valida el formato si el cliente escribe algo
+  if (c.matricula.trim() && c.matricula.trim().length < 4)
+    return "La matrícula parece incompleta. Déjala vacía si aún no la sabes.";
   if (c.modelo.trim().length < 2) return "Escribe el modelo del vehículo.";
   return null;
 }
@@ -100,10 +102,6 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
     e.preventDefault();
     if (!calculo) {
       setError("Revisa las fechas: la salida debe ser posterior a la entrada.");
-      return;
-    }
-    if (!reserva.terminalEntrada || !reserva.terminalSalida) {
-      setError("Selecciona la terminal de entrada y la de salida. Si aún no las conoces, elige «No conozco la terminal».");
       return;
     }
     const errorCliente = validarCliente(cliente);
@@ -326,11 +324,10 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
                 />
               </div>
               <div className="field">
-                <label htmlFor="matricula">Matrícula</label>
+                <label htmlFor="matricula">Matrícula (opcional)</label>
                 <input
                   id="matricula"
                   type="text"
-                  required
                   placeholder="1234 ABC"
                   value={cliente.matricula}
                   onChange={(e) => actualizar("matricula", e.target.value.toUpperCase())}

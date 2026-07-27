@@ -21,8 +21,9 @@ export interface ReservaAdmin {
   vehicleType: VehicleType;
   plate: string;
   model: string;
-  terminalEntrada: Terminal;
-  terminalSalida: Terminal;
+  /** "" en reservas web donde el cliente no indicó la terminal (campo opcional) */
+  terminalEntrada: Terminal | "";
+  terminalSalida: Terminal | "";
   checkIn: string; // "2026-07-01T09:00"
   checkOut: string;
   status: ReservaStatus;

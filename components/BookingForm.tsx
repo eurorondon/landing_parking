@@ -174,10 +174,6 @@ export default function BookingForm() {
       alert("Por favor revisa las fechas de entrada y salida.");
       return;
     }
-    if (!reserva.terminalEntrada || !reserva.terminalSalida) {
-      alert("Por favor selecciona la terminal de entrada y la de salida. Si aún no las conoces, elige «No conozco la terminal».");
-      return;
-    }
     const nocturno = calculo.costoNocturnidad > 0;
     const params = new URLSearchParams({
       entryDate:       reserva.entryDate,
@@ -273,7 +269,7 @@ export default function BookingForm() {
 
           {/* Fila 3: terminales */}
           <div className="bform-field">
-            <span className="bform-label">Terminal de entrada</span>
+            <span className="bform-label">Terminal de entrada <span className="bform-opcional">(opcional)</span></span>
             <div className="bform-icon-wrap">
               <span className="bform-field-icon"><PlaneIcon /></span>
               <Select
@@ -287,7 +283,7 @@ export default function BookingForm() {
           </div>
 
           <div className="bform-field">
-            <span className="bform-label">Terminal de salida</span>
+            <span className="bform-label">Terminal de salida <span className="bform-opcional">(opcional)</span></span>
             <div className="bform-icon-wrap">
               <span className="bform-field-icon"><PlaneIcon /></span>
               <Select

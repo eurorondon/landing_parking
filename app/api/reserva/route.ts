@@ -97,6 +97,10 @@ async function alertarParkingPlusFallidoDiscord(r: ReservaCompleta, error: strin
 async function notificarDiscord(r: ReservaCompleta): Promise<void> {
   const vehiculoIcon = r.vehiculo === "autocaravana" ? "🚐" : "🚗";
   const planTexto    = r.planNombre ? ` · Plan ${r.planNombre}` : "";
+  // Matrícula y terminales son opcionales; Discord rechaza campos vacíos
+  const matricula    = r.matricula?.trim().toUpperCase() || "sin matrícula";
+  const terminalIda  = r.terminalEntrada || "sin indicar";
+  const terminalVta  = r.terminalSalida  || "sin indicar";
 
   await enviarWebhookDiscord({
     embeds: [
@@ -107,14 +111,14 @@ async function notificarDiscord(r: ReservaCompleta): Promise<void> {
           { name: "📅 Entrada",          value: formatoLegible(r.entrada),       inline: true },
           { name: "📅 Salida",           value: formatoLegible(r.salida),        inline: true },
           { name: "🌙 Días",             value: `${r.dias} día${r.dias !== 1 ? "s" : ""}`, inline: true },
-          { name: "🛫 Terminal entrada", value: r.terminalEntrada,                inline: true },
-          { name: "🛬 Terminal salida",  value: r.terminalSalida,                 inline: true },
+          { name: "🛫 Terminal entrada", value: terminalIda,                      inline: true },
+          { name: "🛬 Terminal salida",  value: terminalVta,                      inline: true },
           { name: "💶 Total",            value: `**${formatoEuros(r.total)}**${planTexto}${r.lavadoNombre ? ` · 🧹 ${r.lavadoNombre}` : ""}`, inline: true },
           ...(r.cuponCodigo ? [{ name: "🎟️ Cupón", value: `${r.cuponCodigo} (−${formatoEuros(r.cuponDescuento ?? 0)})`, inline: true }] : []),
           { name: "👤 Cliente",          value: r.nombre,                         inline: true },
           { name: "📞 Teléfono",         value: r.telefono,                       inline: true },
           { name: "📧 Email",            value: r.email,                          inline: true },
-          { name: `${vehiculoIcon} Vehículo`, value: `${r.modelo} · \`${r.matricula.toUpperCase()}\``, inline: false },
+          { name: `${vehiculoIcon} Vehículo`, value: `${r.modelo} · \`${matricula}\``, inline: false },
         ],
         footer:    { text: NEGOCIO.nombre },
         timestamp: new Date().toISOString(),
@@ -151,9 +155,10 @@ export async function POST(request: Request) {
   }
 
   // Validación básica en servidor
+  // Matrícula y terminales son opcionales: el cliente puede no saberlas
+  // todavía al reservar y se confirman después por WhatsApp.
   const camposObligatorios: (keyof ReservaCompleta)[] = [
-    "entrada", "salida", "terminalEntrada", "terminalSalida",
-    "nombre", "email", "telefono", "matricula", "modelo",
+    "entrada", "salida", "nombre", "email", "telefono", "modelo",
   ];
   const faltan = camposObligatorios.filter((c) => !String(reserva[c] ?? "").trim());
   if (faltan.length > 0) {
@@ -197,7 +202,7 @@ export async function POST(request: Request) {
       phone:       reserva.telefono.trim(),
       email:       reserva.email.trim(),
       vehicleType: reserva.vehiculo === "autocaravana" ? "autocaravana" : "car",
-      plate:       reserva.matricula.trim().toUpperCase(),
+      plate:       (reserva.matricula ?? "").trim().toUpperCase(),
       model:       reserva.modelo.trim(),
       terminalEntrada: reserva.terminalEntrada,
       terminalSalida:  reserva.terminalSalida,

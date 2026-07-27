@@ -20,7 +20,10 @@ function validar(c: DatosCliente): string | null {
     return "Escribe un teléfono válido (mínimo 8 dígitos).";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c.email.trim()))
     return "Escribe un correo electrónico válido.";
-  if (c.matricula.trim().length < 4) return "Escribe la matrícula del vehículo.";
+  // La matrícula es opcional: muchos clientes reservan antes de saber con qué
+  // coche viajan. Si la escriben, al menos que parezca una matrícula.
+  if (c.matricula.trim() && c.matricula.trim().length < 4)
+    return "La matrícula parece incompleta. Déjala vacía si aún no la sabes.";
   if (c.modelo.trim().length < 2) return "Escribe el modelo del vehículo.";
   return null;
 }
@@ -331,9 +334,9 @@ export default function ReservaForm() {
                 </div>
 
                 <div className="reservar-field">
-                  <label htmlFor="matricula">Matrícula</label>
+                  <label htmlFor="matricula">Matrícula <span className="reservar-opcional">(opcional)</span></label>
                   <input
-                    id="matricula" type="text" required
+                    id="matricula" type="text"
                     placeholder="1234 ABC"
                     value={cliente.matricula}
                     onChange={(e) => actualizar("matricula", e.target.value.toUpperCase())}
