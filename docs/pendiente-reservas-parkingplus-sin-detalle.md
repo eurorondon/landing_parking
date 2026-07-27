@@ -1,10 +1,45 @@
-# PENDIENTE · Reservas enviadas a ParkingPlus sin plan ni servicios
+# Reservas enviadas a ParkingPlus sin plan ni servicios
 
-**Estado:** sin resolver · **Detectado:** 27/07/2026
+**Estado:** resuelto para las entradas desde el 28/07/2026 · **Detectado y corregido:** 27/07/2026
 
 Las reservas que se enviaron al panel de ParkingPlus **antes del arreglo del 27/07/2026** llegaron
-incompletas. Hay que revisarlas y decidir si se rellenan a mano, con un script, o si se dan por
-perdidas. Este documento deja constancia de qué falta y cómo localizarlas.
+incompletas. Este documento deja constancia de qué faltaba, cómo se localizaron y qué queda abierto.
+
+## Qué se corrigió el 27/07/2026
+
+Se repasaron una a una las **16 reservas de Parking Aero Madrid con entrada del 28/07 en adelante**
+(las anteriores se descartaron a propósito: su sobre ya estaba impreso, así que corregirlas no
+aportaba nada). 14 estaban incompletas y 2 ya eran correctas por haber entrado después del arreglo.
+
+A cada una se le repuso el `plan`, las terminales en formato `TERMINAL n`, y las filas que le
+faltaban en `reservas_servicios` (seguro, y el lavado del plan en las Premium/Priority). El
+`monto_total` **no se tocó en ninguna**: solo se repartió, dejando que la fila de parking absorbiera
+la diferencia. Las 16 quedaron cuadrando (`monto_total` = suma de `precio_total`).
+
+Datos que se usaron para reconstruirlas, por si hiciera falta repetir el proceso:
+
+- El plan salía del texto `Plan: X` de `observaciones`.
+- Ninguna llevaba nocturnidad: las horas más tempranas eran 04:00 y 05:00, fuera de la franja
+  00:30–03:30. Las dos que sí la tenían ya estaban correctas.
+- Los precios confirmaron los planes: la tarifa Estándar es **21,98 € + 4 €/día**, Premium suma el
+  Lavado Exterior (10 €) y Priority el Interior/Exterior (24 €).
+
+Copias de seguridad previas: `bk_reservas_20260727` y `bk_reservas_servicios_20260727`.
+
+## Lo que queda abierto
+
+- **Reservas con entrada anterior al 28/07/2026.** Siguen sin plan ni detalle de servicios. Se
+  decidió no tocarlas porque su sobre ya se había impreso.
+- **La BD de la landing tiene el mismo hueco.** Hasta el arreglo, `createFullReservation` tampoco
+  escribía `reservas_servicios` ni la columna `plan`, así que su propio planning y su sobre salen
+  incompletos en las reservas antiguas. Ahí el arreglo es distinto: no hay ni fila de parking que
+  reaprovechar, habría que crearlas desde cero.
+- **No hay enlace entre las dos reservas.** El endpoint devuelve su `nro_reserva` pero la landing no
+  lo guarda, así que emparejarlas exige cruzar por matrícula + fecha y hora de entrada. Guardar ese
+  número en un campo de la reserva local resolvería el problema para siempre.
+- **Lavado de cortesía.** El selector de lavado del panel siempre cobra el precio de catálogo. Los
+  lavados gratuitos se registran con `precio_total = 0.00` (así se hizo con `84813847`), pero eso hoy
+  hay que hacerlo a mano en la BD.
 
 ## Qué les falta
 

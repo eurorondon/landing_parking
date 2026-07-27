@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { fmtCurrency, fmtDateTime, type ReservaAdmin, type ReservaStatus } from "@/lib/admin";
 import { Badge, TypeBadge } from "./ui";
+
+interface ServicioReserva {
+  id: number;
+  nombre: string;
+  fijo: number;
+  cantidad: number;
+  precio: number;
+}
 
 interface Props {
   reserva: ReservaAdmin;
@@ -21,6 +29,22 @@ export default function DetailModal({ reserva: r, onClose, onChangeStatus, onEdi
 
   // Solo tiene sentido guardar si el correo escrito difiere del de la ficha
   const emailCambiado = email.trim() !== r.email.trim();
+
+  // Detalle de servicios: se pide al abrir la ficha para no cargarlo en el listado
+  const [servicios, setServicios] = useState<ServicioReserva[] | null>(null);
+  useEffect(() => {
+    let vigente = true;
+    fetch(`/api/admin/reservas/${r.id}/servicios`)
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((d: { servicios: ServicioReserva[] }) => { if (vigente) setServicios(d.servicios ?? []); })
+      .catch(() => { if (vigente) setServicios([]); });
+    return () => { vigente = false; };
+  }, [r.id]);
+
+  const sumaServicios = (servicios ?? []).reduce((acc, s) => acc + s.precio, 0);
+  // El desglose debería sumar el total; si no, hay algo descuadrado en la BD
+  const descuadre = servicios !== null && servicios.length > 0
+    && Math.abs(sumaServicios - r.price) > 0.01;
 
   async function reenviar() {
     setEnviando(true);
@@ -71,6 +95,36 @@ export default function DetailModal({ reserva: r, onClose, onChangeStatus, onEdi
               <div><div className="detail-label">Entrada</div><div className="detail-value">{fmtDateTime(r.checkIn)}</div></div>
               <div><div className="detail-label">Salida</div><div className="detail-value">{fmtDateTime(r.checkOut)}</div></div>
             </div>
+          </div>
+
+          <div className="detail-section">
+            <div className="detail-section-title">Servicios incluidos</div>
+            {servicios === null ? (
+              <div className="detail-value" style={{ color: "var(--gray-500)" }}>Cargando…</div>
+            ) : servicios.length === 0 ? (
+              <div style={{ fontSize: 13, color: "var(--gray-500)", lineHeight: 1.5 }}>
+                Sin detalle registrado. Las reservas anteriores al registro de servicios
+                no lo tienen, aunque el precio total sí es correcto.
+              </div>
+            ) : (
+              <>
+                {servicios.map((s) => (
+                  <div key={s.id} className="detail-servicio">
+                    <span>
+                      {s.nombre}
+                      {s.cantidad > 1 && <span className="detail-servicio-cant"> × {s.cantidad}</span>}
+                    </span>
+                    <span className="td-mono">{fmtCurrency(s.precio)}</span>
+                  </div>
+                ))}
+                {descuadre && (
+                  <div style={{ marginTop: 8, fontSize: 12.5, color: "var(--red-text)", lineHeight: 1.5 }}>
+                    ⚠️ El desglose suma {fmtCurrency(sumaServicios)} y el total de la reserva
+                    es {fmtCurrency(r.price)}. Revisa el detalle en la base de datos.
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           <div className="price-preview" style={{ marginTop: 4 }}>

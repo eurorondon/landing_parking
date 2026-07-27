@@ -412,6 +412,46 @@ export async function createFullReservation(params: {
   };
 }
 
+/** Una línea del detalle de servicios de una reserva */
+export interface ServicioReserva {
+  id:       number;
+  nombre:   string;
+  /** 2 = servicio que el sobre imprime bajo "INCLUYE:" */
+  fijo:     number;
+  cantidad: number;
+  precio:   number;
+}
+
+/**
+ * Servicios contratados de una reserva, por el id de fila que muestra el panel.
+ * Devuelve [] en las reservas anteriores a que se registrara el detalle.
+ */
+export async function getServiciosReserva(id: string): Promise<ServicioReserva[]> {
+  const db = await getPrisma();
+  if (!db) return [];
+
+  const reserva = await db.reservas.findUnique({
+    where:  { id: parseInt(id, 10) },
+    select: { nro_reserva: true },
+  });
+  if (!reserva) return [];
+
+  // `reservas_servicios.id_reserva` guarda el nro_reserva, no el id de la fila
+  const filas = await db.reservas_servicios.findMany({
+    where:   { id_reserva: reserva.nro_reserva },
+    include: { servicios: { select: { nombre_servicio: true, fijo: true } } },
+    orderBy: { id_servicio: "asc" },
+  });
+
+  return filas.map((f) => ({
+    id:       f.id_servicio,
+    nombre:   f.servicios.nombre_servicio,
+    fijo:     f.servicios.fijo,
+    cantidad: f.cantidad,
+    precio:   Number(f.precio_total),
+  }));
+}
+
 /**
  * Actualiza los campos de una reserva existente.
  * Modifica reservas, clientes y/o coches según qué campos cambien.

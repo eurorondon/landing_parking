@@ -225,6 +225,11 @@ select.filter-select:focus{border-color:var(--teal-400);}
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .detail-label{font-size:11.5px;color:var(--gray-400);}
 .detail-value{font-size:14px;font-weight:500;color:var(--gray-900);margin-top:2px;}
+.detail-servicio{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  font-size:13.5px;color:var(--gray-900);padding:7px 0;
+  border-bottom:1px solid var(--gray-100);}
+.detail-servicio:last-child{border-bottom:none;}
+.detail-servicio-cant{color:var(--gray-400);font-size:12.5px;}
 
 /* ── CALENDAR ── */
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
