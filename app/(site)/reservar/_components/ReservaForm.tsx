@@ -42,6 +42,12 @@ export default function ReservaForm() {
   const total           = parseFloat(sp.get("total") ?? "0");
   const nocturno        = sp.get("nocturno") === "1";
   const lavadoNombre    = sp.get("lavadoNombre") ?? "";
+  // Servicios de lavado contratados: el que incluye el plan (limpiezaId) y/o el
+  // extra elegido en ServiciosLimpieza (lavadoId). Se envían a ParkingPlus para
+  // que el sobre los imprima bajo "INCLUYE:".
+  const servicios = [sp.get("limpiezaId"), sp.get("lavadoId")]
+    .map((v) => parseInt(v ?? "", 10))
+    .filter((id) => Number.isFinite(id) && id > 0);
 
   const [cliente, setCliente]   = useState<DatosCliente>(clienteVacio);
   const [enviando, setEnviando] = useState(false);
@@ -114,6 +120,7 @@ export default function ReservaForm() {
       plan,
       planNombre,
       ...(lavadoNombre ? { lavadoNombre } : {}),
+      ...(servicios.length > 0 ? { servicios } : {}),
       ...(cupon ? { cuponCodigo: cupon.codigo, cuponDescuento: cupon.descuento, totalSinDescuento: total } : {}),
     };
 

@@ -24,7 +24,8 @@ import {
   type ReservaStatus,
   type VehicleType,
 } from "./admin";
-import { calculateRawParkingDays } from "./pricing";
+import { calculateRawParkingDays, aplicaNocturnidad } from "./pricing";
+import { registrarServiciosReserva, reajustarParkingReserva } from "./servicios-reserva";
 import type { Terminal } from "./config";
 
 // ── Config local (no va a la BD) ──────────────────────────────────────────────
@@ -82,6 +83,7 @@ type DbReserva = {
   fecha_entrada_completa: Date | null;
   fecha_salida_completa:  Date | null;
   terminal_entrada:       string;
+  terminal_salida:        string;
   monto_total:            { toNumber?: () => number } | number;
   estatus:                number;
   observaciones:          string | null;
@@ -135,7 +137,8 @@ function dbToReserva(r: DbReserva): ReservaAdmin {
     vehicleType: extractVehicleType(r.observaciones),
     plate:       r.coches?.matricula        ?? "—",
     model:       [r.coches?.marca, r.coches?.modelo].filter(Boolean).join(" ") || "—",
-    terminal:    (r.terminal_entrada        ?? "T1") as Terminal,
+    terminalEntrada: (r.terminal_entrada ?? "T1") as Terminal,
+    terminalSalida:  (r.terminal_salida  ?? r.terminal_entrada ?? "T1") as Terminal,
     checkIn:     toLocalISO(r.fecha_entrada_completa),
     checkOut:    toLocalISO(r.fecha_salida_completa),
     status:      ESTATUS_TO_STATUS[r.estatus] ?? "confirmed",
@@ -226,12 +229,17 @@ export async function createFullReservation(params: {
   vehicleType: VehicleType;
   plate:       string;
   model:       string;
-  terminal:    Terminal;
+  terminalEntrada: Terminal;
+  terminalSalida:  Terminal;
   checkIn:     string;   // "2026-06-15T09:00"
   checkOut:    string;
   status:      ReservaStatus;
   price:       number;
   notes:       string;
+  /** 1=Estándar, 2=Premium, 3=Priority, 4=Económico (0 = sin plan) */
+  plan?:       number;
+  /** IDs de `servicios` contratados aparte del parking (lavados, techado…) */
+  servicios?:  number[];
   /** Cupón ya validado; `price` debe llegar YA descontado */
   cupon?: {
     codigo:    string;
@@ -252,7 +260,8 @@ export async function createFullReservation(params: {
       vehicleType: params.vehicleType,
       plate:       params.plate.toUpperCase(),
       model:       params.model,
-      terminal:    params.terminal,
+      terminalEntrada: params.terminalEntrada,
+      terminalSalida:  params.terminalSalida,
       checkIn:     params.checkIn,
       checkOut:    params.checkOut,
       status:      params.status,
@@ -336,8 +345,8 @@ export async function createFullReservation(params: {
       fecha_salida_completa:  checkOutDate,
       id_cliente:             cliente.id,
       id_coche:               coche.id,
-      terminal_entrada:       params.terminal,
-      terminal_salida:        params.terminal,
+      terminal_entrada:       params.terminalEntrada,
+      terminal_salida:        params.terminalSalida,
       observaciones,
       monto_total:            params.price,
       monto_factura:          params.price / 1.21,
@@ -346,6 +355,7 @@ export async function createFullReservation(params: {
       costo_servicios_extra:  0,
       estatus:                STATUS_TO_ESTATUS[params.status],
       medio_reserva:          MEDIO_WEB,
+      plan:                   [1, 2, 3, 4].includes(Number(params.plan)) ? Number(params.plan) : 0,
       id_tipo_pago:           idTipoPago,
       // Campos de cupón (mismas columnas que usa parkingplus):
       // monto_des es Int en la BD, así que el importe exacto va también en observaciones
@@ -365,6 +375,21 @@ export async function createFullReservation(params: {
     },
   });
 
+  // 8. Detalle de servicios (parking, seguro, lavados, nocturnidad).
+  //    Lo leen el planning y el sobre; si falla, la reserva sigue siendo válida.
+  try {
+    await registrarServiciosReserva(db, {
+      nroReserva,
+      dias:       calculateRawParkingDays(checkInDate, checkOutDate),
+      total:      params.price,
+      plan:       params.plan,
+      servicios:  params.servicios,
+      nocturno:   aplicaNocturnidad(params.checkIn.slice(11, 16), params.checkOut.slice(11, 16)),
+    });
+  } catch (err) {
+    console.error("[store] Error al registrar reservas_servicios:", err);
+  }
+
   return {
     id:          reserva.id.toString(),
     name:        cliente.nombre_completo,
@@ -373,7 +398,8 @@ export async function createFullReservation(params: {
     vehicleType: params.vehicleType,
     plate,
     model:       params.model,
-    terminal:    params.terminal,
+    terminalEntrada: params.terminalEntrada,
+    terminalSalida:  params.terminalSalida,
     checkIn:     params.checkIn,
     checkOut:    params.checkOut,
     status:      params.status,
@@ -416,11 +442,14 @@ export async function updateReservationById(
     resUpdate.monto_factura   = changes.price / 1.21;
     resUpdate.monto_impuestos = (changes.price / 1.21) * 0.21;
     resUpdate.costo_servicios = changes.price;
+    // El detalle de servicios tiene que seguir sumando el nuevo total
+    promises.push(
+      reajustarParkingReserva(db, current.nro_reserva, changes.price).catch((err) =>
+        console.error("[store] Error al reajustar reservas_servicios:", err)),
+    );
   }
-  if (changes.terminal !== undefined) {
-    resUpdate.terminal_entrada = changes.terminal;
-    resUpdate.terminal_salida  = changes.terminal;
-  }
+  if (changes.terminalEntrada !== undefined) resUpdate.terminal_entrada = changes.terminalEntrada;
+  if (changes.terminalSalida  !== undefined) resUpdate.terminal_salida  = changes.terminalSalida;
   if (changes.checkIn !== undefined) {
     const d = new Date(changes.checkIn);
     resUpdate.fecha_entrada          = d;
@@ -475,7 +504,8 @@ export async function updateReservationById(
     vehicleType: extractVehicleType(current.observaciones),
     plate:       current.coches?.matricula         ?? "—",
     model:       [current.coches?.marca, current.coches?.modelo].filter(Boolean).join(" ") || "—",
-    terminal:    current.terminal_entrada as Terminal,
+    terminalEntrada: current.terminal_entrada as Terminal,
+    terminalSalida:  (current.terminal_salida || current.terminal_entrada) as Terminal,
     checkIn:     toLocalISO(current.fecha_entrada_completa),
     checkOut:    toLocalISO(current.fecha_salida_completa),
     status:      ESTATUS_TO_STATUS[current.estatus] ?? "confirmed",
@@ -609,7 +639,8 @@ export function buildDemo(): ReservaAdmin[] {
     const checkIn = fmtLocal(ci); const checkOut = fmtLocal(co);
     return {
       id: genId(), name, phone, email, plate: plate.toUpperCase(), model,
-      vehicleType: type, terminal, checkIn, checkOut, status,
+      vehicleType: type, terminalEntrada: terminal, terminalSalida: terminal,
+      checkIn, checkOut, status,
       price: estimarPrecioDemo(type, checkIn, checkOut),
       notes: "", createdAt: new Date().toISOString(),
     };

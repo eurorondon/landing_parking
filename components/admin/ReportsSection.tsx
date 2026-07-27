@@ -29,7 +29,8 @@ export default function ReportsSection({ reservas }: { reservas: ReservaAdmin[] 
     .reduce((s, r) => s + (Number(r.price) || 0), 0);
 
   const termCount: Record<string, number> = { T1: 0, T2: 0, T3: 0, T4: 0 };
-  reservas.forEach((r) => { if (termCount[r.terminal] !== undefined) termCount[r.terminal]++; });
+  // Se cuenta por terminal de entrega del coche, que es la que define el turno
+  reservas.forEach((r) => { if (termCount[r.terminalEntrada] !== undefined) termCount[r.terminalEntrada]++; });
   const maxTerm = Math.max(...Object.values(termCount)) || 1;
 
   const statCount: Record<ReservaStatus, number> = { confirmed: 0, inside: 0, finished: 0, cancelled: 0 };

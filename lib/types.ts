@@ -8,8 +8,9 @@ export interface DatosReserva {
   entryTime: string; // "08:00"
   exitDate: string;
   exitTime: string;
-  terminalEntrada: Terminal;
-  terminalSalida: Terminal;
+  /** "" hasta que el cliente elige: el select arranca vacío con su placeholder */
+  terminalEntrada: Terminal | "";
+  terminalSalida: Terminal | "";
 }
 
 /** Datos personales del formulario del modal */
@@ -35,6 +36,12 @@ export interface ReservaCompleta extends DatosCliente {
   planNombre?: string;
   /** Servicio de lavado adicional elegido desde ServiciosLimpieza */
   lavadoNombre?: string;
+  /**
+   * IDs de la tabla `servicios` contratados además del parking (lavados,
+   * limpiezas…). Viajan a ParkingPlus para que el sobre imprima "INCLUYE".
+   * La nocturnidad y el seguro los deduce el servidor, no hace falta enviarlos.
+   */
+  servicios?: number[];
   /**
    * true en altas hechas desde el panel: el correo de confirmación
    * no menciona "Autocaravana" (solo modelo y matrícula).

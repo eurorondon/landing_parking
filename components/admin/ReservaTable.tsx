@@ -25,7 +25,7 @@ export default function ReservaTable({ rows, onDetail, onEdit, onDelete }: Props
       <table className="res-table-desktop">
         <thead>
           <tr>
-            <th>ID</th><th>Cliente</th><th>Vehículo</th><th>Terminal</th>
+            <th>ID</th><th>Cliente</th><th>Vehículo</th><th>Terminales</th>
             <th>Entrada</th><th>Salida</th><th>Precio</th><th>Estado</th><th>Acciones</th>
           </tr>
         </thead>
@@ -41,7 +41,7 @@ export default function ReservaTable({ rows, onDetail, onEdit, onDelete }: Props
                 <TypeBadge type={r.vehicleType} />
                 <div style={{ fontSize: 12, color: "var(--gray-400)", marginTop: 3 }}>{r.plate}</div>
               </td>
-              <td><span style={{ fontWeight: 500, color: "var(--teal-600)" }}>{r.terminal}</span></td>
+              <td><span style={{ fontWeight: 500, color: "var(--teal-600)" }}>{r.terminalEntrada} → {r.terminalSalida}</span></td>
               <td>{fmtDateTime(r.checkIn)}</td>
               <td>{fmtDateTime(r.checkOut)}</td>
               <td style={{ fontWeight: 500, color: "var(--gray-900)" }}>{fmtCurrency(r.price)}</td>
@@ -67,7 +67,7 @@ export default function ReservaTable({ rows, onDetail, onEdit, onDelete }: Props
                 <div className="res-card-name">{r.name}</div>
                 <div className="res-card-sub">
                   <span>{r.vehicleType === "car" ? "🚗" : "🚐"} {r.plate}</span>
-                  <span>· {r.terminal}</span>
+                  <span>· {r.terminalEntrada} → {r.terminalSalida}</span>
                   {r.model && <span>· {r.model}</span>}
                 </div>
               </div>

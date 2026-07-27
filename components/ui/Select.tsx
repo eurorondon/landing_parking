@@ -9,6 +9,8 @@ interface Props {
   onChange: (valor: string) => void;
   disabled?: boolean;
   ariaLabel?: string;
+  /** Texto que se muestra mientras `value` está vacío */
+  placeholder?: string;
 }
 
 /**
@@ -16,11 +18,12 @@ interface Props {
  * landing en lugar del aspecto nativo del navegador. Estilos en landing.css
  * (.select-trigger, .select-content, .select-item).
  */
-export default function Select({ id, value, opciones, onChange, disabled, ariaLabel }: Props) {
+export default function Select({ id, value, opciones, onChange, disabled, ariaLabel, placeholder }: Props) {
   return (
     <RadixSelect.Root value={value} onValueChange={onChange} disabled={disabled}>
       <RadixSelect.Trigger id={id} className="select-trigger" aria-label={ariaLabel}>
-        <RadixSelect.Value />
+        {/* Radix muestra el placeholder mientras el valor esté vacío */}
+        <RadixSelect.Value placeholder={placeholder} />
         <RadixSelect.Icon className="select-chevron">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="m6 9 6 6 6-6" />

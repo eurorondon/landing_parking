@@ -26,11 +26,14 @@ export interface ReservaPDF {
   servicios:        { nombre_servicio: string; fijo: number }[];
 }
 
-/** Abreviatura del terminal: "T1", "T2", "T3", "T4" */
+/**
+ * Abreviatura del terminal: "T1", "T2", "T3", "T4".
+ * Cualquier valor sin número («No conozco la terminal», "N/E", vacío…) sale
+ * como "T?", que es lo que el conductor interpreta como pendiente de confirmar.
+ */
 export function abrevTerminal(t: string): string {
-  if (!t || t === "AUN NO CONOZCO LA TERMINAL") return "T?";
-  const m = t.match(/\d+/);
-  return m ? `T${m[0]}` : t.slice(0, 3).toUpperCase();
+  const m = t?.match(/\d+/);
+  return m ? `T${m[0]}` : "T?";
 }
 
 /** "1" → "T1", etc. (ya viene formateado desde la API) */

@@ -60,7 +60,7 @@ export default function CalendarSection({ reservas, onDetail }: Props) {
             <div style={{ fontSize: 15 }}>{r.vehicleType === "car" ? "🚗" : "🚐"}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13.5, fontWeight: 500 }}>{r.name}</div>
-              <div style={{ fontSize: 12, color: "var(--gray-400)" }}>{r.plate} · {r.terminal}</div>
+              <div style={{ fontSize: 12, color: "var(--gray-400)" }}>{r.plate} · {r.terminalEntrada}</div>
             </div>
             <Badge status={r.status} />
           </div>

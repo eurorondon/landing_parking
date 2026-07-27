@@ -72,7 +72,9 @@ export function reservaAdminACompleta(r: ReservaAdmin): ReservaCompleta {
   const buscar = (etiqueta: string) =>
     notas.match(new RegExp(`${etiqueta}:\\s*([^·]+)`))?.[1].trim() || undefined;
 
-  const terminalSalida = (buscar("Terminal salida") as Terminal | undefined) ?? r.terminal;
+  // Las reservas antiguas guardaban ambas terminales iguales y la de salida
+  // real solo quedaba en las notas; por eso esta sigue teniendo prioridad.
+  const terminalSalida = (buscar("Terminal salida") as Terminal | undefined) ?? r.terminalSalida;
 
   return {
     nombre:          r.name,
@@ -83,7 +85,7 @@ export function reservaAdminACompleta(r: ReservaAdmin): ReservaCompleta {
     vehiculo:        r.vehicleType,
     entrada:         r.checkIn,
     salida:          r.checkOut,
-    terminalEntrada: r.terminal,
+    terminalEntrada: r.terminalEntrada,
     terminalSalida,
     dias:            calculateRawParkingDays(new Date(r.checkIn), new Date(r.checkOut)),
     total:           r.price,

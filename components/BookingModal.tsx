@@ -102,6 +102,10 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
       setError("Revisa las fechas: la salida debe ser posterior a la entrada.");
       return;
     }
+    if (!reserva.terminalEntrada || !reserva.terminalSalida) {
+      setError("Selecciona la terminal de entrada y la de salida. Si aún no las conoces, elige «No conozco la terminal».");
+      return;
+    }
     const errorCliente = validarCliente(cliente);
     if (errorCliente) {
       setError(errorCliente);
@@ -232,6 +236,7 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
               <Select
                 id="mTerminalEntrada"
                 ariaLabel="Terminal entrada"
+                placeholder="Terminal de entrada"
                 value={reserva.terminalEntrada}
                 opciones={OPCIONES_TERMINAL}
                 onChange={(v) => cambiarReserva("terminalEntrada", v)}
@@ -243,6 +248,7 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
               <Select
                 id="mTerminalSalida"
                 ariaLabel="Terminal salida"
+                placeholder="Terminal de salida"
                 value={reserva.terminalSalida}
                 opciones={OPCIONES_TERMINAL}
                 onChange={(v) => cambiarReserva("terminalSalida", v)}

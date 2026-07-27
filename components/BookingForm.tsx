@@ -30,8 +30,8 @@ export default function BookingForm() {
     entryTime:       "",      // se rellena en useEffect (cliente)
     exitDate:        "",      // se rellena en useEffect (cliente)
     exitTime:        "18:00",
-    terminalEntrada: "T1",
-    terminalSalida:  "T1",
+    terminalEntrada: "",     // el cliente debe elegirla (o «No conozco la terminal»)
+    terminalSalida:  "",
   });
   const [hoy, setHoy]         = useState("");   // también se rellena en cliente
   const [calculo, setCalculo] = useState<CalculoPrecio | null>(null);
@@ -174,6 +174,10 @@ export default function BookingForm() {
       alert("Por favor revisa las fechas de entrada y salida.");
       return;
     }
+    if (!reserva.terminalEntrada || !reserva.terminalSalida) {
+      alert("Por favor selecciona la terminal de entrada y la de salida. Si aún no las conoces, elige «No conozco la terminal».");
+      return;
+    }
     const nocturno = calculo.costoNocturnidad > 0;
     const params = new URLSearchParams({
       entryDate:       reserva.entryDate,
@@ -274,6 +278,7 @@ export default function BookingForm() {
               <span className="bform-field-icon"><PlaneIcon /></span>
               <Select
                 ariaLabel="Terminal de entrada"
+                placeholder="Terminal de entrada"
                 value={reserva.terminalEntrada}
                 opciones={OPCIONES_TERMINAL}
                 onChange={(v) => actualizar("terminalEntrada", v)}
@@ -287,6 +292,7 @@ export default function BookingForm() {
               <span className="bform-field-icon"><PlaneIcon /></span>
               <Select
                 ariaLabel="Terminal de salida"
+                placeholder="Terminal de salida"
                 value={reserva.terminalSalida}
                 opciones={OPCIONES_TERMINAL}
                 onChange={(v) => actualizar("terminalSalida", v)}

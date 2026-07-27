@@ -52,7 +52,8 @@ export default function DetailModal({ reserva: r, onClose, onChangeStatus, onEdi
               <div><div className="detail-label">Nombre</div><div className="detail-value">{r.name}</div></div>
               <div><div className="detail-label">Teléfono</div><div className="detail-value">{r.phone}</div></div>
               <div><div className="detail-label">Correo</div><div className="detail-value" style={{ fontSize: 13 }}>{r.email}</div></div>
-              <div><div className="detail-label">Terminal</div><div className="detail-value">{r.terminal}</div></div>
+              <div><div className="detail-label">Terminal de entrada</div><div className="detail-value">{r.terminalEntrada}</div></div>
+              <div><div className="detail-label">Terminal de salida</div><div className="detail-value">{r.terminalSalida}</div></div>
             </div>
           </div>
 

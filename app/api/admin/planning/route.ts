@@ -5,6 +5,7 @@ const PLAN_NOMBRE: Record<number, string> = {
   1: "Estándar",
   2: "Premium",
   3: "Priority",
+  4: "Económico",
 };
 
 /** Formatea un Time de Prisma (Date cuya parte de fecha es 1970-01-01) a "HH:MM" */
@@ -72,8 +73,10 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    // Servicios para todas las reservas del día (una sola query)
-    const todosIds = [...new Set([...rowsE.map((r) => r.id), ...rowsS.map((r) => r.id)])];
+    // Servicios para todas las reservas del día (una sola query).
+    // `reservas_servicios.id_reserva` guarda el nro_reserva, no el id de la
+    // fila: es la convención del Yii2 original y la que usa el dashboard.
+    const todosIds = [...new Set([...rowsE, ...rowsS].map((r) => r.nro_reserva))];
 
     const serviciosDB = todosIds.length > 0
       ? await prisma.reservas_servicios.findMany({
@@ -136,7 +139,7 @@ export async function GET(req: NextRequest) {
         marca:            r.coches?.marca            ?? "",
         modelo:           r.coches?.modelo           ?? "",
         marcaModelo,
-        servicios:        serviciosPor[r.id]         ?? [],
+        servicios:        serviciosPor[r.nro_reserva] ?? [],
       };
     }
 

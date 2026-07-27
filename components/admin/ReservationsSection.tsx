@@ -27,7 +27,8 @@ export default function ReservationsSection({ reservas, onDetail, onEdit, onDele
       .filter((r) => {
         if (status && r.status !== status) return false;
         if (type && r.vehicleType !== type) return false;
-        if (terminal && r.terminal !== terminal) return false;
+        // Coincide si la terminal filtrada es la de entrada o la de salida
+        if (terminal && r.terminalEntrada !== terminal && r.terminalSalida !== terminal) return false;
         if (q && ![r.name, r.phone, r.email, r.plate].some((f) => (f || "").toLowerCase().includes(q))) return false;
         return true;
       })

@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "JSON no válido" }, { status: 400 });
   }
 
-  const obligatorios = ["name", "phone", "email", "vehicleType", "plate", "terminal", "checkIn", "checkOut"] as const;
+  const obligatorios = ["name", "phone", "email", "vehicleType", "plate", "terminalEntrada", "terminalSalida", "checkIn", "checkOut"] as const;
   const faltan = obligatorios.filter((c) => !String(body[c] ?? "").trim());
   if (faltan.length > 0) {
     return NextResponse.json({ ok: false, error: `Faltan campos: ${faltan.join(", ")}` }, { status: 400 });
@@ -54,7 +54,8 @@ export async function POST(request: Request) {
     vehicleType,
     plate:       body.plate!.trim().toUpperCase(),
     model:       (body.model ?? "").trim(),
-    terminal:    body.terminal!,
+    terminalEntrada: body.terminalEntrada!,
+    terminalSalida:  body.terminalSalida!,
     checkIn:     body.checkIn!,
     checkOut:    body.checkOut!,
     status:      body.status ?? "confirmed",

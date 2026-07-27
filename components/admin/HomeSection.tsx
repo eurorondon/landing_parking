@@ -29,7 +29,7 @@ function MiniList({ rows, emptyMsg, onDetail }: { rows: ReservaAdmin[]; emptyMsg
             <div style={{ fontSize: 13.5, fontWeight: 500, color: "var(--gray-900)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {r.name}
             </div>
-            <div style={{ fontSize: 12, color: "var(--gray-400)" }}>{r.plate} · {r.terminal}</div>
+            <div style={{ fontSize: 12, color: "var(--gray-400)" }}>{r.plate} · {r.terminalEntrada}</div>
           </div>
           <div style={{ textAlign: "right", flexShrink: 0 }}>
             <Badge status={r.status} />

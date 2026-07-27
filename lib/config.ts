@@ -34,8 +34,8 @@ export const NEGOCIO = {
 
 /** Terminales disponibles del Aeropuerto Madrid-Barajas */
 export const TERMINALES = ["T1", "T2", "T3", "T4"] as const;
-/** Opción para viajeros que aún no conocen su terminal */
-export const SIN_TERMINAL = "No sé la terminal" as const;
+/** Opción para viajeros que aún no conocen su terminal (mismo texto que el resto de proyectos) */
+export const SIN_TERMINAL = "No conozco la terminal" as const;
 /** Opciones de los selects de terminal en la landing */
 export const OPCIONES_TERMINAL = [...TERMINALES, SIN_TERMINAL] as const;
 export type Terminal = (typeof OPCIONES_TERMINAL)[number];

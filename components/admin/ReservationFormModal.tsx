@@ -9,6 +9,7 @@ import {
   type VehicleType,
 } from "@/lib/admin";
 import { calculateRawParkingDays, aplicaNocturnidad } from "@/lib/pricing";
+import { OPCIONES_TERMINAL } from "@/lib/config";
 
 interface Props {
   config: AdminConfig;
@@ -21,7 +22,8 @@ interface Props {
 interface FormState {
   name: string; phone: string; email: string;
   vehicleType: "" | VehicleType;
-  plate: string; model: string; terminal: string;
+  plate: string; model: string;
+  terminalEntrada: string; terminalSalida: string;
   checkIn: string; checkOut: string;
   status: ReservaStatus; notes: string;
 }
@@ -36,7 +38,8 @@ function initialState(editing: ReservaAdmin | null): FormState {
     return {
       name: editing.name, phone: editing.phone, email: editing.email,
       vehicleType: editing.vehicleType, plate: editing.plate, model: editing.model,
-      terminal: editing.terminal, checkIn: editing.checkIn, checkOut: editing.checkOut,
+      terminalEntrada: editing.terminalEntrada, terminalSalida: editing.terminalSalida,
+      checkIn: editing.checkIn, checkOut: editing.checkOut,
       status: editing.status, notes: editing.notes,
     };
   }
@@ -48,7 +51,8 @@ function initialState(editing: ReservaAdmin | null): FormState {
   nextWeek.setHours(18, 0, 0, 0);
   return {
     name: "", phone: "", email: "", vehicleType: "", plate: "", model: "",
-    terminal: "", checkIn: fmtLocal(tomorrow), checkOut: fmtLocal(nextWeek),
+    terminalEntrada: "", terminalSalida: "",
+    checkIn: fmtLocal(tomorrow), checkOut: fmtLocal(nextWeek),
     status: "confirmed", notes: "",
   };
 }
@@ -105,7 +109,8 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
     if (!form.plate.trim()) e.plate = "La matrícula es obligatoria.";
     if (!form.checkIn) e.checkIn = "La fecha de entrada es obligatoria.";
     if (!form.checkOut) e.checkOut = "La fecha de salida es obligatoria.";
-    if (!form.terminal) e.terminal = "Selecciona una terminal.";
+    if (!form.terminalEntrada) e.terminalEntrada = "Selecciona la terminal de entrada.";
+    if (!form.terminalSalida)  e.terminalSalida  = "Selecciona la terminal de salida.";
     if (form.checkIn && form.checkOut && new Date(form.checkOut) <= new Date(form.checkIn)) {
       e.checkOut = "La salida debe ser posterior a la entrada.";
     }
@@ -122,7 +127,8 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
       vehicleType: form.vehicleType as VehicleType,
       plate: form.plate.trim().toUpperCase(),
       model: form.model.trim(),
-      terminal: form.terminal as ReservaAdmin["terminal"],
+      terminalEntrada: form.terminalEntrada as ReservaAdmin["terminalEntrada"],
+      terminalSalida:  form.terminalSalida  as ReservaAdmin["terminalSalida"],
       checkIn: form.checkIn,
       checkOut: form.checkOut,
       status: form.status,
@@ -200,7 +206,7 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
               </div>
             </div>
 
-            <div className="modal-divider">Fechas y terminal</div>
+            <div className="modal-divider">Fechas y terminales</div>
             <div className="form-grid">
               <div className="form-group">
                 <label className="form-label">Fecha y hora de entrada *</label>
@@ -213,15 +219,20 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
                 {err("checkOut")}
               </div>
               <div className="form-group">
-                <label className="form-label">Terminal *</label>
-                <select className={`form-select${errors.terminal ? " error" : ""}`} value={form.terminal} onChange={(e) => set("terminal", e.target.value)}>
-                  <option value="">Selecciona terminal</option>
-                  <option value="T1">T1</option>
-                  <option value="T2">T2</option>
-                  <option value="T3">T3</option>
-                  <option value="T4">T4</option>
+                <label className="form-label">Terminal de entrada *</label>
+                <select className={`form-select${errors.terminalEntrada ? " error" : ""}`} value={form.terminalEntrada} onChange={(e) => set("terminalEntrada", e.target.value)}>
+                  <option value="">Terminal de entrada</option>
+                  {OPCIONES_TERMINAL.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
-                {err("terminal")}
+                {err("terminalEntrada")}
+              </div>
+              <div className="form-group">
+                <label className="form-label">Terminal de salida *</label>
+                <select className={`form-select${errors.terminalSalida ? " error" : ""}`} value={form.terminalSalida} onChange={(e) => set("terminalSalida", e.target.value)}>
+                  <option value="">Terminal de salida</option>
+                  {OPCIONES_TERMINAL.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+                {err("terminalSalida")}
               </div>
               <div className="form-group">
                 <label className="form-label">Estado</label>

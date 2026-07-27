@@ -18,6 +18,17 @@
  */
 
 import type { ReservaCompleta } from "./types";
+import { aplicaNocturnidad } from "./pricing";
+
+/**
+ * El dashboard guarda las terminales como "TERMINAL 1" / "N/E": sus PDFs
+ * (sobres y planning) parten el texto por el espacio y componen "T" + número.
+ * Enviando "T1" a secas el sobre imprimiría solo "T".
+ */
+function terminalParkingPlus(terminal: string): string {
+  const numero = terminal.match(/[1-4]/)?.[0];
+  return numero ? `TERMINAL ${numero}` : "N/E";
+}
 
 export interface ResultadoEnvioParkingPlus {
   ok: boolean;
@@ -56,6 +67,10 @@ export async function enviarReservaAParkingPlus(
     r.lavadoNombre ? `Lavado: ${r.lavadoNombre}` : null,
   ].filter(Boolean).join(" · ");
 
+  // El suplemento nocturno no viaja como campo propio: se deduce igual que en
+  // el cálculo del precio, así también lo aplican las altas del panel.
+  const nocturno = aplicaNocturnidad(r.entrada.slice(11, 16), r.salida.slice(11, 16));
+
   try {
     const res = await fetch(`${baseUrl}/api/external/agencias/reservas`, {
       method:  "POST",
@@ -73,10 +88,14 @@ export async function enviarReservaAParkingPlus(
         modelo,
         entrada:          r.entrada,   // "YYYY-MM-DDTHH:mm" hora Madrid
         salida:           r.salida,
-        terminal_entrada: r.terminalEntrada,
-        terminal_salida:  r.terminalSalida,
+        terminal_entrada: terminalParkingPlus(r.terminalEntrada),
+        terminal_salida:  terminalParkingPlus(r.terminalSalida),
         monto_total:      r.total,
         dias:             r.dias,
+        // Lo que el sobre de ParkingPlus imprime bajo el plan y el "INCLUYE:"
+        plan:             r.plan,
+        servicios:        r.servicios,
+        nocturno,
         observaciones:    `[${r.vehiculo}] Reserva agencia Parking Aero Madrid${extras ? ` · ${extras}` : ""}`,
         agencia:          process.env.PARKINGPLUS_AGENCIA || "Parking Aero Madrid",
       }),
