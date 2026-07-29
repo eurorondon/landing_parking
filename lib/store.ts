@@ -94,6 +94,10 @@ type DbReserva = {
   terminal_entrada:       string;
   terminal_salida:        string;
   monto_total:            { toNumber?: () => number } | number;
+  /** % del descuento aplicado (cupón web o descuento manual del panel) */
+  porcentaje_cupo?:       { toNumber?: () => number } | number | null;
+  /** Importe descontado en €. Es Int en la BD, así que va redondeado. */
+  monto_des?:             number | null;
   estatus:                number;
   observaciones:          string | null;
   created_at:             Date | null;
@@ -152,6 +156,9 @@ function dbToReserva(r: DbReserva): ReservaAdmin {
     checkOut:    toLocalISO(r.fecha_salida_completa),
     status:      ESTATUS_TO_STATUS[r.estatus] ?? "confirmed",
     price:       precio,
+    // Descuento aplicado (cupón web o descuento manual del panel)
+    discountPct:    r.porcentaje_cupo != null ? Number(r.porcentaje_cupo) : 0,
+    discountAmount: Number(r.monto_des ?? 0),
     notes:       cleanNotes(r.observaciones),
     createdAt:   r.created_at?.toISOString() ?? new Date().toISOString(),
   };
@@ -257,6 +264,17 @@ export async function createFullReservation(params: {
     valor:     number;
     /** importe descontado en € */
     descuento: number;
+  };
+  /**
+   * Descuento manual aplicado desde el panel; `price` debe llegar YA descontado.
+   * A diferencia del cupón no lleva código ni consume usos, así que la columna
+   * `cupon` queda a NULL: es lo que distingue uno de otro en la BD.
+   */
+  descuentoManual?: {
+    /** % aplicado */
+    pct:      number;
+    /** importe descontado en € */
+    importe:  number;
   };
 }): Promise<ReservaAdmin> {
   const db = await getPrisma();
@@ -371,11 +389,16 @@ export async function createFullReservation(params: {
       id_tipo_pago:           idTipoPago,
       // Campos de cupón (mismas columnas que usa parkingplus):
       // monto_des es Int en la BD, así que el importe exacto va también en observaciones
-      descuento:              params.cupon ? "SI" : "NO",
+      descuento:              params.cupon || params.descuentoManual ? "SI" : "NO",
       ...(params.cupon ? {
         cupon:           params.cupon.codigo,
         porcentaje_cupo: params.cupon.tipo === "porcentaje" ? params.cupon.valor : null,
         monto_des:       Math.round(params.cupon.descuento),
+      } : {}),
+      // Descuento manual del panel: mismas columnas, pero sin `cupon`.
+      ...(!params.cupon && params.descuentoManual ? {
+        porcentaje_cupo: params.descuentoManual.pct,
+        monto_des:       Math.round(params.descuentoManual.importe),
       } : {}),
       condiciones:            1,
       cod_valid:              "0",
@@ -504,6 +527,17 @@ export async function updateReservationById(
         console.error("[store] Error al reajustar reservas_servicios:", err)),
     );
   }
+  // Descuento manual del panel. El importe en € lo calcula la ruta y llega en
+  // `discountAmount`; aquí solo se persiste en las columnas de cupón, dejando
+  // `cupon` a NULL para que se distinga de un cupón real.
+  if (changes.discountPct !== undefined) {
+    const pct = Number(changes.discountPct) || 0;
+    const importe = Number(changes.discountAmount) || 0;
+    resUpdate.descuento       = pct > 0 ? "SI" : "NO";
+    resUpdate.porcentaje_cupo = pct > 0 ? pct : null;
+    resUpdate.monto_des       = pct > 0 ? Math.round(importe) : 0;
+    if (pct === 0) resUpdate.cupon = null;
+  }
   if (changes.terminalEntrada !== undefined) resUpdate.terminal_entrada = changes.terminalEntrada;
   if (changes.terminalSalida  !== undefined) resUpdate.terminal_salida  = changes.terminalSalida;
   if (changes.checkIn !== undefined) {
@@ -566,6 +600,8 @@ export async function updateReservationById(
     checkOut:    toLocalISO(current.fecha_salida_completa),
     status:      ESTATUS_TO_STATUS[current.estatus] ?? "confirmed",
     price:       Number(current.monto_total),
+    discountPct:    current.porcentaje_cupo != null ? Number(current.porcentaje_cupo) : 0,
+    discountAmount: Number(current.monto_des ?? 0),
     notes:       cleanNotes(current.observaciones),
     createdAt:   current.created_at?.toISOString() ?? new Date().toISOString(),
   };

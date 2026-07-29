@@ -27,7 +27,16 @@ export interface ReservaAdmin {
   checkIn: string; // "2026-07-01T09:00"
   checkOut: string;
   status: ReservaStatus;
+  /** Importe final que paga el cliente, YA con el descuento aplicado */
   price: number;
+  /**
+   * % de descuento manual aplicado desde el panel (0 = sin descuento).
+   * No es un cupón: no lleva código ni consume usos. Se persiste en las mismas
+   * columnas que los cupones (`descuento`, `porcentaje_cupo`, `monto_des`).
+   */
+  discountPct?: number;
+  /** Importe descontado en € (derivado del %; lo calcula siempre el servidor) */
+  discountAmount?: number;
   notes: string;
   createdAt: string; // ISO
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { type ReservaAdmin } from "@/lib/admin";
-import { calculateRawParkingDays, aplicaNocturnidad } from "@/lib/pricing";
+import { calculateRawParkingDays, aplicaNocturnidad, aplicarDescuento } from "@/lib/pricing";
 import { calcularPrecioReserva } from "@/lib/precio-db";
 import { getFranjaNocturna } from "@/lib/nocturnidad-db";
 import {
@@ -27,8 +27,11 @@ export async function PATCH(request: Request, { params }: Params) {
     return NextResponse.json({ ok: false, error: "Reserva no encontrada" }, { status: 404 });
   }
 
-  // Si cambian fechas o tipo de vehículo, recalcular el precio con la fuente única (BD)
-  if (body.checkIn || body.checkOut || body.vehicleType) {
+  // Recalcular el precio con la fuente única (BD) si cambian fechas, tipo de
+  // vehículo o el % de descuento. El descuento tiene que entrar aquí también:
+  // `actual.price` ya viene descontado, así que aplicarle otro % encima lo
+  // rebajaría dos veces. Se parte siempre del precio bruto recalculado.
+  if (body.checkIn || body.checkOut || body.vehicleType || body.discountPct !== undefined) {
     const tipo    = body.vehicleType ?? actual.vehicleType;
     const entrada = body.checkIn     ?? actual.checkIn;
     const salida  = body.checkOut    ?? actual.checkOut;
@@ -36,7 +39,11 @@ export async function PATCH(request: Request, { params }: Params) {
     const franja   = await getFranjaNocturna();
     const nocturno = aplicaNocturnidad(entrada.slice(11, 16), salida.slice(11, 16), franja);
     const precio   = await calcularPrecioReserva({ dias, nocturno, esAutocaravana: tipo === "autocaravana" });
-    body = { ...body, price: precio.total };
+
+    const pct  = body.discountPct ?? actual.discountPct ?? 0;
+    const desc = aplicarDescuento(precio.total, pct);
+
+    body = { ...body, price: desc.total, discountPct: desc.pct, discountAmount: desc.descuento };
   }
   if (body.plate) body.plate = body.plate.toUpperCase();
 

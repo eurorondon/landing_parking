@@ -106,6 +106,37 @@ export function formatFranjaNocturna(franja?: FranjaNocturna | null): string {
   return `${minutosAHora(inicio)} - ${minutosAHora(fin)}`;
 }
 
+/* ------------------------------------------------------------------
+ *  DESCUENTO MANUAL (panel de administración)
+ *
+ *  Rebaja un % sobre el total ya calculado. No es un cupón: no lleva
+ *  código, no consume usos y solo lo aplica un administrador.
+ * ------------------------------------------------------------------ */
+
+/** Normaliza un % de descuento al rango [0, 100]. Devuelve 0 si no es válido. */
+export function normalizarDescuentoPct(pct?: number | string | null): number {
+  const n = Number(pct);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return Math.min(100, Math.round(n * 100) / 100);
+}
+
+/**
+ * Aplica un % de descuento sobre un importe base.
+ * Ambos valores se redondean a céntimos para que `base − descuento === total`.
+ */
+export function aplicarDescuento(
+  base: number,
+  pct?: number | string | null
+): { pct: number; descuento: number; total: number } {
+  const p = normalizarDescuentoPct(pct);
+  const centimos = (n: number) => Math.round(n * 100) / 100;
+  if (p === 0 || !Number.isFinite(base) || base <= 0) {
+    return { pct: 0, descuento: 0, total: centimos(Math.max(0, base || 0)) };
+  }
+  const descuento = centimos((base * p) / 100);
+  return { pct: p, descuento, total: centimos(base - descuento) };
+}
+
 /** Formatea un importe con 2 decimales: 82.5 → "82.50 €" */
 export function formatoEuros(importe: number): string {
   return `${Number(importe).toFixed(2)} €`;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { type ReservaAdmin } from "@/lib/admin";
-import { calculateRawParkingDays, aplicaNocturnidad } from "@/lib/pricing";
+import { calculateRawParkingDays, aplicaNocturnidad, aplicarDescuento } from "@/lib/pricing";
 import { calcularPrecioReserva } from "@/lib/precio-db";
 import { getFranjaNocturna } from "@/lib/nocturnidad-db";
 import { getReservations, saveReservations, createFullReservation } from "@/lib/store";
@@ -68,7 +68,12 @@ export async function POST(request: Request) {
       })
     : [];
   const costoLavados = lavados.reduce((acc, s) => acc + Number(s.costo), 0);
-  const total        = Math.round((precio.total + costoLavados) * 100) / 100;
+  const bruto        = Math.round((precio.total + costoLavados) * 100) / 100;
+
+  // Descuento manual del panel. El % llega del formulario, pero el importe se
+  // calcula aquí: el navegador nunca decide lo que paga el cliente.
+  const desc  = aplicarDescuento(bruto, body.discountPct);
+  const total = desc.total;
 
   const nueva = await createFullReservation({
     name:        body.name!.trim(),
@@ -83,6 +88,7 @@ export async function POST(request: Request) {
     checkOut:    body.checkOut!,
     status:      body.status ?? "confirmed",
     price:       total,
+    ...(desc.pct > 0 ? { descuentoManual: { pct: desc.pct, importe: desc.descuento } } : {}),
     servicios:   lavados.map((s) => s.id),
     // El lavado se anota también en las notas: es de donde lo recupera
     // `reservaAdminACompleta` al reenviar el correo desde la ficha.

@@ -8,7 +8,7 @@ import {
   type ReservaStatus,
   type VehicleType,
 } from "@/lib/admin";
-import { calculateRawParkingDays, aplicaNocturnidad, formatFranjaNocturna } from "@/lib/pricing";
+import { calculateRawParkingDays, aplicaNocturnidad, formatFranjaNocturna, aplicarDescuento } from "@/lib/pricing";
 import { OPCIONES_TERMINAL } from "@/lib/config";
 import { ID_SERVICIOS_LAVADO } from "@/lib/servicios-reserva";
 
@@ -35,6 +35,8 @@ interface FormState {
   status: ReservaStatus; notes: string;
   /** id del servicio de lavado, "" = sin lavado */
   lavadoId: string;
+  /** % de descuento manual sobre el total, "" = sin descuento */
+  descuentoPct: string;
 }
 
 function fmtLocal(d: Date): string {
@@ -52,6 +54,7 @@ function initialState(editing: ReservaAdmin | null): FormState {
       status: editing.status, notes: editing.notes,
       // El lavado solo se elige al crear: editar una reserva no recalcula servicios
       lavadoId: "",
+      descuentoPct: editing.discountPct ? String(editing.discountPct) : "",
     };
   }
   const tomorrow = new Date();
@@ -64,7 +67,7 @@ function initialState(editing: ReservaAdmin | null): FormState {
     name: "", phone: "", email: "", vehicleType: "", plate: "", model: "",
     terminalEntrada: "", terminalSalida: "",
     checkIn: fmtLocal(tomorrow), checkOut: fmtLocal(nextWeek),
-    status: "confirmed", notes: "", lavadoId: "",
+    status: "confirmed", notes: "", lavadoId: "", descuentoPct: "",
   };
 }
 
@@ -101,7 +104,12 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
 
   const lavadoElegido = lavados.find((s) => String(s.id) === form.lavadoId) ?? null;
   const costoLavado   = Number(lavadoElegido?.costo ?? 0);
-  const precioTotal   = price > 0 ? price + costoLavado : price;
+  const precioBruto   = price > 0 ? price + costoLavado : price;
+
+  // Descuento manual. Aquí es solo una previsualización: el importe definitivo
+  // lo recalcula siempre el servidor a partir del %, nunca se envía desde aquí.
+  const descuento     = aplicarDescuento(precioBruto, form.descuentoPct);
+  const precioTotal   = descuento.total;
 
   useEffect(() => {
     const entrada = new Date(form.checkIn);
@@ -158,6 +166,8 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
       checkOut: form.checkOut,
       status: form.status,
       notes: form.notes.trim(),
+      // Solo el %: el importe descontado lo calcula el servidor
+      discountPct: descuento.pct,
       ...(editing ? {} : { enviarEmail, enviarParkingPlus, servicios: lavadoElegido ? [lavadoElegido.id] : [] }),
     });
   }
@@ -175,8 +185,35 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
         </div>
         <div className="modal-body">
           <div className="price-preview">
-            <span className="price-preview-label">Precio estimado</span>
-            <span className="price-preview-val">{precioCargando ? "…" : precioTotal > 0 ? fmtCurrency(precioTotal) : "€ —"}</span>
+            <span className="price-preview-label">
+              {descuento.pct > 0 ? "Precio con descuento" : "Precio estimado"}
+            </span>
+            <span className="price-preview-val">
+              {precioCargando ? "…" : precioTotal > 0 ? fmtCurrency(precioTotal) : "€ —"}
+            </span>
+          </div>
+
+          {/* Descuento manual sobre el total. Solo lo aplica un administrador:
+              no es un cupón, no lleva código ni consume usos. */}
+          <div className="form-group" style={{ marginTop: 12 }}>
+            <label className="form-label">Descuento sobre el total (%)</label>
+            <input
+              className="form-input"
+              type="number"
+              min={0}
+              max={100}
+              step={0.5}
+              inputMode="decimal"
+              placeholder="0"
+              value={form.descuentoPct}
+              onChange={(e) => set("descuentoPct", e.target.value)}
+            />
+            {!precioCargando && descuento.pct > 0 && precioBruto > 0 && (
+              <p className="form-hint" style={{ marginTop: 6 }}>
+                Precio sin descuento {fmtCurrency(precioBruto)} · se descuentan{" "}
+                <strong>{fmtCurrency(descuento.descuento)}</strong> ({descuento.pct}%)
+              </p>
+            )}
           </div>
 
           {/* Mismo aviso de nocturnidad que ve el cliente en la web */}
