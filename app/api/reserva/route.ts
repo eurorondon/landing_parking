@@ -131,8 +131,9 @@ async function notificarDiscord(r: ReservaCompleta): Promise<void> {
  * ============================================================
  *  API DE RESERVAS — guarda en MySQL/Prisma + envía correos
  *
- *  La reserva se persiste en la misma base de datos MySQL que
- *  usa el panel parkingplus-dashboard.
+ *  La reserva se persiste en la BD propia de esta marca
+ *  (`parkingaeromadrid_db`), NO en la de parkingplus-dashboard. Despues se
+ *  empuja a Parking Plus por la API de agencias (`lib/parkingplus.ts`).
  *
  *  Variables necesarias en .env.local:
  *    DATABASE_URL=mysql://user:pass@host:3306/nombre_db

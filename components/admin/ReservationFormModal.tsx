@@ -8,7 +8,7 @@ import {
   type ReservaStatus,
   type VehicleType,
 } from "@/lib/admin";
-import { calculateRawParkingDays, aplicaNocturnidad } from "@/lib/pricing";
+import { calculateRawParkingDays, aplicaNocturnidad, formatFranjaNocturna } from "@/lib/pricing";
 import { OPCIONES_TERMINAL } from "@/lib/config";
 import { ID_SERVICIOS_LAVADO } from "@/lib/servicios-reserva";
 
@@ -86,7 +86,7 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
   // Se recalcula al cambiar vehículo o fechas.
   const [price, setPrice] = useState(0);
   const [precioCargando, setPrecioCargando] = useState(false);
-  // > 0 cuando las horas de entrada/salida caen en el rango nocturno (00:30–03:30)
+  // > 0 cuando las horas de entrada/salida caen en la franja nocturna configurada en BD
   const [costoNocturnidad, setCostoNocturnidad] = useState(0);
 
   // Servicios de lavado contratables (mismos IDs que el resto de proyectos)
@@ -182,7 +182,7 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
           {/* Mismo aviso de nocturnidad que ve el cliente en la web */}
           {!precioCargando && costoNocturnidad > 0 && (
             <div className="nocturno-aviso">
-              🌙 Incluye recargo nocturno de {fmtCurrency(costoNocturnidad)} por horario entre las 00:30 y las 03:30
+              🌙 Incluye recargo nocturno de {fmtCurrency(costoNocturnidad)} en la franja {formatFranjaNocturna()}
             </div>
           )}
 

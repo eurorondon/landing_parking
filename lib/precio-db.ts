@@ -5,14 +5,14 @@ import { getConfig } from "@/lib/store";
  * ============================================================
  *  CÁLCULO DE PRECIO — fuente ÚNICA (servidor)
  *
- *  Replica la lógica del dashboard (parkingplus-dashboard) usando
- *  las tablas del schema Prisma compartido. Lo usan tanto la web
+ *  Replica la lógica del dashboard (parkingplus-dashboard) sobre la BD PROPIA
+ *  de esta marca: misma estructura de tablas, base distinta. Lo usan tanto la web
  *  pública (/api/precio) como el panel de administración, para que
  *  el precio salga siempre del mismo sitio:
  *    - registro_precios    → precio base por días (base + €/día)
  *    - precio_temporada    → suplemento de temporada (si está activo)
  *    - servicios id=4      → coste del seguro (se suma aparte)
- *    - servicios id=11     → suplemento nocturno (00:30–03:30)
+ *    - servicios id=11     → suplemento nocturno (coste + franja horaria)
  *    - config.autocaravanaSurcharge → recargo €/día de autocaravana
  * ============================================================
  */

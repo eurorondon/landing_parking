@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { formatoEuros } from "@/lib/pricing";
+import { formatoEuros, formatFranjaNocturna } from "@/lib/pricing";
 
 interface Servicio {
   id: number;
@@ -184,7 +184,7 @@ export default function PlanSelector() {
 
         {nocturno && (
           <p className="planes-nocturno-aviso">
-            🌙 Se aplica recargo nocturno por horario entre las 00:30 y las 03:30
+            🌙 Se aplica recargo nocturno en la franja {formatFranjaNocturna()}
           </p>
         )}
       </div>

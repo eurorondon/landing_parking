@@ -315,6 +315,12 @@ model servicios {
   estatus            Int                  @default(1)
   fijo               Int                  @default(0)
   id_listas_precios  Int?                 @default(0)
+  // Franja horaria de aplicacion del servicio, formato "HH:MM".
+  // Solo la usa Nocturnidad (id=11); el resto la deja en NULL.
+  // Es VARCHAR y no TIME a proposito: Prisma mapea TIME a Date y al
+  // serializar a JSON reintroduce el desfase de zona horaria.
+  hora_inicio        String?              @db.VarChar(5)
+  hora_fin           String?              @db.VarChar(5)
   reservas_servicios reservas_servicios[]
 }
 

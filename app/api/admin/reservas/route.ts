@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { type ReservaAdmin } from "@/lib/admin";
 import { calculateRawParkingDays, aplicaNocturnidad } from "@/lib/pricing";
 import { calcularPrecioReserva } from "@/lib/precio-db";
+import { getFranjaNocturna } from "@/lib/nocturnidad-db";
 import { getReservations, saveReservations, createFullReservation } from "@/lib/store";
 import { smtpConfigurado, enviarConfirmacionCliente, reservaAdminACompleta } from "@/lib/email";
 import { enviarReservaAParkingPlus } from "@/lib/parkingplus";
@@ -51,7 +52,8 @@ export async function POST(request: Request) {
 
   // Precio desde la fuente única (misma BD que la web): días + nocturnidad + recargo
   const dias     = calculateRawParkingDays(new Date(body.checkIn!), new Date(body.checkOut!));
-  const nocturno = aplicaNocturnidad(body.checkIn!.slice(11, 16), body.checkOut!.slice(11, 16));
+  const franja   = await getFranjaNocturna();
+  const nocturno = aplicaNocturnidad(body.checkIn!.slice(11, 16), body.checkOut!.slice(11, 16), franja);
   const precio   = await calcularPrecioReserva({ dias, nocturno, esAutocaravana: vehicleType === "autocaravana" });
 
   // Lavados: el precio se lee de la BD, nunca del navegador. Los IDs que no

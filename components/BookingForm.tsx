@@ -11,14 +11,15 @@ import {
   aplicaNocturnidad,
   formatoEuros,
   type CalculoPrecio,
+  formatFranjaNocturna,
 } from "@/lib/pricing";
 import type { DatosReserva } from "@/lib/types";
 
 /**
  * Calculadora de precio — tema claro.
  * El precio se obtiene desde /api/precio?dias=N[&nocturno=1], que consulta
- * registro_precios + precio_temporada + servicios en la misma BD que el dashboard.
- * La nocturnidad (00:30–03:30) suma el coste del servicio id=11.
+ * registro_precios + precio_temporada + servicios en la BD propia de esta marca.
+ * La nocturnidad (franja configurada en BD) suma el coste del servicio id=11.
  */
 export default function BookingForm() {
   // ── Estado de fechas vacío hasta que el cliente monte ───────────────────────
@@ -341,7 +342,7 @@ export default function BookingForm() {
         {/* ── Aviso nocturnidad ── */}
         {isNocturno && (
           <div className="bform-nocturno-aviso">
-            🌙 Se aplica recargo nocturno de {formatoEuros(calculo!.costoNocturnidad)} por horario entre las 00:30 y las 03:30
+            🌙 Se aplica recargo nocturno de {formatoEuros(calculo!.costoNocturnidad)} en la franja {formatFranjaNocturna()}
           </div>
         )}
 

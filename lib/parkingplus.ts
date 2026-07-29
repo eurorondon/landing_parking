@@ -19,6 +19,7 @@
 
 import type { ReservaCompleta } from "./types";
 import { aplicaNocturnidad } from "./pricing";
+import { getFranjaNocturna } from "./nocturnidad-db";
 
 /**
  * El dashboard guarda las terminales como "TERMINAL 1" / "N/E": sus PDFs
@@ -69,7 +70,11 @@ export async function enviarReservaAParkingPlus(
 
   // El suplemento nocturno no viaja como campo propio: se deduce igual que en
   // el cálculo del precio, así también lo aplican las altas del panel.
-  const nocturno = aplicaNocturnidad(r.entrada.slice(11, 16), r.salida.slice(11, 16));
+  const nocturno = aplicaNocturnidad(
+    r.entrada.slice(11, 16),
+    r.salida.slice(11, 16),
+    await getFranjaNocturna()
+  );
 
   try {
     const res = await fetch(`${baseUrl}/api/external/agencias/reservas`, {

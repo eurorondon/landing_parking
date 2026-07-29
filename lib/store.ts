@@ -2,7 +2,15 @@
  * ============================================================
  *  ALMACÉN DE DATOS — Prisma / MySQL
  *
- *  Comparte la misma base de datos que parkingplus-dashboard.
+ *  Base de datos PROPIA de esta marca: `parkingaeromadrid_db`.
+ *  NO es la de parkingplus-dashboard (`tn5qqzxx_aparca_plus`). Comparten
+ *  servidor y estructura de tablas, pero son bases independientes con
+ *  credenciales distintas: no hay consultas cruzadas entre ellas y toda
+ *  migracion de esquema hay que aplicarla por separado en cada una.
+ *
+ *  El unico puente con Parking Plus es la API de agencias
+ *  (`lib/parkingplus.ts` → PARKINGPLUS_API_URL), nunca la base de datos.
+ *
  *  Cada reserva web crea o reutiliza:
  *    1. clientes    — datos del cliente (nombre, email, móvil)
  *    2. coches      — vehículo (matrícula, marca, modelo)
@@ -25,6 +33,7 @@ import {
   type VehicleType,
 } from "./admin";
 import { calculateRawParkingDays, aplicaNocturnidad } from "./pricing";
+import { getFranjaNocturna } from "./nocturnidad-db";
 import { registrarServiciosReserva, reajustarParkingReserva } from "./servicios-reserva";
 import type { Terminal } from "./config";
 
@@ -387,7 +396,11 @@ export async function createFullReservation(params: {
       total:      params.price,
       plan:       params.plan,
       servicios:  params.servicios,
-      nocturno:   aplicaNocturnidad(params.checkIn.slice(11, 16), params.checkOut.slice(11, 16)),
+      nocturno:   aplicaNocturnidad(
+        params.checkIn.slice(11, 16),
+        params.checkOut.slice(11, 16),
+        await getFranjaNocturna()
+      ),
     });
   } catch (err) {
     console.error("[store] Error al registrar reservas_servicios:", err);

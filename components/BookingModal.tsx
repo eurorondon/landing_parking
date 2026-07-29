@@ -6,7 +6,7 @@ import Select from "./ui/Select";
 import DatePicker from "./ui/DatePicker";
 import { OPCIONES_TERMINAL, NEGOCIO } from "@/lib/config";
 import { OPCIONES_HORA } from "@/lib/datetime";
-import { calculateRawParkingDays, aplicaNocturnidad, formatoEuros, type CalculoPrecio } from "@/lib/pricing";
+import { calculateRawParkingDays, aplicaNocturnidad, formatoEuros, formatFranjaNocturna, type CalculoPrecio } from "@/lib/pricing";
 import type { DatosCliente, DatosReserva } from "@/lib/types";
 
 interface Props {
@@ -272,7 +272,7 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
             </div>
             {calculo && calculo.costoNocturnidad > 0 && (
               <div className="summary-item" style={{ gridColumn: "1/-1", color: "#d97706" }}>
-                <span>🌙 Recargo nocturno (00:30–03:30)</span>
+                <span>🌙 Recargo nocturno ({formatFranjaNocturna()})</span>
                 <strong>{formatoEuros(calculo.costoNocturnidad)}</strong>
               </div>
             )}

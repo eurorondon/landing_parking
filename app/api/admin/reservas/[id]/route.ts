@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { type ReservaAdmin } from "@/lib/admin";
 import { calculateRawParkingDays, aplicaNocturnidad } from "@/lib/pricing";
 import { calcularPrecioReserva } from "@/lib/precio-db";
+import { getFranjaNocturna } from "@/lib/nocturnidad-db";
 import {
   getReservationById,
   updateReservationById,
@@ -32,7 +33,8 @@ export async function PATCH(request: Request, { params }: Params) {
     const entrada = body.checkIn     ?? actual.checkIn;
     const salida  = body.checkOut    ?? actual.checkOut;
     const dias     = calculateRawParkingDays(new Date(entrada), new Date(salida));
-    const nocturno = aplicaNocturnidad(entrada.slice(11, 16), salida.slice(11, 16));
+    const franja   = await getFranjaNocturna();
+    const nocturno = aplicaNocturnidad(entrada.slice(11, 16), salida.slice(11, 16), franja);
     const precio   = await calcularPrecioReserva({ dias, nocturno, esAutocaravana: tipo === "autocaravana" });
     body = { ...body, price: precio.total };
   }

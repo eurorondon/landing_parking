@@ -36,23 +36,74 @@ export function calculateRawParkingDays(entrada: Date, salida: Date): number {
 }
 
 /**
- * Rango de nocturnidad: 00:30 – 03:30 (en minutos del día).
- * Igual que el dashboard: cualquier hora de entrada O salida
- * dentro del rango genera el suplemento.
+ * Franja de nocturnidad. Cualquier hora de entrada O salida dentro del rango
+ * genera el suplemento.
+ *
+ * La franja se configura en la BD de ESTA marca
+ * (`parkingaeromadrid_db.servicios.hora_inicio` / `hora_fin`, servicio id=11),
+ * igual que ya se hace con el coste. Antes estaba fija en 00:30–03:30 aquí.
+ *
+ * Los llamadores de servidor deben pasar la franja leída de BD
+ * (`getFranjaNocturna()` en `lib/precio-db.ts`). Los componentes de cliente no
+ * pueden consultar la BD, así que caen al fallback: para ellos es solo una
+ * pista visual — el importe que se cobra siempre lo recalcula el servidor.
  */
-const NOCTURNO_INICIO = 30;   // 00:30
-const NOCTURNO_FIN    = 210;  // 03:30
+export interface FranjaNocturna {
+  hora_inicio?: string | null;
+  hora_fin?: string | null;
+}
 
-/** True si una hora "HH:MM" cae dentro del rango nocturno */
-export function esHoraNocturna(hora: string): boolean {
-  const [h, m] = hora.split(":").map(Number);
-  const totalMin = (h || 0) * 60 + (m || 0);
-  return totalMin >= NOCTURNO_INICIO && totalMin <= NOCTURNO_FIN;
+/** Solo se usa si la BD no trae la franja configurada. */
+export const FRANJA_NOCTURNA_FALLBACK = { inicio: "00:29", fin: "04:15" };
+
+/** "HH:MM" → minutos desde medianoche. `null` si no es una hora válida. */
+export function horaAMinutos(hora?: string | null): number | null {
+  if (!hora) return null;
+  const match = /^(\d{1,2}):(\d{2})/.exec(String(hora).trim());
+  if (!match) return null;
+  const h = Number(match[1]);
+  const m = Number(match[2]);
+  if (h > 23 || m > 59) return null;
+  return h * 60 + m;
+}
+
+/** Minutos desde medianoche → "HH:MM". */
+function minutosAHora(minutos: number): string {
+  return `${String(Math.floor(minutos / 60)).padStart(2, "0")}:${String(minutos % 60).padStart(2, "0")}`;
+}
+
+/** Límites de la franja en minutos desde medianoche. */
+export function limitesFranjaNocturna(franja?: FranjaNocturna | null): { inicio: number; fin: number } {
+  return {
+    inicio: horaAMinutos(franja?.hora_inicio) ?? horaAMinutos(FRANJA_NOCTURNA_FALLBACK.inicio)!,
+    fin:    horaAMinutos(franja?.hora_fin)    ?? horaAMinutos(FRANJA_NOCTURNA_FALLBACK.fin)!,
+  };
+}
+
+/** True si una hora "HH:MM" cae dentro de la franja nocturna */
+export function esHoraNocturna(hora: string, franja?: FranjaNocturna | null): boolean {
+  const totalMin = horaAMinutos(hora);
+  if (totalMin === null) return false;
+  const { inicio, fin } = limitesFranjaNocturna(franja);
+  // Si la franja cruza medianoche (p.ej. 23:00–04:15) el rango se invierte.
+  return inicio <= fin
+    ? totalMin >= inicio && totalMin <= fin
+    : totalMin >= inicio || totalMin <= fin;
 }
 
 /** True si la hora de entrada O la de salida es nocturna */
-export function aplicaNocturnidad(entryTime: string, exitTime: string): boolean {
-  return esHoraNocturna(entryTime) || esHoraNocturna(exitTime);
+export function aplicaNocturnidad(
+  entryTime: string,
+  exitTime: string,
+  franja?: FranjaNocturna | null
+): boolean {
+  return esHoraNocturna(entryTime, franja) || esHoraNocturna(exitTime, franja);
+}
+
+/** Etiqueta para mostrar al usuario, p.ej. "00:29 - 04:15". */
+export function formatFranjaNocturna(franja?: FranjaNocturna | null): string {
+  const { inicio, fin } = limitesFranjaNocturna(franja);
+  return `${minutosAHora(inicio)} - ${minutosAHora(fin)}`;
 }
 
 /** Formatea un importe con 2 decimales: 82.5 → "82.50 €" */
