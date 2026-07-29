@@ -100,6 +100,42 @@ export async function registrarServiciosReserva(
 }
 
 /**
+ * Suma de los servicios de lavado ya contratados en una reserva.
+ *
+ * Hace falta al recalcular el precio en una edición. El lavado solo se elige al
+ * crear la reserva, pero tiene que seguir sumando: sin esto, editar las fechas
+ * de una reserva con lavado hacía desaparecer su importe del total, porque el
+ * recálculo partía de `calcularPrecioReserva` (parking + seguro + nocturnidad)
+ * y el lavado no está ahí.
+ *
+ * Recibe el `id` de la fila de `reservas`; el `nro_reserva` lo resuelve dentro,
+ * que es lo que usa `reservas_servicios` como clave.
+ */
+export async function costoLavadosReserva(
+  db: PrismaClient,
+  idReserva: number,
+): Promise<number> {
+  if (!Number.isInteger(idReserva) || idReserva <= 0) return 0;
+
+  const reserva = await db.reservas.findUnique({
+    where:  { id: idReserva },
+    select: { nro_reserva: true },
+  });
+  if (!reserva) return 0;
+
+  const filas = await db.reservas_servicios.findMany({
+    where: {
+      id_reserva:  reserva.nro_reserva,
+      id_servicio: { in: ID_SERVICIOS_LAVADO },
+    },
+    select: { precio_total: true },
+  });
+
+  const suma = filas.reduce((acc, f) => acc + Number(f.precio_total), 0);
+  return Math.round(suma * 100) / 100;
+}
+
+/**
  * Reajusta el importe del parking cuando se cambia el precio de una reserva
  * ya creada, para que la suma de `precio_total` siga cuadrando con el total.
  * Los extras (seguro, lavados, nocturnidad) mantienen su precio de catálogo.

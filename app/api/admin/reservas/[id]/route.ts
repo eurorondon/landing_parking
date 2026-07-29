@@ -3,6 +3,8 @@ import { type ReservaAdmin } from "@/lib/admin";
 import { calculateRawParkingDays, aplicaNocturnidad, aplicarDescuento } from "@/lib/pricing";
 import { calcularPrecioReserva } from "@/lib/precio-db";
 import { getFranjaNocturna } from "@/lib/nocturnidad-db";
+import { prisma } from "@/lib/prisma";
+import { costoLavadosReserva } from "@/lib/servicios-reserva";
 import {
   getReservationById,
   updateReservationById,
@@ -40,8 +42,14 @@ export async function PATCH(request: Request, { params }: Params) {
     const nocturno = aplicaNocturnidad(entrada.slice(11, 16), salida.slice(11, 16), franja);
     const precio   = await calcularPrecioReserva({ dias, nocturno, esAutocaravana: tipo === "autocaravana" });
 
+    // `calcularPrecioReserva` cubre parking + seguro + nocturnidad, pero no el
+    // lavado: ese se eligió al crear y vive en `reservas_servicios`. Sin
+    // sumarlo aquí, editar las fechas hacía desaparecer su importe del total.
+    const costoLavados = await costoLavadosReserva(prisma, Number(id));
+    const bruto        = Math.round((precio.total + costoLavados) * 100) / 100;
+
     const pct  = body.discountPct ?? actual.discountPct ?? 0;
-    const desc = aplicarDescuento(precio.total, pct);
+    const desc = aplicarDescuento(bruto, pct);
 
     body = { ...body, price: desc.total, discountPct: desc.pct, discountAmount: desc.descuento };
   }
