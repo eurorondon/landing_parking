@@ -11,6 +11,9 @@ import {
 import { calculateRawParkingDays, aplicaNocturnidad, formatFranjaNocturna, aplicarDescuento } from "@/lib/pricing";
 import { OPCIONES_TERMINAL } from "@/lib/config";
 import { ID_SERVICIOS_LAVADO } from "@/lib/servicios-reserva";
+import { OPCIONES_HORA } from "@/lib/datetime";
+import DatePicker from "@/components/ui/DatePicker";
+import Select from "@/components/ui/Select";
 
 interface ServicioLavado {
   id: number;
@@ -43,6 +46,12 @@ function fmtLocal(d: Date): string {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
+
+// checkIn/checkOut se guardan como "YYYY-MM-DDTHH:mm" (igual que antes); estos
+// helpers solo parten/recomponen ese string para los pickers de fecha y hora.
+const fechaParte = (v: string) => v.slice(0, 10);
+const horaParte  = (v: string) => v.slice(11, 16) || "00:00";
+const combinar    = (fecha: string, hora: string) => (fecha ? `${fecha}T${hora || "00:00"}` : "");
 
 function initialState(editing: ReservaAdmin | null): FormState {
   if (editing) {
@@ -285,12 +294,49 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
             <div className="form-grid">
               <div className="form-group">
                 <label className="form-label">Fecha y hora de entrada *</label>
-                <input className={cls("checkIn")} type="datetime-local" value={form.checkIn} onChange={(e) => set("checkIn", e.target.value)} />
+                <div className="form-datetime-row">
+                  <DatePicker
+                    value={fechaParte(form.checkIn)}
+                    onChange={(v) => set("checkIn", combinar(v, horaParte(form.checkIn)))}
+                    ariaLabel="Fecha de entrada"
+                    title="Fecha de entrada"
+                    placeholder="Selecciona"
+                    triggerClassName="datepicker-trigger--admin"
+                  />
+                  <Select
+                    ariaLabel="Hora de entrada"
+                    value={horaParte(form.checkIn)}
+                    opciones={OPCIONES_HORA}
+                    onChange={(v) => set("checkIn", combinar(fechaParte(form.checkIn), v))}
+                    placeholder="Hora"
+                    triggerClassName="select-trigger--admin"
+                    contentClassName="select-content--admin"
+                  />
+                </div>
                 {err("checkIn")}
               </div>
               <div className="form-group">
                 <label className="form-label">Fecha y hora de salida *</label>
-                <input className={cls("checkOut")} type="datetime-local" value={form.checkOut} onChange={(e) => set("checkOut", e.target.value)} />
+                <div className="form-datetime-row">
+                  <DatePicker
+                    value={fechaParte(form.checkOut)}
+                    min={fechaParte(form.checkIn)}
+                    onChange={(v) => set("checkOut", combinar(v, horaParte(form.checkOut)))}
+                    ariaLabel="Fecha de salida"
+                    title="Fecha de salida"
+                    placeholder="Selecciona"
+                    triggerClassName="datepicker-trigger--admin"
+                  />
+                  <Select
+                    ariaLabel="Hora de salida"
+                    value={horaParte(form.checkOut)}
+                    opciones={OPCIONES_HORA}
+                    onChange={(v) => set("checkOut", combinar(fechaParte(form.checkOut), v))}
+                    placeholder="Hora"
+                    triggerClassName="select-trigger--admin"
+                    contentClassName="select-content--admin"
+                  />
+                </div>
                 {err("checkOut")}
               </div>
               <div className="form-group">

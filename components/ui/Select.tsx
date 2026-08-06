@@ -11,17 +11,27 @@ interface Props {
   ariaLabel?: string;
   /** Texto que se muestra mientras `value` está vacío */
   placeholder?: string;
+  /** Clase del botón: por defecto "select-trigger" (tema landing.css) */
+  triggerClassName?: string;
+  /** Clase del desplegable: por defecto "select-content" (tema landing.css) */
+  contentClassName?: string;
 }
 
 /**
  * Select con desplegable propio (Radix UI), estilizado como el resto de la
  * landing en lugar del aspecto nativo del navegador. Estilos en landing.css
- * (.select-trigger, .select-content, .select-item).
+ * (.select-trigger, .select-content, .select-item); otras secciones (p. ej.
+ * el panel admin) pueden pasar sus propias clases vía triggerClassName /
+ * contentClassName y definir su propio tema en su hoja de estilos.
  */
-export default function Select({ id, value, opciones, onChange, disabled, ariaLabel, placeholder }: Props) {
+export default function Select({
+  id, value, opciones, onChange, disabled, ariaLabel, placeholder,
+  triggerClassName = "select-trigger",
+  contentClassName = "select-content",
+}: Props) {
   return (
     <RadixSelect.Root value={value} onValueChange={onChange} disabled={disabled}>
-      <RadixSelect.Trigger id={id} className="select-trigger" aria-label={ariaLabel}>
+      <RadixSelect.Trigger id={id} className={triggerClassName} aria-label={ariaLabel}>
         {/* Radix muestra el placeholder mientras el valor esté vacío */}
         <RadixSelect.Value placeholder={placeholder} />
         <RadixSelect.Icon className="select-chevron">
@@ -32,7 +42,7 @@ export default function Select({ id, value, opciones, onChange, disabled, ariaLa
       </RadixSelect.Trigger>
 
       <RadixSelect.Portal>
-        <RadixSelect.Content className="select-content" position="popper" sideOffset={6}>
+        <RadixSelect.Content className={contentClassName} position="popper" sideOffset={6}>
           <RadixSelect.ScrollUpButton className="select-scrollbtn">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="m18 15-6-6-6 6" />
