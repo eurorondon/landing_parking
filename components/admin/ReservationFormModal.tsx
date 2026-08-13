@@ -94,6 +94,39 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
     setErrors((e) => ({ ...e, [campo]: "" }));
   };
 
+  // Al crear (no al editar): buscar cliente ya existente por teléfono y
+  // autocompletar sus datos, sin pisar lo que el admin ya haya escrito.
+  const [buscandoCliente, setBuscandoCliente] = useState(false);
+  const [clienteEncontrado, setClienteEncontrado] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (editing) return;
+    const telefono = form.phone.trim();
+    if (telefono.length < 9) {
+      setClienteEncontrado(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setBuscandoCliente(true);
+      fetch(`/api/admin/clientes/buscar?telefono=${encodeURIComponent(telefono)}`)
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((d: { cliente: { name: string; email: string; plate: string; model: string } | null }) => {
+          setClienteEncontrado(!!d.cliente);
+          if (!d.cliente) return;
+          setForm((f) => ({
+            ...f,
+            name:  f.name.trim()  ? f.name  : d.cliente!.name,
+            email: f.email.trim() ? f.email : d.cliente!.email,
+            plate: f.plate.trim() ? f.plate : d.cliente!.plate,
+            model: f.model.trim() ? f.model : d.cliente!.model,
+          }));
+        })
+        .catch(() => setClienteEncontrado(null))
+        .finally(() => setBuscandoCliente(false));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [form.phone, editing]);
+
   // Precio estimado desde la fuente única (/api/precio, misma BD que la web).
   // Se recalcula al cambiar vehículo o fechas.
   const [price, setPrice] = useState(0);
@@ -244,6 +277,17 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
                 <label className="form-label">Teléfono *</label>
                 <input className={cls("phone")} type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+34 600 000 000" />
                 {err("phone")}
+                {!editing && buscandoCliente && (
+                  <p className="form-hint" style={{ marginTop: 6 }}>Buscando cliente…</p>
+                )}
+                {!editing && !buscandoCliente && clienteEncontrado === true && (
+                  <p className="form-hint" style={{ marginTop: 6, color: "var(--green-600, #16a34a)" }}>
+                    ✓ Cliente encontrado — datos autocompletados
+                  </p>
+                )}
+                {!editing && !buscandoCliente && clienteEncontrado === false && (
+                  <p className="form-hint" style={{ marginTop: 6 }}>Cliente nuevo, no hay reservas anteriores con este teléfono</p>
+                )}
               </div>
               <div className="form-group">
                 <label className="form-label">Correo electrónico *</label>

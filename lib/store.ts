@@ -217,6 +217,46 @@ export async function getReservationById(id: string): Promise<ReservaAdmin | nul
 }
 
 /**
+ * Busca un cliente ya existente por teléfono (móvil), para autocompletar el
+ * alta manual de una reserva desde el panel. Devuelve también el coche más
+ * reciente asociado (si tiene), para prellenar matrícula/modelo.
+ */
+export async function findClienteByPhone(phone: string): Promise<{
+  name:  string;
+  email: string;
+  plate: string;
+  model: string;
+} | null> {
+  const db = await getPrisma();
+  if (!db) return null;
+
+  try {
+    const cliente = await db.clientes.findFirst({
+      where:  { movil: phone, estatus: 1 },
+      orderBy: { id: "desc" },
+      select: { id: true, nombre_completo: true, correo: true },
+    });
+    if (!cliente) return null;
+
+    const coche = await db.coches.findFirst({
+      where:   { id_cliente: cliente.id, estatus_coche: 1 },
+      orderBy: { id: "desc" },
+      select:  { matricula: true, marca: true, modelo: true },
+    });
+
+    return {
+      name:  cliente.nombre_completo,
+      email: cliente.correo,
+      plate: coche?.matricula ?? "",
+      model: [coche?.marca, coche?.modelo].filter(Boolean).join(" "),
+    };
+  } catch (err) {
+    console.error("[store] findClienteByPhone:", err);
+    return null;
+  }
+}
+
+/**
  * Compatibilidad: `saveReservations([])` elimina todas las reservas web.
  * Nunca se llama con un array no vacío en el flujo actual.
  */
