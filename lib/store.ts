@@ -218,14 +218,13 @@ export async function getReservationById(id: string): Promise<ReservaAdmin | nul
 
 /**
  * Busca un cliente ya existente por teléfono (móvil), para autocompletar el
- * alta manual de una reserva desde el panel. Devuelve también el coche más
- * reciente asociado (si tiene), para prellenar matrícula/modelo.
+ * alta manual de una reserva desde el panel. Devuelve también todos sus
+ * vehículos asociados, para que el admin elija con cuál se hace la reserva.
  */
 export async function findClienteByPhone(phone: string): Promise<{
   name:  string;
   email: string;
-  plate: string;
-  model: string;
+  vehiculos: { plate: string; model: string }[];
 } | null> {
   const db = await getPrisma();
   if (!db) return null;
@@ -238,7 +237,7 @@ export async function findClienteByPhone(phone: string): Promise<{
     });
     if (!cliente) return null;
 
-    const coche = await db.coches.findFirst({
+    const coches = await db.coches.findMany({
       where:   { id_cliente: cliente.id, estatus_coche: 1 },
       orderBy: { id: "desc" },
       select:  { matricula: true, marca: true, modelo: true },
@@ -247,8 +246,10 @@ export async function findClienteByPhone(phone: string): Promise<{
     return {
       name:  cliente.nombre_completo,
       email: cliente.correo,
-      plate: coche?.matricula ?? "",
-      model: [coche?.marca, coche?.modelo].filter(Boolean).join(" "),
+      vehiculos: coches.map((c) => ({
+        plate: c.matricula ?? "",
+        model: [c.marca, c.modelo].filter(Boolean).join(" "),
+      })),
     };
   } catch (err) {
     console.error("[store] findClienteByPhone:", err);

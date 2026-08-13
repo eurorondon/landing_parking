@@ -98,30 +98,34 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
   // autocompletar sus datos, sin pisar lo que el admin ya haya escrito.
   const [buscandoCliente, setBuscandoCliente] = useState(false);
   const [clienteEncontrado, setClienteEncontrado] = useState<boolean | null>(null);
+  const [vehiculosCliente, setVehiculosCliente] = useState<{ plate: string; model: string }[]>([]);
 
   useEffect(() => {
     if (editing) return;
     const telefono = form.phone.trim();
     if (telefono.length < 9) {
       setClienteEncontrado(null);
+      setVehiculosCliente([]);
       return;
     }
     const timer = setTimeout(() => {
       setBuscandoCliente(true);
       fetch(`/api/admin/clientes/buscar?telefono=${encodeURIComponent(telefono)}`)
         .then((r) => (r.ok ? r.json() : Promise.reject()))
-        .then((d: { cliente: { name: string; email: string; plate: string; model: string } | null }) => {
+        .then((d: { cliente: { name: string; email: string; vehiculos: { plate: string; model: string }[] } | null }) => {
           setClienteEncontrado(!!d.cliente);
+          setVehiculosCliente(d.cliente?.vehiculos ?? []);
           if (!d.cliente) return;
+          const primerVehiculo = d.cliente.vehiculos[0];
           setForm((f) => ({
             ...f,
             name:  f.name.trim()  ? f.name  : d.cliente!.name,
             email: f.email.trim() ? f.email : d.cliente!.email,
-            plate: f.plate.trim() ? f.plate : d.cliente!.plate,
-            model: f.model.trim() ? f.model : d.cliente!.model,
+            plate: f.plate.trim() ? f.plate : primerVehiculo?.plate ?? f.plate,
+            model: f.model.trim() ? f.model : primerVehiculo?.model ?? f.model,
           }));
         })
-        .catch(() => setClienteEncontrado(null))
+        .catch(() => { setClienteEncontrado(null); setVehiculosCliente([]); })
         .finally(() => setBuscandoCliente(false));
     }, 500);
     return () => clearTimeout(timer);
@@ -310,6 +314,29 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
                 </div>
                 {err("vehicleType")}
               </div>
+              {!editing && vehiculosCliente.length > 1 && (
+                <div className="form-group span-2">
+                  <label className="form-label">Vehículos del cliente</label>
+                  <select
+                    className="form-select"
+                    value={vehiculosCliente.findIndex((v) => v.plate === form.plate)}
+                    onChange={(e) => {
+                      const v = vehiculosCliente[Number(e.target.value)];
+                      if (!v) return;
+                      setForm((f) => ({ ...f, plate: v.plate, model: v.model }));
+                    }}
+                  >
+                    {vehiculosCliente.map((v, i) => (
+                      <option key={i} value={i}>
+                        {v.plate}{v.model ? ` · ${v.model}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="form-hint" style={{ marginTop: 6 }}>
+                    Este cliente tiene {vehiculosCliente.length} vehículos registrados; elige con cuál se hace la reserva.
+                  </p>
+                </div>
+              )}
               <div className="form-group">
                 <label className="form-label">Matrícula *</label>
                 <input className={cls("plate")} value={form.plate} onChange={(e) => set("plate", e.target.value.toUpperCase())} placeholder="0000 AAA" style={{ textTransform: "uppercase" }} />
