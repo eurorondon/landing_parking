@@ -54,7 +54,7 @@ export async function POST(request: Request) {
   const dias     = calculateRawParkingDays(new Date(body.checkIn!), new Date(body.checkOut!));
   const franja   = await getFranjaNocturna();
   const nocturno = aplicaNocturnidad(body.checkIn!.slice(11, 16), body.checkOut!.slice(11, 16), franja);
-  const precio   = await calcularPrecioReserva({ dias, nocturno, esAutocaravana: vehicleType === "autocaravana" });
+  const precio   = await calcularPrecioReserva({ dias, nocturno, esAutocaravana: vehicleType === "autocaravana", entrada: body.checkIn });
 
   // Lavados: el precio se lee de la BD, nunca del navegador. Los IDs que no
   // sean un servicio de lavado válido se descartan.

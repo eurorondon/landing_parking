@@ -25,6 +25,12 @@ export interface PrecioReserva {
   total:              number;
 }
 
+/** "YYYY-MM-DD..." → medianoche UTC, para comparar contra columnas `@db.Date`
+ *  (MySQL las guarda sin hora ni zona; Prisma las representa en UTC). */
+function fechaUTC(fechaISO: string): Date {
+  return new Date(`${fechaISO.slice(0, 10)}T00:00:00.000Z`);
+}
+
 /**
  * Lógica de bloques (igual que Yii2):
  *   1-18 días   → N × precioDia + planCosto  [+ N × temporadaRate]
@@ -70,8 +76,11 @@ export async function calcularPrecioReserva(params: {
   dias: number;
   nocturno: boolean;
   esAutocaravana: boolean;
+  /** Fecha de entrada ("YYYY-MM-DD" o "YYYY-MM-DDTHH:mm"). Determina qué
+   *  temporada de `precio_temporada` aplica; sin ella no se aplica ninguna. */
+  entrada?: string;
 }): Promise<PrecioReserva> {
-  const { dias, nocturno, esAutocaravana } = params;
+  const { dias, nocturno, esAutocaravana, entrada } = params;
 
   // Recargo por día de autocaravana (configurable desde el panel)
   const recargoAutocaravanaDia = esAutocaravana
@@ -103,10 +112,21 @@ export async function calcularPrecioReserva(params: {
   const planCosto    = r1 ? Number(r1.costo) - precioDia : 23.98;
   const precioBloque = r30 ? Number(r30.costo) : 18 * precioDia + planCosto;
 
-  // Suplemento de temporada activa
-  const precioTemporada = await prisma.precio_temporada.findFirst({
-    where: { status: "activo" },
-  });
+  // Suplemento de temporada: solo aplica si la fecha de ENTRADA cae dentro del
+  // rango [fecha_inicio, fecha_fin] de una temporada activa. Sin esto, marcar
+  // una temporada como "activo" la aplicaba a cualquier reserva sin importar
+  // sus fechas (p. ej. una reserva de agosto cobrando precio de septiembre).
+  const precioTemporada = entrada
+    ? await prisma.precio_temporada.findFirst({
+        where: {
+          status:       "activo",
+          fecha_inicio: { lte: fechaUTC(entrada) },
+          fecha_fin:    { gte: fechaUTC(entrada) },
+        },
+        // Si dos temporadas se solapan, gana la de inicio más reciente.
+        orderBy: { fecha_inicio: "desc" },
+      })
+    : null;
   const temporadaRate = precioTemporada ? Number(precioTemporada.precio) : 0;
 
   let costoParking: number;
@@ -118,7 +138,7 @@ export async function calcularPrecioReserva(params: {
       orderBy: { id: "asc" },
     });
     costoParking = Number(registro?.costo ?? dias * precioDia + planCosto);
-    if (temporadaRate > 0) {
+    if (temporadaRate !== 0) {
       costoParking += dias * temporadaRate;
     }
   } else {

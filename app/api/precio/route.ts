@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/precio-db";
 
 /**
- * GET /api/precio?dias=N[&nocturno=1][&vehiculo=autocaravana]
+ * GET /api/precio?dias=N[&nocturno=1][&vehiculo=autocaravana][&entrada=YYYY-MM-DD]
  *
  * Envoltura HTTP sobre calcularPrecioReserva (lib/precio-db.ts), la
  * fuente única de precio que comparten la web y el panel.
@@ -18,8 +18,9 @@ export async function GET(request: Request) {
     const dias           = parseInt(searchParams.get("dias") || "0", 10);
     const nocturno       = searchParams.get("nocturno") === "1";
     const esAutocaravana = searchParams.get("vehiculo") === "autocaravana";
+    const entrada        = searchParams.get("entrada") || undefined;
 
-    const precio = await calcularPrecioReserva({ dias, nocturno, esAutocaravana });
+    const precio = await calcularPrecioReserva({ dias, nocturno, esAutocaravana, entrada });
     return NextResponse.json(precio);
   } catch (error) {
     console.error("[api/precio] Error:", error);

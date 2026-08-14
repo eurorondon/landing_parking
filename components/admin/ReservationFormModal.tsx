@@ -169,7 +169,7 @@ export default function ReservationFormModal({ editing, onClose, onSave }: Props
     const nocturno = aplicaNocturnidad(form.checkIn.slice(11, 16), form.checkOut.slice(11, 16));
     const vehiculoParam = form.vehicleType === "autocaravana" ? "&vehiculo=autocaravana" : "";
     setPrecioCargando(true);
-    fetch(`/api/precio?dias=${dias}${nocturno ? "&nocturno=1" : ""}${vehiculoParam}`)
+    fetch(`/api/precio?dias=${dias}${nocturno ? "&nocturno=1" : ""}${vehiculoParam}&entrada=${fechaParte(form.checkIn)}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d: { total: number; costo_nocturnidad: number }) => {
         setPrice(d.total);

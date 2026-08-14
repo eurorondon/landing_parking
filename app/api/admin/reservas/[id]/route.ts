@@ -40,7 +40,7 @@ export async function PATCH(request: Request, { params }: Params) {
     const dias     = calculateRawParkingDays(new Date(entrada), new Date(salida));
     const franja   = await getFranjaNocturna();
     const nocturno = aplicaNocturnidad(entrada.slice(11, 16), salida.slice(11, 16), franja);
-    const precio   = await calcularPrecioReserva({ dias, nocturno, esAutocaravana: tipo === "autocaravana" });
+    const precio   = await calcularPrecioReserva({ dias, nocturno, esAutocaravana: tipo === "autocaravana", entrada });
 
     // `calcularPrecioReserva` cubre parking + seguro + nocturnidad, pero no el
     // lavado: ese se eligió al crear y vive en `reservas_servicios`. Sin

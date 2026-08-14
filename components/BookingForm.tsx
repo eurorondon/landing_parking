@@ -121,7 +121,7 @@ export default function BookingForm() {
 
     setCargando(true);
     const vehiculoParam = reserva.vehiculo === "autocaravana" ? "&vehiculo=autocaravana" : "";
-    fetch(`/api/precio?dias=${dias}${nocturno ? "&nocturno=1" : ""}${vehiculoParam}`)
+    fetch(`/api/precio?dias=${dias}${nocturno ? "&nocturno=1" : ""}${vehiculoParam}&entrada=${reserva.entryDate}`)
       .then((r) => {
         if (!r.ok) throw new Error("Error en la respuesta del servidor");
         return r.json();
