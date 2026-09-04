@@ -55,4 +55,12 @@ export interface ReservaCompleta extends DatosCliente {
   totalSinDescuento?: number;
   /** Importe descontado en € (informativo, para correos y desglose) */
   cuponDescuento?: number;
+  /**
+   * `nro_reserva` y `cod_valid` que devolvió parkingplus-dashboard al
+   * registrar la reserva como agencia. Presentes solo si ese registro tuvo
+   * éxito (ver `enviarReservaAParkingPlus`); si faltan, el correo de
+   * confirmación simplemente no incluye el link de "solicitar factura".
+   */
+  parkingplusNroReserva?: number;
+  parkingplusCodValid?: string;
 }

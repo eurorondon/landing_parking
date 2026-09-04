@@ -235,6 +235,11 @@ export async function POST(request: Request) {
     if (!envio.ok) {
       alertarParkingPlusFallidoDiscord(reserva, envio.error ?? "desconocido")
         .catch(() => {/* ya logueado dentro */});
+    } else if (envio.nroReserva && envio.codValid) {
+      // Habilita el link de "solicitar factura" en el correo de confirmación
+      // (ver construirEmailCliente en lib/email.ts).
+      reserva.parkingplusNroReserva = envio.nroReserva;
+      reserva.parkingplusCodValid = envio.codValid;
     }
   } catch (err) {
     console.error("[reserva] Error inesperado enviando a parkingplus:", err);

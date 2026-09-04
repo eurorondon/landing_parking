@@ -5,6 +5,7 @@ import { formatoEuros, calculateRawParkingDays } from "./pricing";
 import type { ReservaAdmin } from "./admin";
 import type { ReservaCompleta } from "./types";
 import type { Terminal } from "./config";
+import { construirLinkFacturaParkingPlus } from "./parkingplus";
 
 /**
  * ============================================================
@@ -182,6 +183,9 @@ export function construirEmailCliente(r: ReservaCompleta): string {
     matricula ? `<code>${matricula}</code>` : "",
   ].filter(Boolean).join(" · ");
   const planTexto    = r.planNombre ? ` · Plan <strong>${r.planNombre}</strong>` : "";
+  const linkFactura  = r.parkingplusNroReserva && r.parkingplusCodValid
+    ? construirLinkFacturaParkingPlus(r.parkingplusNroReserva, r.parkingplusCodValid)
+    : null;
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -262,6 +266,25 @@ export function construirEmailCliente(r: ReservaCompleta): string {
               </div>
             </td>
           </tr>
+
+          ${linkFactura ? `
+          <!-- SOLICITAR FACTURA -->
+          <tr>
+            <td style="padding:0 32px 24px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;">
+                <tr>
+                  <td align="center" style="padding:18px;">
+                    <p style="margin:0 0 12px;font-size:13px;color:#374151;">
+                      🧾 ¿Necesitas factura de esta reserva? El cobro y la facturación los gestiona directamente <strong>ParkingPlus</strong>.
+                    </p>
+                    <a href="${linkFactura}" style="display:inline-block;padding:10px 20px;background:${NARANJA};color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;border-radius:6px;">
+                      Solicitar factura
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>` : ""}
 
           <!-- PIE -->
           <tr><td>${pie()}</td></tr>

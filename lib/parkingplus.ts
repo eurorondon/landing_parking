@@ -36,7 +36,31 @@ export interface ResultadoEnvioParkingPlus {
   /** true si el envío se omitió por falta de configuración */
   omitido?: boolean;
   nroReserva?: number;
+  /**
+   * Token de validación de la reserva en parkingplus-dashboard. Junto con
+   * `nroReserva`, permite armar el link de "solicitar factura" que se manda
+   * al cliente en el correo de confirmación (ver `lib/email.ts`).
+   */
+  codValid?: string;
   error?: string;
+}
+
+/**
+ * URL pública de ParkingPlus para links que ve el cliente (encuesta, gestión
+ * de reserva, factura) — distinta de `PARKINGPLUS_API_URL` (admin.parkingplus.es,
+ * solo para las llamadas servidor-a-servidor de este archivo).
+ */
+function parkingplusPublicUrl(): string {
+  return (process.env.PARKINGPLUS_PUBLIC_URL || "https://parkingplus.es").replace(/\/+$/, "");
+}
+
+/**
+ * Link para que el cliente solicite factura de una reserva registrada como
+ * agencia en ParkingPlus (mismo flujo que ya usa ParkingPlus con sus propios
+ * clientes: abre el formulario de "editar reserva" en modo factura).
+ */
+export function construirLinkFacturaParkingPlus(nroReserva: number, codValid: string): string {
+  return `${parkingplusPublicUrl()}/reserva/gestion?codId=${nroReserva}&codValid=${encodeURIComponent(codValid)}&invoice=1`;
 }
 
 export function parkingplusConfigurado(): boolean {
@@ -112,9 +136,9 @@ export async function enviarReservaAParkingPlus(
       return { ok: false, error: `HTTP ${res.status}: ${texto.slice(0, 300)}` };
     }
 
-    const data = (await res.json()) as { nro_reserva?: number };
+    const data = (await res.json()) as { nro_reserva?: number; cod_valid?: string };
     console.log(`✅ [parkingplus] Reserva registrada como agencia · nro_reserva ${data.nro_reserva}`);
-    return { ok: true, nroReserva: data.nro_reserva };
+    return { ok: true, nroReserva: data.nro_reserva, codValid: data.cod_valid };
   } catch (err) {
     console.error("[parkingplus] Excepción al registrar reserva:", err);
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
