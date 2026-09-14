@@ -32,39 +32,94 @@ function fechaUTC(fechaISO: string): Date {
 }
 
 /**
- * Lógica de bloques (igual que Yii2):
- *   1-18 días   → N × precioDia + planCosto  [+ N × temporadaRate]
- *   19-30 días  → precioBloque               [+ 30 × temporadaRate]
+ * Lógica de bloques (igual que Yii2), SIN temporada (se suma aparte, prorrateada
+ * por día de calendario — ver `calcularSurchargeTemporada`):
+ *   1-18 días   → N × precioDia + planCosto
+ *   19-30 días  → precioBloque
  *   >30 días    → bloques de 30; resto >= 18 → bloque completo,
- *                 resto < 18 → resto × precioDia (sin temporada)
+ *                 resto < 18 → resto × precioDia
  */
 function calcularPrecioParking(
   dias: number,
   precioBloque: number,
   precioDia: number,
-  planCosto: number,
-  temporadaRate: number
+  planCosto: number
 ): number {
   let total = 0;
   let remaining = dias;
 
   if (dias <= 18) {
-    return dias * precioDia + planCosto + dias * temporadaRate;
+    return dias * precioDia + planCosto;
   }
   if (dias <= 30) {
-    return precioBloque + 30 * temporadaRate;
+    return precioBloque;
   }
 
   while (remaining > 30) {
-    total += precioBloque + 30 * temporadaRate;
+    total += precioBloque;
     remaining -= 30;
   }
   if (remaining >= 18) {
-    total += precioBloque + 30 * temporadaRate;
+    total += precioBloque;
   } else {
-    total += remaining * precioDia; // sin temporada en el resto (igual que Yii2)
+    total += remaining * precioDia;
   }
   return total;
+}
+
+/**
+ * Recargo de temporada prorrateado por día de calendario de la estancia
+ * (día 1 = fecha de entrada, día 2 = entrada + 1, …). Cada día suma el
+ * €/día de la temporada activa que lo cubra (si dos temporadas se solapan,
+ * gana la de inicio más reciente); los días fuera de cualquier temporada no
+ * suman nada. Sustituye al recargo "todo o nada" que antes solo miraba si
+ * la fecha de ENTRADA caía dentro del rango de la temporada.
+ */
+async function calcularSurchargeTemporada(entrada: string, dias: number): Promise<number> {
+  if (dias <= 0) return 0;
+
+  const primerDia = fechaUTC(entrada);
+  const ultimoDia = new Date(primerDia);
+  ultimoDia.setUTCDate(ultimoDia.getUTCDate() + dias - 1);
+
+  const temporadas = await prisma.precio_temporada.findMany({
+    where: {
+      status:       "activo",
+      fecha_inicio: { lte: ultimoDia },
+      fecha_fin:    { gte: primerDia },
+    },
+    orderBy: { fecha_inicio: "desc" },
+  });
+  if (temporadas.length === 0) return 0;
+
+  let total = 0;
+  for (let i = 0; i < dias; i++) {
+    const dia = new Date(primerDia);
+    dia.setUTCDate(dia.getUTCDate() + i);
+    const temporada = temporadas.find((t) => t.fecha_inicio <= dia && t.fecha_fin >= dia);
+    if (temporada) total += Number(temporada.precio);
+  }
+  return total;
+}
+
+/** Solo se usa si la BD no responde al cargar la home (evita tumbar el hero). */
+const PRECIO_DESDE_FALLBACK = 30.98;
+
+/**
+ * Precio "desde" que se muestra en el hero de la home (1 día de parking +
+ * seguro incluido, sin recargos de temporada/nocturnidad/autocaravana).
+ */
+export async function getPrecioDesde(): Promise<number> {
+  try {
+    const [registroUnDia, seguro] = await Promise.all([
+      prisma.registro_precios.findFirst({ where: { cantidad: 1 }, orderBy: { id: "asc" } }),
+      prisma.servicios.findFirst({ where: { id: 4 }, select: { costo: true } }),
+    ]);
+    return Number(registroUnDia?.costo ?? 0) + Number(seguro?.costo ?? 0);
+  } catch (err) {
+    console.error("[getPrecioDesde] no se pudo consultar la BD, usando fallback:", err);
+    return PRECIO_DESDE_FALLBACK;
+  }
 }
 
 /**
@@ -112,22 +167,12 @@ export async function calcularPrecioReserva(params: {
   const planCosto    = r1 ? Number(r1.costo) - precioDia : 23.98;
   const precioBloque = r30 ? Number(r30.costo) : 18 * precioDia + planCosto;
 
-  // Suplemento de temporada: solo aplica si la fecha de ENTRADA cae dentro del
-  // rango [fecha_inicio, fecha_fin] de una temporada activa. Sin esto, marcar
-  // una temporada como "activo" la aplicaba a cualquier reserva sin importar
-  // sus fechas (p. ej. una reserva de agosto cobrando precio de septiembre).
-  const precioTemporada = entrada
-    ? await prisma.precio_temporada.findFirst({
-        where: {
-          status:       "activo",
-          fecha_inicio: { lte: fechaUTC(entrada) },
-          fecha_fin:    { gte: fechaUTC(entrada) },
-        },
-        // Si dos temporadas se solapan, gana la de inicio más reciente.
-        orderBy: { fecha_inicio: "desc" },
-      })
-    : null;
-  const temporadaRate = precioTemporada ? Number(precioTemporada.precio) : 0;
+  // Suplemento de temporada: prorrateado por cada día de calendario de la
+  // estancia que caiga dentro de [fecha_inicio, fecha_fin] de una temporada
+  // activa. Los días fuera de rango no suman nada (p. ej. una reserva que
+  // empieza antes de la temporada solo paga el recargo en las noches que
+  // realmente se solapan con ella).
+  const temporadaSurcharge = entrada ? await calcularSurchargeTemporada(entrada, dias) : 0;
 
   let costoParking: number;
 
@@ -137,13 +182,10 @@ export async function calcularPrecioReserva(params: {
       where: { cantidad: dias },
       orderBy: { id: "asc" },
     });
-    costoParking = Number(registro?.costo ?? dias * precioDia + planCosto);
-    if (temporadaRate !== 0) {
-      costoParking += dias * temporadaRate;
-    }
+    costoParking = Number(registro?.costo ?? dias * precioDia + planCosto) + temporadaSurcharge;
   } else {
     // Fórmula de bloques para >30 días
-    costoParking = calcularPrecioParking(dias, precioBloque, precioDia, planCosto, temporadaRate);
+    costoParking = calcularPrecioParking(dias, precioBloque, precioDia, planCosto) + temporadaSurcharge;
   }
 
   const costoAutocaravana = dias * recargoAutocaravanaDia;
