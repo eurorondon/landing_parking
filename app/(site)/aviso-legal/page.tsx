@@ -31,7 +31,7 @@ export default function AvisoLegal() {
             Aviso Legal
           </h1>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,.6)", margin: "0 0 24px" }}>
-            {NEGOCIO.nombre} &mdash; {NEGOCIO.direccion}
+            {NEGOCIO.nombre}{NEGOCIO.direccion ? ` — ${NEGOCIO.direccion}` : ""}
           </p>
           <p style={{ color: "rgba(255,255,255,.8)", lineHeight: 1.72, fontSize: 15 }}>
             Le informamos de las condiciones legales bajo las que se presta el servicio
@@ -81,7 +81,9 @@ export default function AvisoLegal() {
             <p>
               El pago del servicio se realiza <strong>directamente al titular del
               parking</strong> (Parking Plus), quien emite la correspondiente factura al
-              cliente.
+              cliente bajo la entidad <strong>MARICHAL 4 PARKING SL</strong> (CIF{" "}
+              <strong>B88537345</strong>), con domicilio en Calle Playa de Riazor 14,
+              CP 28042, Madrid.
             </p>
             <p style={{ marginTop: 12 }}>
               Este sitio web <strong>no gestiona ni procesa pagos</strong> en su nombre ni
@@ -126,7 +128,7 @@ export default function AvisoLegal() {
                 ["Web:", NEGOCIO.nombre],
                 ["Email:", NEGOCIO.emailContacto],
                 ["Teléfono:", NEGOCIO.telefono],
-                ["Dirección:", NEGOCIO.direccion],
+                ...(NEGOCIO.direccion ? [["Dirección:", NEGOCIO.direccion]] : []),
               ].map(([label, value]) => (
                 <div key={label}>
                   <p style={{ fontWeight: 700, color: "#fff", fontSize: 13, marginBottom: 3 }}>{label}</p>

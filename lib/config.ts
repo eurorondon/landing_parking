@@ -9,9 +9,11 @@
 export const NEGOCIO = {
   nombre: "Parking Aero Madrid",
 
-  // ⚠️ CAMBIAR: razón social y NIF reales del negocio
-  razonSocial: "Parking Aero Madrid S.L.",
-  nif: "B00000000",
+  // Aero Madrid no tiene identidad fiscal propia (confirmado 2026-09-04):
+  // esta web solo capta clientes, el servicio lo presta y factura Parking
+  // Plus bajo esta entidad real (ver también aviso-legal/page.tsx).
+  razonSocial: "MARICHAL 4 PARKING SL",
+  nif: "B88537345",
 
   // email del dueño del parking (recibe las reservas)
   emailDueno: "parkingaeromadrid@gmail.com",
@@ -26,8 +28,11 @@ export const NEGOCIO = {
   // email público de atención al cliente
   emailContacto: "parkingaeromadrid@gmail.com",
 
-  // ⚠️ CAMBIAR: dirección real del parking
-  direccion: "Av. de la Hispanidad, s/n · 28042 Madrid (junto a Aeropuerto Madrid-Barajas)",
+  // ⚠️ CAMBIAR: dirección real del parking. Antes tenía un valor de ejemplo
+  // ("Av. de la Hispanidad, s/n") que nunca se reemplazó y quedó publicado
+  // como si fuera real (aviso legal + JSON-LD de Google) — se quitó el
+  // 2026-09-04. No poner nada aquí hasta tener la dirección física real.
+  direccion: "",
 
   horario: "Abierto 24 horas · 365 días al año",
 } as const;
