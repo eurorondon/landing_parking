@@ -8,6 +8,7 @@
   --bg-card-s:   #181818;
   --orange:      #FF9500;
   --orange-dark: #d97700;
+  --green:       #22c55e;
   --white:       #ffffff;
   --gray:        #ffffff;
   --gray-dim:    #ffffff;
@@ -226,14 +227,17 @@ nav a:hover { color: #fff; }
   margin: 0 0 16px;
 }
 
-.hero-slogan {
-  font-size: clamp(20px, 2.8vw, 32px);
-  font-weight: 700;
-  color: var(--orange);
-  line-height: 1.22;
-  letter-spacing: -0.03em;
-  margin-bottom: 14px;
+.hero-h1-accent { color: var(--orange); }
+
+.hero-subtitle {
+  font-size: clamp(16px, 1.8vw, 20px);
+  font-weight: 500;
+  color: #fff;
+  line-height: 1.5;
+  margin-bottom: 22px;
+  max-width: 520px;
 }
+.hero-subtitle-accent { color: var(--orange); font-weight: 700; }
 
 .hero-terminals {
   font-size: 15px;
@@ -241,14 +245,6 @@ nav a:hover { color: #fff; }
   color: #fff;
   letter-spacing: 0.04em;
   margin-bottom: 12px;
-}
-
-.hero-desc {
-  font-size: 15px;
-  color: #fff;
-  line-height: 1.65;
-  margin-bottom: 26px;
-  max-width: 520px;
 }
 
 /* ── Tarjeta de precio (solo usada en la versión móvil hero) ── */
@@ -280,6 +276,10 @@ nav a:hover { color: #fff; }
 .price-included-title { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 3px; }
 .price-included-sub { font-size: 11px; color: var(--gray-dim); line-height: 1.45; }
 
+.price-checks { display: flex; flex-direction: column; gap: 9px; flex-shrink: 0; }
+.price-check-item { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--white); white-space: nowrap; }
+.price-check-icon { color: var(--green); font-size: 13px; }
+
 /* ── Feature grids ── */
 .hero-feat-3 {
   width: 100%;
@@ -288,13 +288,16 @@ nav a:hover { color: #fff; }
   gap: 8px;
   margin-bottom: 8px;
 }
-.hero-feat-2 {
+.hero-feat-4 {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
   margin-bottom: 22px;
 }
+.hero-feat-4 .hero-feat-item { padding: 12px 4px; gap: 6px; }
+.hero-feat-4 .hero-feat-icon { font-size: 18px; }
+.hero-feat-4 .hero-feat-item b { font-size: 10px; }
 .hero-feat-item {
   display: flex;
   flex-direction: column;
@@ -331,7 +334,13 @@ nav a:hover { color: #fff; }
 .cta-orange:hover { background: var(--orange-dark); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(255,149,0,.4); }
 .cta-orange-top { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; letter-spacing: 0.04em; }
 .cta-arrow { font-size: 22px; font-weight: 400; line-height: 1; }
-.cta-sub-text { font-size: 12px; font-weight: 500; opacity: 0.72; }
+.cta-sub-text {
+  font-size: clamp(7.5px, calc(3.3vw - 2.4px), 12px);
+  font-weight: 500;
+  opacity: 0.72;
+  white-space: nowrap;
+  max-width: 100%;
+}
 
 .cta-whatsapp {
   width: 100%;
@@ -943,7 +952,7 @@ footer a:hover { color: var(--orange); }
   background: rgba(255,149,0,.12);
   display: grid; place-items: center; font-size: 22px; flex-shrink: 0;
 }
-.bform-title { font-size: 22px; font-weight: 800; color: #111; letter-spacing: -.035em; margin: 0; line-height: 1.15; }
+.bform-title { font-size: 22px; font-weight: 800; color: #111; letter-spacing: -.035em; margin: 0 0 14px; line-height: 1.15; }
 .bform-subtitle { font-size: 14px; color: #fff; line-height: 1.5; margin: 0 0 14px; }
 .bform-trust-badge {
   display: inline-flex; align-items: center; gap: 6px;
@@ -1186,9 +1195,11 @@ footer a:hover { color: var(--orange); }
   .hero { padding: 78px 0 44px; }
   .hero h1 { font-size: 30px; }
   .hero-feat-3 { grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .hero-feat-2 { gap: 6px; }
+  .hero-feat-4 { gap: 5px; }
   .hero-stats  { gap: 6px; }
   .hero-footer-strip { gap: 6px; }
+  .price-card-hero { padding: 18px 16px; gap: 10px; }
+  .price-check-item { font-size: 11.5px; }
 
   .trust-divider { display: none; }
   .trust-inner { gap: 8px; }

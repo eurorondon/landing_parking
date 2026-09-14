@@ -164,7 +164,7 @@ export default function ParkingBaratoPage() {
                 adapta a tu ritmo de viaje.
               </p>
               <p>
-                Más de 8.000 clientes ya confían en Parkingaeromadrid.es para
+                Más de 20.000 clientes ya confían en Parkingaeromadrid.es para
                 aparcar en Barajas. Reserva online en menos de 1 minuto y empieza a
                 ahorrar desde tu próxima reserva.
               </p>

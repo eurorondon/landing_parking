@@ -43,18 +43,11 @@ function buildLocalBusinessLD(h1: string, canonicalPath: string) {
     description: h1,
     url: `https://parkingaeromadrid.es${canonicalPath}`,
     telephone: NEGOCIO.telefono,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "Av. de la Hispanidad, s/n",
-      addressLocality: "Madrid",
-      postalCode: "28042",
-      addressCountry: "ES",
-    },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: 40.4983,
-      longitude: -3.5676,
-    },
+    // `address`/`geo` se quitaron el 2026-09-04: tenían un valor de ejemplo
+    // ("Av. de la Hispanidad, s/n", coordenadas del aeropuerto) que nunca se
+    // reemplazó por la ubicación real y quedó publicado en el JSON-LD que lee
+    // Google — riesgo de que Maps/rich results muestren un punto incorrecto.
+    // Agregar de nuevo cuando se tenga la dirección física real del parking.
     openingHoursSpecification: {
       "@type": "OpeningHoursSpecification",
       dayOfWeek: [
@@ -154,7 +147,7 @@ export default function LandingPageSEO({
               <div className="seo-hero-left">
                 <div className="hero-badge">
                   <span className="hero-badge-stars">★★★★★</span>
-                  <span>Más de 8.000 reservas realizadas</span>
+                  <span>Más de 20.000 reservas realizadas</span>
                 </div>
 
                 <h1>{h1}</h1>

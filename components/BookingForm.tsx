@@ -200,9 +200,9 @@ export default function BookingForm() {
 
         {/* ── Cabecera ── */}
         <div className="bform-header">
-          <p className="bform-subtitle">
-            Calcula tu precio y reserva en menos de 1 minuto.
-          </p>
+          <h2 className="bform-title">
+            Calcula tu precio y reserva en menos de 1 minuto
+          </h2>
           <div className="bform-trust-badge">
             <LockIcon /> Sin pago anticipado
           </div>

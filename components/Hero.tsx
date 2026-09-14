@@ -1,7 +1,10 @@
 import BookingForm from "./BookingForm";
 import { NEGOCIO } from "@/lib/config";
+import { getPrecioDesde } from "@/lib/precio-db";
 
-export default function Hero() {
+export default async function Hero() {
+  const precioDesde = await getPrecioDesde();
+
   return (
     <section className="hero" id="inicio">
       <div className="container">
@@ -15,49 +18,54 @@ export default function Hero() {
             {/* Stars badge */}
             <div className="hero-badge">
               <span className="hero-badge-stars">★★★★★</span>
-              <span>Más de 8.000 clientes satisfechos</span>
+              <span>Más de 20.000 clientes satisfechos</span>
             </div>
 
-            <h1>Parking Aeropuerto Madrid</h1>
+            <h1>
+              Parking Aeropuerto
+              <br />
+              <span className="hero-h1-accent">Madrid</span>
+            </h1>
 
-            <div className="hero-slogan">
-              Entrega tu coche en la terminal<br />y viaja sin esperas
+            <div className="hero-subtitle">
+              Entrega tu coche en <span className="hero-subtitle-accent">T1</span>,{" "}
+              <span className="hero-subtitle-accent">T2</span> o{" "}
+              <span className="hero-subtitle-accent">T4</span> y vete directamente a tu vuelo.
             </div>
 
-            <div className="hero-terminals">T1 · T2 · T4 &nbsp;&nbsp; Madrid-Barajas</div>
-
-            <div className="hero-desc">
-              Recogemos tu coche en la terminal y te lo devolvemos allí mismo
-              a tu regreso. Sin autobuses. Sin esperas. Sin pagar por adelantado.
-            </div>
-
-            {/* 3 ventajas */}
-            <div className="hero-feat-3">
+            {/* 4 ventajas */}
+            <div className="hero-feat-4">
               {[
-                { icon: "✈️", title: "Entrega en terminal", sub: "Recogida en tu regreso" },
-                { icon: "🚌", title: "Sin autobuses", sub: "Directo al aeropuerto" },
-                { icon: "🛡️", title: "Vigilancia 24h", sub: "Vehículo protegido" },
+                { icon: "✈️", title: "Entrega en terminal" },
+                { icon: "🚌", title: "Sin autobuses ni esperas" },
+                { icon: "🛡️", title: "Seguro y vigilancia 24h" },
+                { icon: "💳", title: "Paga al entregar" },
               ].map((f) => (
                 <div className="hero-feat-item" key={f.title}>
                   <div className="hero-feat-icon">{f.icon}</div>
                   <b>{f.title}</b>
-                  <span>{f.sub}</span>
                 </div>
               ))}
             </div>
 
-            {/* 2 ventajas */}
-            <div className="hero-feat-2">
-              {[
-                { icon: "💬", title: "Reserva inmediata", sub: "Confirmación al instante" },
-                { icon: "💳", title: "Sin pago por adelantado", sub: "Paga al entregar" },
-              ].map((f) => (
-                <div className="hero-feat-item" key={f.title}>
-                  <div className="hero-feat-icon">{f.icon}</div>
-                  <b>{f.title}</b>
-                  <span>{f.sub}</span>
+            {/* Tarjeta de precio */}
+            <div className="price-card-hero">
+              <div>
+                <div className="price-desde">DESDE</div>
+                <div className="price-amount">
+                  <span className="price-num">{precioDesde.toFixed(2).replace(".", ",")}</span>
+                  <span className="price-unit">€</span>
                 </div>
-              ))}
+                <div className="price-valet">Seguro incluido · IVA incluido</div>
+              </div>
+              <div className="price-checks">
+                {["Sin compromiso", "Paga al entregar", "Confirmación inmediata"].map((t) => (
+                  <div className="price-check-item" key={t}>
+                    <span className="price-check-icon">✅</span>
+                    <span>{t}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* CTA calcular (solo visible en móvil; en desktop el form está a la derecha) */}
@@ -66,7 +74,7 @@ export default function Hero() {
                 <span>CONSULTAR PRECIO</span>
                 <span className="cta-arrow">›</span>
               </div>
-              <div className="cta-sub-text">🟢 Sin compromiso • Pago al entregar • Confirmación inmediata</div>
+              <div className="cta-sub-text">🟢 Sin compromiso • Paga al entregar • Confirmación inmediata</div>
             </a>
 
             {/* WhatsApp */}
@@ -88,7 +96,7 @@ export default function Hero() {
             <div className="hero-stats">
               <div className="hero-stat">
                 <span className="stat-icon">👥</span>
-                <div className="stat-text">Más de <b>8.000</b><br />clientes satisfechos</div>
+                <div className="stat-text">Más de <b>20.000</b><br />clientes satisfechos</div>
               </div>
               <div className="hero-stat">
                 <span className="stat-icon">🛡️</span>

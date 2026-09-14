@@ -197,7 +197,7 @@ export default function ParkingValetPage() {
                 con miles de reservas realizadas y una valoración media de 4,9 sobre 5.
               </p>
               <ul>
-                <li>Más de 8.000 reservas realizadas</li>
+                <li>Más de 20.000 reservas realizadas</li>
                 <li>Valoración media de 4,9 estrellas</li>
                 <li>Atención al cliente 24/7 por WhatsApp</li>
                 <li>Cobertura en T1, T2 y T4</li>
