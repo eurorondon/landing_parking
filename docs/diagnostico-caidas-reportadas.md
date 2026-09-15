@@ -105,6 +105,59 @@ entrar a `/admin`, "se cayó varias veces hoy desde las 12:49 hora Venezuela".
 corte de red del lado del cliente (móvil, cambio 4G/WiFi, señal débil), no
 con una caída real del sitio.
 
+## Caso resuelto — 15 sep 2026 (falla solo en Android, funciona en iPhone)
+
+**Reporte:** "no se puede acceder a este sitio web" en varios dispositivos
+Android entre el 14 y 15-sep. Pruebas en ~5 iPhones dieron OK siempre.
+Capturas de los Android mostraron tres códigos de error distintos según el
+dispositivo: `ERR_CONNECTION_REFUSED`, `ERR_CONNECTION_ABORTED`,
+`ERR_QUIC_PROTOCOL_ERROR`. Ocurrió con **operadoras de telefonía distintas**
+(no es un problema de un solo operador).
+
+**Lo descartado (en este orden):**
+
+1. Proceso Passenger de `parkingaeromadrid.es`: se reinició ~06:35 del 15-sep
+   junto con TODOS los demás sitios del VPS — es el mantenimiento nocturno
+   rutinario de Plesk (`Daily Maintenance: InstallSystemPackageUpdates`,
+   reinicia Apache/Nginx/PHP-FPM/Passenger cada madrugada ~06:25-06:36 CEST).
+   No es un crash de esta app.
+2. TLS: negociación 1.2 y 1.3 contra el dominio responde 200 OK normal.
+3. Cloudflare Security → Analytics → Events, filtrado por `Country = Spain`,
+   últimas 24h: **cero eventos** (ni Block ni Challenge). Se descarta
+   WAF/Managed Rules bloqueando tráfico español.
+4. Bot Fight Mode: estaba **desactivado** (toggle gris). Se descarta.
+5. DNS: `A`/`AAAA` de apex y `www` resuelven correctamente a las IPs anycast
+   de Cloudflare, sin nada raro.
+6. `access_ssl_log` del día: decenas de peticiones reales de Android (Chrome
+   152/153, campañas de Google Ads) llegando al origen y respondiendo `200`
+   sin problema — descarta bloqueo general contra Android.
+
+**Causa encontrada:** el sitio tenía **HTTP/3 (with QUIC)** activado en
+Cloudflare (`Speed → Settings → Protocol Optimization`), visible como header
+`alt-svc: h3=":443"` en las respuestas. Chrome en Android intenta QUIC
+(HTTP/3 sobre UDP) de forma más agresiva que Safari/iOS. Muchas redes
+móviles (de varias operadoras) tienen firewalls/DPI que bloquean o corrompen
+tráfico UDP/443, y el fallback automático de Chrome a HTTP/2-TCP no siempre
+ocurre limpio en Android, produciendo justo esos tres errores
+(`ERR_QUIC_PROTOCOL_ERROR` = handshake QUIC corrompido por el DPI de la
+operadora, `ERR_CONNECTION_REFUSED` = UDP 443 bloqueado,
+`ERR_CONNECTION_ABORTED` = conexión cortada a medias). Explica por qué
+afecta a Android y no a iPhone, y por qué pasa con operadoras distintas (no
+es específico de una red, es que QUIC en general es frágil en redes
+móviles).
+
+**Solución:** desactivar `HTTP/3 (with QUIC)` en
+`Speed → Settings → Protocol Optimization`. Verificado que tras
+desactivarlo el header `alt-svc` ya no aparece en las respuestas, y
+**confirmado por el usuario que los dispositivos Android que fallaban ya
+cargan la web correctamente** tras el cambio.
+
+**Si vuelve a pasar "falla en Android, funciona en iPhone, varias
+operadoras":** pedir el código de error exacto en gris bajo el mensaje de
+Chrome. Si es `ERR_QUIC_PROTOCOL_ERROR`/`ERR_CONNECTION_REFUSED`/
+`ERR_CONNECTION_ABORTED`, sospechar QUIC/HTTP3 primero y revisar si se
+reactivó el toggle.
+
 ## Regla general para recordar
 
 1. Si Passenger no se reinició y el `access_ssl_log` muestra 200/normal a

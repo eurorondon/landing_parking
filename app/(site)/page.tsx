@@ -11,6 +11,11 @@ import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
 import StickyButtons from "@/components/StickyButtons";
 
+// El precio "desde" del Hero sale de la BD (registro_precios + seguro); sin
+// esto la home queda estática en build y ese precio no se actualiza hasta
+// el próximo deploy aunque se cambie en el panel admin.
+export const revalidate = 60;
+
 export default function Home() {
   return (
     <>

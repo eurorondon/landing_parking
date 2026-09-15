@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 const stats = [
-  { numero: "+48.000", etiqueta: "Clientes satisfechos" },
+  { numero: "+20.000", etiqueta: "Clientes satisfechos" },
   { numero: "4.9★", etiqueta: "Valoración media" },
   { numero: "24/7", etiqueta: "Atención al cliente" },
   { numero: "<60 seg", etiqueta: "Para completar la reserva" },
