@@ -32,7 +32,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; overflow-x: hidden; }
 body {
-  font-family: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-manrope), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--white);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -180,9 +180,21 @@ nav a:hover { color: #fff; }
   color: #fff;
   isolation: isolate;
   overflow: hidden;
+  /* Fondo autoalojado (antes hotlink a images.unsplash.com: dependía de un
+     origen externo y servía siempre 2200px de ancho aunque el móvil pese
+     390px). Versión móvil de 900px por defecto; a partir de 768px se sirve
+     la de 1920px para pantallas más grandes. */
   background:
     linear-gradient(160deg, rgba(10,10,10,.94) 0%, rgba(10,10,10,.78) 55%, rgba(10,10,10,.96) 100%),
-    url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=2200&q=80') center/cover no-repeat;
+    url('/hero-bg-mobile.webp') center/cover no-repeat;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    background:
+      linear-gradient(160deg, rgba(10,10,10,.94) 0%, rgba(10,10,10,.78) 55%, rgba(10,10,10,.96) 100%),
+      url('/hero-bg.webp') center/cover no-repeat;
+  }
 }
 
 /* ── Grid del hero: 1 columna móvil → 2 columnas escritorio ── */

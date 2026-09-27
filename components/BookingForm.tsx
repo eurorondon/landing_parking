@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Select from "./ui/Select";
 import DatePicker from "./ui/DatePicker";
@@ -42,12 +42,35 @@ export default function BookingForm() {
   // Estado del servicio de lavado seleccionado desde ServiciosLimpieza
   const [lavado, setLavado] = useState<{ id: number; nombre: string; precio: string } | null>(null);
 
+  // Cada página monta este componente DOS veces (una ranura para escritorio
+  // en `.hero-right`, otra para móvil en `.bform-section`) y usa CSS
+  // `display:none` para mostrar solo una según el ancho de pantalla. Sin
+  // este flag, la instancia oculta seguía activa e igual disparaba su propio
+  // fetch a /api/precio, sus listeners y su propio evento
+  // "vehiculo-cambiado" por duplicado en cada carga. `isActive` detecta si
+  // ESTA instancia es la que CSS está mostrando (offsetParent es null si
+  // cualquier ancestro tiene display:none) para que solo ella ejecute los
+  // efectos; el marcado visual no cambia en ninguna de las dos ranuras.
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [isActive, setIsActive] = useState(false);
+
+  useEffect(() => {
+    function comprobarVisibilidad() {
+      setIsActive(cardRef.current ? cardRef.current.offsetParent !== null : false);
+    }
+    comprobarVisibilidad();
+    window.addEventListener("resize", comprobarVisibilidad);
+    return () => window.removeEventListener("resize", comprobarVisibilidad);
+  }, []);
+
   // Inicializa en el cliente:
   // · Calcula "hoy" para el atributo min de los inputs de fecha
   // · Pre-rellena solo la hora (igual que el dashboard: la fecha la elige el usuario)
   // · Lee el lavado pendiente guardado por ServiciosLimpieza
   // · Re-sincroniza "hoy" si la pestaña queda abierta hasta el día siguiente
   useEffect(() => {
+    if (!isActive) return;
+
     function actualizarHoy() {
       const todayStr   = aFechaInput(new Date());
       const slotInicio = getNearestSlot();
@@ -92,17 +115,20 @@ export default function BookingForm() {
       window.removeEventListener("pageshow", onPageShow);
       window.removeEventListener("lavado-seleccionado", onLavado);
     };
-  }, []);
+  }, [isActive]);
 
   // Difunde el tipo de vehículo para que otras secciones (ServiciosLimpieza)
   // puedan adaptar su texto (p. ej. ocultar "interior" en autocaravana).
   useEffect(() => {
+    if (!isActive) return;
     sessionStorage.setItem("vehiculo", reserva.vehiculo);
     window.dispatchEvent(new CustomEvent("vehiculo-cambiado", { detail: reserva.vehiculo }));
-  }, [reserva.vehiculo]);
+  }, [reserva.vehiculo, isActive]);
 
   // Recalcula precio desde la BD cuando cambian fechas u horas
   useEffect(() => {
+    if (!isActive) return;
+
     const entrada = new Date(`${reserva.entryDate}T${reserva.entryTime}`);
     const salida  = new Date(`${reserva.exitDate}T${reserva.exitTime}`);
 
@@ -138,7 +164,7 @@ export default function BookingForm() {
       })
       .catch(() => setCalculo(null))
       .finally(() => setCargando(false));
-  }, [reserva.entryDate, reserva.entryTime, reserva.exitDate, reserva.exitTime, reserva.vehiculo]);
+  }, [reserva.entryDate, reserva.entryTime, reserva.exitDate, reserva.exitTime, reserva.vehiculo, isActive]);
 
   function actualizar(campo: keyof DatosReserva, valor: string) {
     setReserva((r) => {
@@ -196,7 +222,7 @@ export default function BookingForm() {
 
   return (
     <>
-      <div className="bform-card">
+      <div className="bform-card" ref={cardRef}>
 
         {/* ── Cabecera ── */}
         <div className="bform-header">

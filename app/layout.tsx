@@ -1,5 +1,24 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { Manrope, Inter } from "next/font/google";
+
+// Autoalojadas con next/font (antes <link> a fonts.googleapis.com): evita los
+// dos saltos de red a fonts.googleapis.com + fonts.gstatic.com antes de
+// poder pintar el texto, y el posible salto de layout (CLS) al cambiar de la
+// fuente de reserva a la definitiva. Manrope la usa la landing, Inter el
+// panel de administración (ver app/(site)/landing.css y app/admin/admin.css).
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-manrope",
+});
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -29,15 +48,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es">
+    <html lang="es" className={`${manrope.variable} ${inter.variable}`}>
       <head>
-        {/* Manrope: landing · Inter: panel de administración */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
-          rel="stylesheet"
-        />
         {/* GTM Consent Mode v2 — estado DENEGADO por defecto antes de que el usuario elija */}
         <Script
           id="gtm-consent-default"

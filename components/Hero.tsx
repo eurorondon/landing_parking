@@ -1,10 +1,7 @@
 import BookingForm from "./BookingForm";
 import { NEGOCIO } from "@/lib/config";
-import { getPrecioDesde } from "@/lib/precio-db";
 
-export default async function Hero() {
-  const precioDesde = await getPrecioDesde();
-
+export default function Hero() {
   return (
     <section className="hero" id="inicio">
       <div className="container">
@@ -46,26 +43,6 @@ export default async function Hero() {
                   <b>{f.title}</b>
                 </div>
               ))}
-            </div>
-
-            {/* Tarjeta de precio */}
-            <div className="price-card-hero">
-              <div>
-                <div className="price-desde">DESDE</div>
-                <div className="price-amount">
-                  <span className="price-num">{precioDesde.toFixed(2).replace(".", ",")}</span>
-                  <span className="price-unit">€</span>
-                </div>
-                <div className="price-valet">Seguro incluido · IVA incluido</div>
-              </div>
-              <div className="price-checks">
-                {["Sin compromiso", "Paga al entregar", "Confirmación inmediata"].map((t) => (
-                  <div className="price-check-item" key={t}>
-                    <span className="price-check-icon">✅</span>
-                    <span>{t}</span>
-                  </div>
-                ))}
-              </div>
             </div>
 
             {/* CTA calcular (solo visible en móvil; en desktop el form está a la derecha) */}

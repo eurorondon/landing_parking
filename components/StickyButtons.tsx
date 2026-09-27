@@ -5,6 +5,7 @@ import { NEGOCIO } from "@/lib/config";
 
 export default function StickyButtons() {
   const [footerVisible, setFooterVisible] = useState(false);
+  const [calcularVisible, setCalcularVisible] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -17,6 +18,21 @@ export default function StickyButtons() {
       { threshold: 0.05 }
     );
     observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
+
+  // Ocultar botones cuando la calculadora (#calcular) es visible: en móvil
+  // tapaban el borde derecho de los campos "Hora/Terminal de salida" y el
+  // CTA. En escritorio la sección está en display:none, así que el
+  // observer nunca la reporta visible ahí.
+  useEffect(() => {
+    const calcular = document.getElementById("calcular");
+    if (!calcular) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setCalcularVisible(entry.isIntersecting),
+      { threshold: 0.15 }
+    );
+    observer.observe(calcular);
     return () => observer.disconnect();
   }, []);
 
@@ -33,7 +49,7 @@ export default function StickyButtons() {
   }, [phoneOpen]);
 
   return (
-    <div className={`sticky-btns${footerVisible ? " sticky-btns--hidden" : ""}`}>
+    <div className={`sticky-btns${footerVisible || calcularVisible ? " sticky-btns--hidden" : ""}`}>
 
       {/* ── Botón Teléfono ── */}
       <div ref={popupRef} className="sticky-btn-wrap">
