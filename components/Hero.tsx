@@ -51,8 +51,17 @@ export default function Hero() {
                 <span>CONSULTAR PRECIO</span>
                 <span className="cta-arrow">›</span>
               </div>
-              <div className="cta-sub-text">🟢 Sin compromiso • Paga al entregar • Confirmación inmediata</div>
             </a>
+
+            {/* Checks bajo el CTA (solo visible en móvil, igual que el botón) */}
+            <div className="hero-cta-checks hero-cta-mobile">
+              {["Sin compromiso", "Paga al entregar", "Confirmación inmediata"].map((t) => (
+                <span className="hero-cta-check-item" key={t}>
+                  <span className="hero-cta-check-icon">✅</span>
+                  {t}
+                </span>
+              ))}
+            </div>
 
             {/* WhatsApp */}
             <a

@@ -354,6 +354,26 @@ nav a:hover { color: #fff; }
   max-width: 100%;
 }
 
+/* ── Checks bajo el CTA de precio del hero (móvil) ── */
+.hero-cta-checks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 14px;
+  margin: 0 0 14px;
+}
+.hero-cta-check-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--white);
+  white-space: nowrap;
+}
+.hero-cta-check-icon { font-size: 11px; }
+
 .cta-whatsapp {
   width: 100%;
   display: flex;
