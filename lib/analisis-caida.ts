@@ -52,42 +52,47 @@ export const EVENTOS: EventoCaida[] = [
     detalle: "Nuevo hero con tarjeta «DESDE X €» y nuevo cálculo del recargo de temporada. Sin temporadas activas el cálculo da lo mismo que antes. El día 15 solo hay 1 reserva.",
   },
   {
-    id: 3, fecha: "2026-09-16", tipo: "incidencia",
-    titulo: "Caída del panel en Android (ECH)",
-    detalle: "Se desactiva el ECH de Cloudflare. No explica la caída de reservas: en iPhone cae igual que en Android.",
+    id: 3, fecha: "2026-09-15", tipo: "incidencia",
+    titulo: "Android sin acceso al sitio (HTTP/3 · QUIC)",
+    detalle: "Entre el 14 y el 15 de septiembre varios Android no podían abrir el sitio (ERR_QUIC_PROTOCOL_ERROR, CONNECTION_REFUSED/ABORTED), con operadoras distintas. En iPhone funcionaba siempre. Se desactiva HTTP/3 en Cloudflare el 15 y los Android vuelven a cargar. Ver docs/diagnostico-caidas-reportadas.md.",
   },
   {
-    id: 4, fecha: "2026-09-18", tipo: "ads",
+    id: 4, fecha: "2026-09-16", tipo: "incidencia",
+    titulo: "Android con datos móviles: error de ECH",
+    detalle: "El 16 el panel falla en Android con datos móviles (con WiFi carga) y otro teléfono da ERR_ECH_FALLBACK_CERTIFICATE_INVALID. Se desactiva el ECH de Cloudflare esa noche; falta confirmar que ya carga con datos móviles.",
+  },
+  {
+    id: 5, fecha: "2026-09-18", tipo: "ads",
     titulo: "≈9 palabras clave pausadas",
     detalle: "Madrugada del 18 (2:23–2:41). Eran de muy poco gasto; las que más convierten siguen activas.",
   },
   {
-    id: 5, fecha: "2026-09-21", tipo: "ads",
+    id: 6, fecha: "2026-09-21", tipo: "ads",
     titulo: "Otra palabra clave de frase pausada",
     detalle: "Pausa de una palabra clave de concordancia de frase en la campaña principal.",
   },
   {
-    id: 6, fecha: "2026-09-22", tipo: "ads",
+    id: 7, fecha: "2026-09-22", tipo: "ads",
     titulo: "Performance Max pausada",
     detalle: "Pausada desde la app móvil de Google Ads. En agosto aportó ≈26 reservas por 416 €. Desde entonces casi no genera clics ni conversiones.",
   },
   {
-    id: 7, fecha: "2026-09-27", tipo: "sitio",
+    id: 8, fecha: "2026-09-27", tipo: "sitio",
     titulo: "Hero sin tarjeta de precio + mejoras de rendimiento",
     detalle: "Se quita la tarjeta «DESDE X €», se optimiza la imagen del hero y las fuentes. No se ve recuperación posterior.",
   },
   {
-    id: 8, fecha: "2026-09-29", tipo: "ads",
+    id: 9, fecha: "2026-09-29", tipo: "ads",
     titulo: "Otra palabra clave exacta pausada",
     detalle: "Pausa de una palabra clave de concordancia exacta en la campaña principal.",
   },
   {
-    id: 9, fecha: "2026-10-01", tipo: "ads",
+    id: 10, fecha: "2026-10-01", tipo: "ads",
     titulo: "Campaña «29 de septiembre» pausada",
     detalle: "La campaña nueva «29 de septiembre intención alta» gastó 14,57 € en 9 clics (CPC 1,62 €) sin conversiones y se pausa.",
   },
   {
-    id: 10, fecha: "2026-10-02", tipo: "ads",
+    id: 11, fecha: "2026-10-02", tipo: "ads",
     titulo: "Cambios de anuncios, URLs finales y palabras clave",
     detalle: "Ediciones manuales en la campaña principal (anuncio adaptable, 2 URLs finales, palabras clave). Los datos de hoy aún no reflejan una situación estable.",
   },
@@ -118,6 +123,7 @@ export const PASOS: PasoInforme[] = [
       "Del 3 de agosto al 13 de septiembre entraban unas **7 reservas web al día**. Desde el 14 de septiembre bajan a **unas 3,5 al día**, y en la última semana a ~2,4. Los euros por semana caen más de la mitad.",
       "El ticket medio no cambia (≈56–63 € por reserva): entran menos reservas, no más baratas.",
       "El escalón empieza **antes** de los cambios en Google Ads (palabras clave el 18, Performance Max el 22). Esos cambios agravan la caída, pero no la inician.",
+      "En esas mismas fechas coinciden dos cosas: el rediseño del hero (14 sept) y el **fallo de acceso en Android** (HTTP/3 el 14–15 y ECH el 16, ver los eventos 3 y 4). El fallo de Android pudo restar reservas esos días; las reservas siguieron bajas después de corregirlo.",
     ],
   },
   {
@@ -140,7 +146,7 @@ export const PASOS: PasoInforme[] = [
     titulo: "La caída está en el móvil, tanto Android como iPhone",
     texto: [
       "Por dispositivo, los eventos clave por usuario del móvil bajan casi a la mitad (0,18 → 0,10). En escritorio se mantienen.",
-      "Como cae igual en Safari (iPhone) que en Chrome (Android), el problema de ECH, que solo afectó a Android, no basta para explicarlo.",
+      "El fallo de acceso de Cloudflare (HTTP/3 y ECH) solo afectó a Android; en iPhone el sitio cargaba bien. Aun así la conversión en iPhone bajó igual que en Android, así que ese fallo **no basta para explicar** la caída. Sí pudo restar parte en Android: los usuarios de Chrome móvil bajan un 27 % frente a un 18 % en Safari móvil.",
     ],
     tabla: {
       cabecera: ["Dispositivo (1 ago–15 sep → 16 sep–1 oct)", "Usuarios al día", "Eventos clave al día"],
@@ -209,7 +215,7 @@ export const PASOS: PasoInforme[] = [
   {
     titulo: "Lo que se ha descartado",
     texto: [
-      "**ECH de Cloudflare:** no explica la caída; iPhone cae igual que Android.",
+      "**Fallo de acceso en Android (HTTP/3 el 14–15 sept y ECH el 16):** coincide con el inicio de la caída y pudo restar reservas de Android esos días, pero se corrigió y las reservas siguieron bajas. En iPhone, donde el sitio cargaba bien, la conversión bajó igual. No explica la caída persistente.",
       "**Palabras clave pausadas el 18 de septiembre:** eran de muy poco gasto (menos de 8 € cada una, salvo `\"parking t4 barajas\"`, a 39 € por conversión). Las que más convierten siguen activas.",
       "**Cálculo de precios del 14 de septiembre:** la tabla de temporadas está vacía, así que el recargo es 0 € con el código anterior y con el nuevo. Los totales que ve el cliente no han cambiado.",
       "**Formulario `/reservar` en móvil:** se ve y funciona bien (campos, botón de confirmar, sin elementos flotantes que lo tapen).",
@@ -232,7 +238,8 @@ export const PASOS: PasoInforme[] = [
       "**2. Poca cuota de impresiones en las genéricas — certeza alta.** Se pierde por ranking: subir pujas o mejorar los anuncios de `parking aeropuerto madrid` y similares.",
       "**3. Peor conversión en móvil — certeza media.** Revisar el paso `/planes` → `/reservar` y el aspecto de la portada en móvil.",
       "**4. Rediseño del hero (14 sept) — certeza baja.** Coincide en fechas, pero el camino de reserva no cambió y más gente pasa de la portada a `/planes`. Quitar la tarjeta de precio el 27 no recuperó nada.",
-      "**5. Estacionalidad — por medir.** Mediados de septiembre y octubre suelen ser más flojos tras el pico de agosto. La tabla semanal de abajo (antelación y reservas por semana) ayuda a estimarlo.",
+      "**5. Fallo de acceso en Android (14–16 sept) — contribuyó al inicio, no a lo persistente.** Corregido el 15 (HTTP/3) y el 16 (ECH). Pendiente: confirmar que el admin ya entra con datos móviles.",
+      "**6. Estacionalidad — por medir.** Mediados de septiembre y octubre suelen ser más flojos tras el pico de agosto. La tabla semanal de abajo (antelación y reservas por semana) ayuda a estimarlo.",
     ],
     nota: "Es una foto a 2 de octubre de 2026. Las coincidencias de fechas no prueban la causa. Pendiente: reservas por fecha de entrada comparadas con el año anterior, si hay datos.",
   },
