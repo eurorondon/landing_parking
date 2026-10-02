@@ -603,3 +603,50 @@ select.filter-select:focus{border-color:var(--teal-400);}
   .planning-datebar{gap:6px;}
   .planning-date-input{margin-left:0;width:100%;}
 }
+
+/* ── Análisis de caída de reservas ── */
+.an-intro{font-size:13.5px;color:var(--gray-600);line-height:1.55;margin:0 0 14px;}
+.an-chart-scroll{overflow-x:auto;margin:0 -4px;padding:0 4px;}
+.an-chart{width:100%;min-width:760px;height:auto;display:block;font-family:var(--font-inter),system-ui,sans-serif;}
+.an-zona{fill:rgba(239,68,68,.07);}
+.an-grid{stroke:var(--gray-200);stroke-width:1;}
+.an-eje{stroke:var(--gray-300);stroke-width:1;}
+.an-tick{font-size:11px;fill:var(--gray-500);}
+.an-bar{fill:var(--teal-300);}
+.an-bar-hoy{opacity:.45;}
+.an-media{fill:none;stroke:var(--amber);stroke-width:3;stroke-linejoin:round;stroke-linecap:round;}
+.an-ref{stroke-width:1.8;stroke-dasharray:6 4;}
+.an-ref-antes{stroke:var(--green-text);}
+.an-ref-despues{stroke:var(--red-text);}
+.an-ref-txt{font-size:12px;font-weight:700;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round;}
+.an-ref-txt-antes{fill:var(--green-text);}
+.an-ref-txt-despues{fill:var(--red-text);}
+.an-evento-linea{stroke-width:1;stroke-dasharray:3 3;opacity:.55;}
+.an-evento-num{font-size:11px;font-weight:700;fill:#fff;pointer-events:none;}
+.an-leyenda{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12px;color:var(--gray-600);margin:12px 0 4px;}
+.an-leyenda span{display:inline-flex;align-items:center;gap:6px;}
+.an-sw{display:inline-block;width:14px;height:10px;border-radius:2px;}
+.an-sw-bar{background:var(--teal-300);}
+.an-sw-media{height:3px;background:var(--amber);}
+.an-sw-antes{height:0;border-top:2px dashed var(--green-text);}
+.an-sw-despues{height:0;border-top:2px dashed var(--red-text);}
+.an-sw-ev{width:10px;height:10px;border-radius:50%;}
+.an-eventos{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px;}
+.an-eventos li{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border:1px solid var(--gray-100);
+  border-radius:var(--radius-md);background:var(--gray-50);}
+.an-ev-num{flex:0 0 auto;width:22px;height:22px;border-radius:50%;color:#fff;font-size:12px;font-weight:700;
+  display:grid;place-items:center;margin-top:1px;}
+.an-ev-titulo{font-size:13.5px;color:var(--gray-900);}
+.an-ev-tipo{margin-left:8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+.an-ev-detalle{font-size:13px;color:var(--gray-600);margin-top:2px;line-height:1.5;}
+.an-pasos{display:grid;gap:20px;}
+.an-paso .card-body p{font-size:14px;line-height:1.6;color:var(--gray-700);margin:0 0 10px;}
+.an-paso .card-body code{font-size:12.5px;background:var(--gray-100);padding:1px 5px;border-radius:4px;}
+.an-paso-num{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;
+  background:var(--teal-500);color:#fff;font-size:12.5px;font-weight:700;margin-right:6px;}
+.an-tabla{margin:12px 0 4px;}
+.an-nota{font-size:12.5px !important;color:var(--gray-500) !important;background:var(--amber-light);
+  border-radius:var(--radius-sm);padding:8px 10px;margin-top:10px !important;}
+@media(max-width:768px){
+  .an-ev-tipo{display:block;margin:2px 0 0;}
+}
