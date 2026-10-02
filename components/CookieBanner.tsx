@@ -37,7 +37,46 @@ function loadConsent(): ConsentData | null {
   }
 }
 
-/** Notifica a GTM el estado de consentimiento */
+/** ID del proyecto de Microsoft Clarity (grabaciones y mapas de calor) */
+const CLARITY_ID = "yrkv325bdz";
+
+type ClarityFn = ((...args: unknown[]) => void) & { q?: unknown[] };
+
+/**
+ * Microsoft Clarity: el script SOLO se carga cuando el usuario acepta las
+ * cookies de analítica en este mismo banner. Clarity no lee el Consent Mode de
+ * Google, así que se le pasa el estado con su Consent API v2 (las claves
+ * `ad_Storage` y `analytics_Storage` distinguen mayúsculas).
+ * Si el usuario rechaza y Clarity ya estaba cargado en esta sesión, se le avisa
+ * para que deje de escribir cookies.
+ */
+function actualizarClarity(analytics: ConsentValue, marketing: ConsentValue) {
+  if (typeof window === "undefined") return;
+  const w = window as Window & { clarity?: ClarityFn };
+
+  if (analytics !== "granted") {
+    if (w.clarity) w.clarity("consentv2", { ad_Storage: "denied", analytics_Storage: "denied" });
+    return;
+  }
+
+  if (!w.clarity) {
+    // Mismo stub que el snippet oficial: encola las llamadas hasta que cargue el script
+    w.clarity = function () {
+      // eslint-disable-next-line prefer-rest-params
+      (w.clarity!.q = w.clarity!.q || []).push(arguments);
+    } as ClarityFn;
+  }
+  if (!document.getElementById("clarity-script")) {
+    const script = document.createElement("script");
+    script.id = "clarity-script";
+    script.async = true;
+    script.src = `https://www.clarity.ms/tag/${CLARITY_ID}`;
+    document.head.appendChild(script);
+  }
+  w.clarity("consentv2", { ad_Storage: marketing, analytics_Storage: "granted" });
+}
+
+/** Notifica a GTM (y a Clarity) el estado de consentimiento */
 function pushConsentUpdate(analytics: ConsentValue, marketing: ConsentValue) {
   if (typeof window === "undefined") return;
   const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
@@ -49,6 +88,7 @@ function pushConsentUpdate(analytics: ConsentValue, marketing: ConsentValue) {
       ad_personalization: marketing,
     });
   }
+  actualizarClarity(analytics, marketing);
 }
 
 export default function CookieBanner() {

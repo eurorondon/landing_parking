@@ -296,7 +296,7 @@ export default function ReservaForm() {
               </button>
             </div>
           ) : (
-            <form onSubmit={confirmar} className="reservar-form">
+            <form onSubmit={confirmar} className="reservar-form" data-clarity-mask="True">
               <h2 className="reservar-form-titulo">Tus datos de contacto</h2>
 
               <div className="reservar-fields">

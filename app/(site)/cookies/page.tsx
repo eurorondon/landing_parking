@@ -152,6 +152,32 @@ export default function PoliticaCookies() {
                 un servicio analítico prestado por Google, Inc. (1600 Amphitheatre Parkway,
                 Mountain View, California 94043, EE.UU.).
               </p>
+              <p style={{ margin: "10px 0 0", fontSize: 14 }}>
+                Además, si aceptas las cookies con <strong style={{ color: "#fff" }}>«Aceptar todo»</strong>,
+                se activa <strong style={{ color: "#fff" }}>Microsoft Clarity</strong>, un servicio de análisis
+                del comportamiento prestado por Microsoft Corporation (One Microsoft Way, Redmond,
+                Washington 98052, EE.UU.). Registra cómo usas la web (clics, movimientos, desplazamiento
+                y páginas visitadas) mediante mapas de calor y reproducciones de sesión, con el fin de
+                mejorar la usabilidad y detectar errores. Para ello establece las cookies propias{" "}
+                <strong style={{ color: "#fff" }}>_clck</strong> (identificador pseudónimo de usuario) y{" "}
+                <strong style={{ color: "#fff" }}>_clsk</strong> (une las páginas vistas en una misma sesión), y
+                las cookies de terceros de Microsoft <strong style={{ color: "#fff" }}>CLID</strong>,{" "}
+                <strong style={{ color: "#fff" }}>ANONCHK</strong>, <strong style={{ color: "#fff" }}>MR</strong>,{" "}
+                <strong style={{ color: "#fff" }}>MUID</strong> y <strong style={{ color: "#fff" }}>SM</strong>.
+              </p>
+              <p style={{ margin: "10px 0 0", fontSize: 14 }}>
+                Si eliges <strong style={{ color: "#fff" }}>«Solo esenciales»</strong>, Clarity no se carga ni
+                guarda cookies. Los formularios donde introduces tus datos personales se ocultan en las
+                grabaciones. Puedes consultar cómo trata Microsoft los datos en su{" "}
+                <a
+                  href="https://www.microsoft.com/privacy/privacystatement"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "var(--orange)" }}
+                >
+                  declaración de privacidad
+                </a>.
+              </p>
             </div>
           </details>
 

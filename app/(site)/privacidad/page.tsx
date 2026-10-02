@@ -137,14 +137,66 @@ export default function Privacidad() {
             </p>
           </details>
 
+          {/* Analítica y grabación de sesiones */}
+          <details>
+            <summary>ANALÍTICA WEB Y GRABACIÓN DE SESIONES (MICROSOFT CLARITY)</summary>
+            <p>
+              Si aceptas las cookies con <strong>«Aceptar todo»</strong>, utilizamos{" "}
+              <strong>Microsoft Clarity</strong>, un servicio de Microsoft Corporation,
+              para ver cómo usas y te desenvuelves en nuestra web mediante métricas de
+              comportamiento, mapas de calor y reproducciones de sesión. Lo hacemos para
+              mejorar la usabilidad de la página y detectar errores, y se basa en
+              cookies propias y de terceros (consulta la{" "}
+              <Link href="/cookies" style={{ color: "var(--orange)" }}>Política de cookies</Link>).
+            </p>
+            <p style={{ marginTop: 10 }}>
+              <strong>Base legitimadora:</strong> tu consentimiento (art. 6.1.a RGPD),
+              que otorgas con «Aceptar todo» y puedes retirar en cualquier momento
+              escribiendo a{" "}
+              <a href={`mailto:${NEGOCIO.emailContacto}`} style={{ color: "var(--orange)" }}>
+                {NEGOCIO.emailContacto}
+              </a>{" "}
+              o borrando las cookies de tu navegador. Si eliges «Solo esenciales», esta
+              herramienta no se activa.
+            </p>
+            <p style={{ marginTop: 10 }}>
+              <strong>Qué no se recoge:</strong> los campos de los formularios de reserva
+              (nombre, teléfono, correo, matrícula y modelo del vehículo) se ocultan en
+              las grabaciones.
+            </p>
+            <p style={{ marginTop: 10 }}>
+              <strong>Conservación:</strong> según Microsoft, las grabaciones se conservan
+              30 días y los datos agregados de clics y las sesiones marcadas, hasta 9 meses.
+            </p>
+            <p style={{ marginTop: 10 }}>
+              Más información sobre cómo Microsoft trata los datos en su{" "}
+              <a
+                href="https://www.microsoft.com/privacy/privacystatement"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "var(--orange)" }}
+              >
+                declaración de privacidad
+              </a>.
+            </p>
+          </details>
+
           {/* Transferencias internacionales */}
           <details>
             <summary>TRANSFERENCIAS INTERNACIONALES</summary>
             <p>
-              Nuestra política es no enviar datos personales fuera del Espacio
-              Económico Europeo. En caso de que fuera necesario, se informará
-              previamente al usuario y se aplicarán las garantías legales
-              pertinentes.
+              Nuestra política es no enviar fuera del Espacio Económico Europeo los
+              datos personales que facilitas para gestionar tu reserva. En caso de que
+              fuera necesario, se informará previamente al usuario y se aplicarán las
+              garantías legales pertinentes.
+            </p>
+            <p style={{ marginTop: 10 }}>
+              No obstante, si aceptas las cookies de analítica, proveedores con sede en
+              Estados Unidos como <strong>Google</strong> (Google Analytics) y{" "}
+              <strong>Microsoft</strong> (Clarity) pueden tratar datos de uso de tu
+              navegación fuera del Espacio Económico Europeo, con las garantías
+              previstas por cada proveedor (por ejemplo, cláusulas contractuales tipo
+              o el Marco de Privacidad de Datos UE–EE. UU.).
             </p>
           </details>
 

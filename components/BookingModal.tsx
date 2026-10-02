@@ -282,7 +282,7 @@ export default function BookingModal({ reserva, calculo: calculoInicial, onChang
             </div>
           </div>
 
-          <form onSubmit={confirmarReserva}>
+          <form onSubmit={confirmarReserva} data-clarity-mask="True">
             <div className="form-grid">
               <div className="field">
                 <label htmlFor="nombre">Nombre completo</label>
