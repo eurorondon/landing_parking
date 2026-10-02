@@ -448,6 +448,81 @@ fallo específico de iOS/Android no se vería así.
 
 ---
 
+## 6 bis. Paso 6 bis — Separar la estacionalidad de lo propio (otras bases del VPS)
+
+Una caída puede ser **temporada** y no un fallo. Para separarlo, compara tu web
+con **otras bases del mismo VPS** que comparten esquema (`reservas` con
+`created_at`, `fecha_entrada`, `medio_reserva`, `estatus`, `agencia`):
+`tn5qqzxx_aparca_plus` (ParkingPlus) y `aparcabarajas_vps`.
+
+### a) Precauciones antes de consultar
+
+- **Excluye tus propias reservas duplicadas:** en ParkingPlus las de esta web
+  aparecen con `agencia = 'Parking Aero Madrid'` (446 desde julio de 2026).
+- **Excluye las canceladas:** `estatus = 0`. Los estados son 0 = cancelada,
+  1 = confirmada, 2 = finalizada, 3 = dentro.
+- **Mira primero qué años hay.** ParkingPlus arrancó a finales de 2024 (2024 no
+  sirve); aparcabarajas estaba en fase de arranque en 2024. El único año completo
+  y estable es **2025**.
+
+### b) Comparar semana a semana el mismo periodo de dos años
+
+```bash
+ssh root@<IP_DEL_VPS> "plesk db -e \"SELECT w AS semana_iso, MIN(IF(y=2026,d,NULL)) AS lunes_2026, SUM(y=2025) AS n2025, SUM(y=2026) AS n2026 FROM (SELECT YEAR(created_at) AS y, WEEK(created_at,3) AS w, DATE(DATE_SUB(created_at, INTERVAL WEEKDAY(created_at) DAY)) AS d FROM tn5qqzxx_aparca_plus.reservas WHERE (agencia IS NULL OR agencia <> 'Parking Aero Madrid') AND ((created_at >= '2025-07-14' AND created_at < '2025-11-03') OR (created_at >= '2026-07-13' AND created_at < '2026-10-03'))) t WHERE w BETWEEN 29 AND 44 GROUP BY w ORDER BY w;\""
+```
+
+Lo que se busca **no es el porcentaje**, sino la **forma**: en este análisis la
+demanda de todos los sitios cae en la **semana ISO 37** (7–13 sept), pero solo
+esta web tiene un **segundo escalón del −46 % en la semana 38**, algo que
+ningún comparador muestra (varían de −18 % a +38 %). Eso es lo propio de la web.
+
+### c) Índice mensual del nicho (meses buenos y malos)
+
+```bash
+ssh root@<IP_DEL_VPS> "plesk db -e \"SELECT m AS mes, SUM(y=2025) AS a2025, SUM(y=2026) AS a2026 FROM (SELECT YEAR(fecha_entrada) AS y, MONTH(fecha_entrada) AS m FROM tn5qqzxx_aparca_plus.reservas WHERE estatus<>0 AND (agencia IS NULL OR agencia<>'Parking Aero Madrid') AND fecha_entrada >= '2025-01-01' AND fecha_entrada < '2027-01-01') t GROUP BY m ORDER BY m;\""
+```
+Cambia `fecha_entrada` por `created_at` para ver **cuándo se reserva** (importa
+más para publicidad). Después calcula el **índice** de cada mes:
+`reservas del mes ÷ media mensual del año` (1,00 = mes normal).
+
+Resultado (ParkingPlus 2025, por fecha de entrada): **agosto 1,48 (pico)**,
+abril 1,12, diciembre 1,12, junio 1,08, julio y septiembre 1,07; octubre 0,94,
+mayo 0,93, marzo 0,90, noviembre 0,83, febrero 0,77 y **enero 0,70 (el valle)**.
+De agosto a septiembre el nicho cae ~24 %, a octubre ~13 % más, y se queda
+plano (≈66 % del agosto).
+
+### d) Antelación de reserva (cuándo conviene mover el presupuesto)
+
+```sql
+SELECT mes, COUNT(*) AS n, ROUND(AVG(d),1) AS media_dias,
+       ROUND(100*AVG(d<=2)) AS pct_0_2, ROUND(100*AVG(d BETWEEN 3 AND 7)) AS pct_3_7,
+       ROUND(100*AVG(d BETWEEN 8 AND 30)) AS pct_8_30, ROUND(100*AVG(d>30)) AS pct_mas30
+FROM (SELECT MONTH(fecha_entrada) AS mes, DATEDIFF(fecha_entrada, DATE(created_at)) AS d
+      FROM tn5qqzxx_aparca_plus.reservas
+      WHERE estatus<>0 AND medio_reserva=3 AND YEAR(fecha_entrada)=2025
+        AND DATEDIFF(fecha_entrada, DATE(created_at)) BETWEEN 0 AND 365) t
+GROUP BY mes ORDER BY mes;
+```
+Usa **solo reservas web** (`medio_reserva=3`): en teléfono y agencia la reserva se
+crea casi el mismo día y falsea la media. Resultado: el nicho **reserva sobre la
+hora** (≈ la mitad a 2 días o menos); en verano y diciembre hay más
+planificadores (en agosto, el 30 % reserva con más de una semana); y esta web es
+aún más de última hora (61–76 % a ≤2 días).
+
+### e) Cómo usar el resultado
+
+- **Nivel esperable por estacionalidad:** nivel anterior × (0,66–0,73). Aquí:
+  7,2 reservas/día → **≈5 al día en octubre**. Lo que quede por debajo es lo
+  recuperable.
+- **Con pocas reservas semanales (<60) hay ruido de ±15–20 %.** Un solo año
+  completo y negocios distintos dan un rango amplio: no prometas un porcentaje
+  exacto de «cuánto es estacional».
+- **No hay colchón:** al reservarse sobre la hora, la demanda de hoy es el viaje
+  de esta semana. El presupuesto de Ads puede seguir la temporada casi en tiempo
+  real, con 2–4 semanas de adelanto antes de los picos.
+
+---
+
 ## 7. Paso 7 — Cruzar todo y ordenar las hipótesis
 
 ### 7.1 Construye la línea de tiempo
@@ -465,7 +540,7 @@ huecos de datos). Esto es lo que dibuja el gráfico del panel
 | Pocas impresiones en genéricas | Cuota ~28 %, pérdida por ranking ~63 % | — | Alta |
 | Peor conversión en móvil | 0,18 → 0,10 eventos clave/usuario; escritorio estable | Muestras pequeñas | Media |
 | Rediseño del hero (14 sept) | Coincide en fechas | Mismo camino de reserva; más gente pasa a `/planes`; quitar la tarjeta no recuperó nada | Baja |
-| Estacionalidad | Septiembre/octubre más flojos tras el pico de agosto | Sin datos del año anterior | Por medir |
+| Estacionalidad | El nicho baja desde la semana ISO 37 y en octubre se queda en ≈66–73 % del agosto (ver §6 bis) | No explica el segundo escalón de la semana 38, que ningún comparador muestra | Parte real, no cuantificable con precisión |
 | Fallo de acceso en Android: HTTP/3 (14–15 sept) y ECH (16 sept), ver `docs/diagnostico-caidas-reportadas.md` | Coincide con el inicio de la caída; Chrome móvil pierde más usuarios que Safari móvil (−27 % frente a −18 %) | Se corrigió el 15–16 y las reservas siguieron bajas; en iPhone, donde el sitio cargaba bien, la conversión bajó igual | Contribuyó al inicio; no explica lo persistente |
 | Pausas de palabras clave (18 sept) | Coincide en fechas | Tenían muy poco gasto | Descartado |
 | Cambio de precios (14 sept) | Mismo día | Sin temporadas → recargo 0; ticket estable | Descartado |

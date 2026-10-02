@@ -650,3 +650,30 @@ select.filter-select:focus{border-color:var(--teal-400);}
 @media(max-width:768px){
   .an-ev-tipo{display:block;margin:2px 0 0;}
 }
+
+/* ── Análisis de caída: estacionalidad, conclusión y plan ── */
+.an-esperado{fill:rgba(124,58,237,.14);stroke:#7c3aed;stroke-width:1;stroke-dasharray:5 4;}
+.an-ref-txt-esperado{fill:#6d28d9;}
+.an-ref-media{stroke:var(--gray-400);}
+.an-ref-txt-media{fill:var(--gray-500);font-weight:600;}
+.an-chart-mensual{min-width:560px;}
+.an-mes-actual{fill:rgba(124,58,237,.08);stroke:#7c3aed;stroke-width:1;stroke-dasharray:4 3;}
+.an-mes-valor{font-size:11.5px;font-weight:700;fill:#fff;pointer-events:none;}
+.an-mes-punto{fill:var(--teal-600);stroke:#fff;stroke-width:1.5;}
+.an-sw-esperado{background:rgba(124,58,237,.25);border:1px dashed #7c3aed;height:10px;}
+.an-sw-punto{width:10px;height:10px;border-radius:50%;background:var(--teal-600);}
+.an-sw-mesactual{background:rgba(124,58,237,.12);border:1px dashed #7c3aed;}
+.an-lista-concl{margin:0 0 14px;padding-left:20px;display:grid;gap:8px;font-size:14px;line-height:1.55;color:var(--gray-700);}
+.an-semaforo{border-radius:var(--radius-md);padding:12px 14px;font-size:13.5px;line-height:1.55;border:1px solid transparent;}
+.an-sem-0{background:var(--green-bg);color:var(--green-text);border-color:#bbf7d0;}
+.an-sem-1{background:var(--amber-light);color:#9a4d0e;border-color:#f7d4b4;}
+.an-sem-2{background:var(--red-bg);color:var(--red-text);border-color:#fecaca;}
+.an-sem-nd{background:var(--gray-50);color:var(--gray-600);border-color:var(--gray-200);}
+.an-semaforo em{display:block;margin-top:4px;font-size:12px;opacity:.85;}
+.an-sub{font-family:var(--font-manrope),sans-serif;font-size:15px;font-weight:600;color:var(--gray-900);margin:22px 0 4px;}
+.an-lista{margin:0;padding-left:18px;display:grid;gap:5px;font-size:13.5px;line-height:1.5;}
+.an-lista-faltaba{margin-top:8px;font-size:14px;gap:8px;}
+.an-tabla-fases td{vertical-align:top;}
+.an-fila-actual td{background:var(--amber-light);}
+.an-aqui{color:#9a4d0e;font-weight:600;font-size:12px;}
+.an-lista code,.an-lista-concl code,.an-tabla code{font-size:12.5px;background:var(--gray-100);padding:1px 5px;border-radius:4px;}
