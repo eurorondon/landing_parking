@@ -2,10 +2,30 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { DayPicker } from "react-day-picker";
-import { es } from "react-day-picker/locale";
-import { format } from "date-fns";
-import "react-day-picker/style.css";
+import dynamic from "next/dynamic";
+
+/** Esqueleto con la forma del calendario mientras se descarga (evita el salto de tamaño) */
+function CalendarioSkeleton() {
+  return (
+    <div className="datepicker-skeleton" role="status" aria-busy="true" aria-label="Cargando calendario">
+      <div className="datepicker-skeleton-caption" />
+      <div className="datepicker-skeleton-grid">
+        {Array.from({ length: 42 }, (_, i) => (
+          <span key={i} className={i < 7 ? "is-weekday" : undefined} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// El calendario (react-day-picker + locale + CSS) solo se descarga al abrirlo.
+const loadCalendar = () => import("./DatePickerCalendar");
+const DatePickerCalendar = dynamic(loadCalendar, {
+  ssr: false,
+  loading: () => <CalendarioSkeleton />,
+});
+
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
 interface Props {
   /** Valor en formato "YYYY-MM-DD" (o "" si no hay fecha) */
@@ -34,6 +54,12 @@ function parse(valor: string): Date | undefined {
 function toStr(d: Date): string {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+/** "YYYY-MM-DD" → "9 oct 2026" (sin date-fns, para no cargarlo en la ruta inicial) */
+function formatear(valor: string): string {
+  const [y, m, d] = valor.split("-").map(Number);
+  return `${d} ${MESES[m - 1]} ${y}`;
 }
 
 /**
@@ -90,8 +116,10 @@ export default function DatePicker({
         aria-expanded={open}
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
+        onMouseEnter={loadCalendar}
+        onFocus={loadCalendar}
       >
-        {selected ? format(selected, "d MMM yyyy", { locale: es }) : placeholder}
+        {selected ? formatear(value) : placeholder}
       </button>
 
       {open && mounted &&
@@ -117,19 +145,12 @@ export default function DatePicker({
                   </button>
                 </div>
               )}
-              <DayPicker
-                mode="single"
-                locale={es}
-                showOutsideDays
+              <DatePickerCalendar
                 selected={selected}
-                defaultMonth={selected ?? minDate}
-                startMonth={minDate}
-                disabled={minDate ? { before: minDate } : undefined}
+                minDate={minDate}
                 onSelect={(d) => {
-                  if (d) {
-                    onChange(toStr(d));
-                    setOpen(false);
-                  }
+                  onChange(toStr(d));
+                  setOpen(false);
                 }}
               />
             </div>

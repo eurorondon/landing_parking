@@ -15,7 +15,7 @@ export default function Footer() {
               height={64}
               style={{ borderRadius: 12, marginBottom: 12, display: "block" }}
             />
-            <h4>{NEGOCIO.nombre}</h4>
+            <h3>{NEGOCIO.nombre}</h3>
             <p>
               Parking para viajeros del Aeropuerto Madrid-Barajas. Reserva
               rápida, entrega en terminal y servicio pensado para que viajes
@@ -23,13 +23,13 @@ export default function Footer() {
             </p>
           </div>
           <div>
-            <h4>Servicio</h4>
+            <h3>Servicio</h3>
             <a href="#reserva">Reservar</a>
             <a href="#como-funciona">Cómo funciona</a>
             <a href="#ventajas">Ventajas</a>
           </div>
           <div>
-            <h4>Parkings</h4>
+            <h3>Parkings</h3>
             <a href="/parking-barajas/">Parking Barajas</a>
             <a href="/parking-terminal-1-barajas/">Terminal 1</a>
             <a href="/parking-terminal-2-barajas/">Terminal 2</a>
@@ -40,12 +40,12 @@ export default function Footer() {
           </div>
           <div>
             {/* ⚠️ Los datos de contacto se cambian en lib/config.ts */}
-            <h4>Contacto</h4>
+            <h3>Contacto</h3>
             <p>Tel: {NEGOCIO.telefono}</p>
             <p>Email: {NEGOCIO.emailContacto}</p>
           </div>
           <div>
-            <h4>Legal</h4>
+            <h3>Legal</h3>
             <a href="/aviso-legal">Aviso legal</a>
             <a href="/privacidad">Privacidad</a>
             <a href="/cookies">Política de cookies</a>

@@ -677,3 +677,18 @@ select.filter-select:focus{border-color:var(--teal-400);}
 .an-fila-actual td{background:var(--amber-light);}
 .an-aqui{color:#9a4d0e;font-weight:600;font-size:12px;}
 .an-lista code,.an-lista-concl code,.an-tabla code{font-size:12.5px;background:var(--gray-100);padding:1px 5px;border-radius:4px;}
+
+/* Esqueleto del calendario mientras se descarga react-day-picker (misma altura que el real) */
+.datepicker-skeleton { width: 280px; max-width: 100%; height: 270px; padding: 4px 0 0; }
+.datepicker-skeleton-caption { width: 120px; height: 18px; margin: 10px 0 14px 4px; border-radius: 6px; }
+.datepicker-skeleton-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px 0; justify-items: center; }
+.datepicker-skeleton-grid span { width: 32px; height: 32px; border-radius: 10px; }
+.datepicker-skeleton-grid span.is-weekday { height: 12px; margin: 8px 0 6px; width: 20px; border-radius: 4px; }
+.datepicker-skeleton-caption, .datepicker-skeleton-grid span {
+  background: linear-gradient(90deg, #eceff1 25%, rgba(0,0,0,.03) 50%, #eceff1 75%);
+  background-size: 200% 100%; animation: datepicker-shimmer 1.2s linear infinite;
+}
+@keyframes datepicker-shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .datepicker-skeleton-caption, .datepicker-skeleton-grid span { animation: none; }
+}

@@ -192,18 +192,11 @@ export default function LandingPageSEO({
                 </a>
               </div>
 
-              {/* Derecha: calculadora (solo escritorio) */}
-              <div className="hero-right">
+              {/* Calculadora única: a la derecha en escritorio, bajo el texto en móvil */}
+              <div className="hero-right" id="calcular">
                 <BookingForm />
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* ── Calculadora en móvil ─────────────────────────────────────── */}
-        <section className="bform-section" id="calcular">
-          <div className="bform-container">
-            <BookingForm />
           </div>
         </section>
 

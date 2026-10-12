@@ -42,8 +42,8 @@ export default function BookingForm() {
   // Estado del servicio de lavado seleccionado desde ServiciosLimpieza
   const [lavado, setLavado] = useState<{ id: number; nombre: string; precio: string } | null>(null);
 
-  // Cada página monta este componente DOS veces (una ranura para escritorio
-  // en `.hero-right`, otra para móvil en `.bform-section`) y usa CSS
+  // Antes cada página montaba este componente DOS veces (una ranura para
+  // escritorio en `.hero-right`, otra para móvil en `.bform-section`) y usaba CSS
   // `display:none` para mostrar solo una según el ancho de pantalla. Sin
   // este flag, la instancia oculta seguía activa e igual disparaba su propio
   // fetch a /api/precio, sus listeners y su propio evento
