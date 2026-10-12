@@ -105,7 +105,7 @@ export default function Hero() {
           {/* ════════════════════════════════════
               DERECHA — formulario (solo escritorio)
               ════════════════════════════════════ */}
-          <div className="hero-right">
+          <div className="hero-right" id="calcular">
             <BookingForm />
           </div>
 

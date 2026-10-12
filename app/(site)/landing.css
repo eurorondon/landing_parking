@@ -2405,3 +2405,51 @@ footer a:hover { color: var(--orange); }
   .limpieza-grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
   .limpieza-card--popular { order: -1; }
 }
+
+/* ──────────────────────────────────────────
+   FORMULARIO EN EL HERO (móvil/tablet)
+   El formulario va dentro del hero, justo debajo del título, el subtítulo y
+   las 4 ventajas; el resto del contenido (WhatsApp, cifras, franja) queda
+   debajo. .hero-left pasa a display:contents para poder ordenar sus hijos
+   junto con .hero-right. En escritorio nada de esto aplica.
+   ────────────────────────────────────────── */
+@media (max-width: 959px) {
+  .hero { min-height: 0; }
+
+  .hero-desktop-grid { display: flex; flex-direction: column; }
+  .hero-left { display: contents; }
+  .hero-badge { align-self: flex-start; }
+
+  .hero-right {
+    display: block;
+    order: 1;
+    width: min(520px, 100%);
+    margin: 4px auto 22px;
+    scroll-margin-top: 84px;
+  }
+  .hero-left > .cta-whatsapp,
+  .hero-left > .hero-stats,
+  .hero-left > .hero-footer-strip { order: 2; }
+  /* El botón "Consultar precio" y sus checks llevaban al formulario, que ahora está justo encima */
+  .hero-left > .hero-cta-mobile { display: none; }
+
+  .hero-right .bform-card {
+    background: transparent;
+    border: 1.5px solid rgba(255,149,0,.45);
+    box-shadow: none;
+  }
+  .hero-right .bform-title { color: #fff; }
+  .hero-right .bform-trust-badge { background: rgba(255,255,255,.08); color: #fff; }
+  .hero-right .bform-vehicle-toggle {
+    background: rgba(255,255,255,.06);
+    border-color: rgba(255,255,255,.14);
+  }
+  .hero-right .bform-vehicle-toggle button { color: #c9c9c9; }
+  .hero-right .bform-vehicle-toggle button:hover:not(.active) {
+    background: rgba(255,255,255,.1); color: #fff;
+  }
+  .hero-right .bform-price-box {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+  }
+}
