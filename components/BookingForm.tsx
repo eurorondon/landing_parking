@@ -301,7 +301,7 @@ export default function BookingForm() {
               <span className="bform-field-icon"><PlaneIcon /></span>
               <Select
                 ariaLabel="Terminal de entrada"
-                placeholder="Terminal de entrada"
+                placeholder="Selecciona"
                 value={reserva.terminalEntrada}
                 opciones={OPCIONES_TERMINAL}
                 onChange={(v) => actualizar("terminalEntrada", v)}
@@ -315,7 +315,7 @@ export default function BookingForm() {
               <span className="bform-field-icon"><PlaneIcon /></span>
               <Select
                 ariaLabel="Terminal de salida"
-                placeholder="Terminal de salida"
+                placeholder="Selecciona"
                 value={reserva.terminalSalida}
                 opciones={OPCIONES_TERMINAL}
                 onChange={(v) => actualizar("terminalSalida", v)}

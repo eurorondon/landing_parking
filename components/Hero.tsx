@@ -12,12 +12,6 @@ export default function Hero() {
               ════════════════════════════════════ */}
           <div className="hero-left">
 
-            {/* Stars badge */}
-            <div className="hero-badge">
-              <span className="hero-badge-stars">★★★★★</span>
-              <span>Más de 20.000 clientes satisfechos</span>
-            </div>
-
             <h1>
               Parking Aeropuerto
               <br />
