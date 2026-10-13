@@ -1126,7 +1126,7 @@ footer a:hover { color: var(--orange); }
   width: calc(100% - 44px);
   margin: 0 22px;
   padding: 17px 20px;
-  background: #FF9500; color: #fff;
+  background: #FF9500; color: #000;
   border: none; border-radius: 14px;
   font-size: 15px; font-weight: 800; letter-spacing: .04em;
   line-height: 1.4; text-align: center; cursor: pointer;
@@ -2460,6 +2460,7 @@ footer a:hover { color: var(--orange); }
     border-color: rgba(255,255,255,.14);
   }
   .hero-right .bform-vehicle-toggle button { color: #c9c9c9; }
+  .hero-right .bform-vehicle-toggle button.active { color: #000; }
   .hero-right .bform-vehicle-toggle button:hover:not(.active) {
     background: rgba(255,255,255,.1); color: #fff;
   }

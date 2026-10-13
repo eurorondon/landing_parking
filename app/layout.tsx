@@ -74,10 +74,19 @@ export default function RootLayout({
         id="google-tag-manager"
         strategy="lazyOnload"
         dangerouslySetInnerHTML={{
-          __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+          // GTM se carga en la primera interaccion (scroll, toque, clic, tecla) o,
+          // como tope, a los 8 s. Los eventos del dataLayer (p. ej. reserva_confirmada)
+          // se encolan y GTM los procesa al cargar, asi que no se pierde ninguno.
+          __html: `(function(w,d,s,l,i){
+var started=false;
+function load(){
+if(started)return;started=true;
+w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+}
+['scroll','pointerdown','touchstart','keydown','mousemove'].forEach(function(e){w.addEventListener(e,load,{once:true,passive:true});});
+setTimeout(load,8000);
 })(window,document,'script','dataLayer','GTM-T7Q228H4');`,
         }}
       />
