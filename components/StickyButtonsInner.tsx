@@ -6,6 +6,7 @@ import { NEGOCIO } from "@/lib/config";
 export default function StickyButtons() {
   const [footerVisible, setFooterVisible] = useState(false);
   const [calcularVisible, setCalcularVisible] = useState(false);
+  const [heroVisible, setHeroVisible] = useState(true);
   const [phoneOpen, setPhoneOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -36,6 +37,16 @@ export default function StickyButtons() {
     return () => observer.disconnect();
   }, []);
 
+  // Mientras se ve el hero (portada: section.hero; landings: section.seo-hero) los
+  // botones nunca se ocultan, aunque la calculadora (dentro del hero) este a la vista.
+  useEffect(() => {
+    const hero = document.querySelector("section.hero, section.seo-hero");
+    if (!hero) return;
+    const observer = new IntersectionObserver(([entry]) => setHeroVisible(entry.isIntersecting));
+    observer.observe(hero);
+    return () => observer.disconnect();
+  }, []);
+
   // Cerrar popup de teléfono al clic fuera
   useEffect(() => {
     if (!phoneOpen) return;
@@ -49,7 +60,7 @@ export default function StickyButtons() {
   }, [phoneOpen]);
 
   return (
-    <div className={`sticky-btns${footerVisible || calcularVisible ? " sticky-btns--hidden" : ""}`}>
+    <div className={`sticky-btns${!heroVisible && (footerVisible || calcularVisible) ? " sticky-btns--hidden" : ""}`}>
 
       {/* ── Botón Teléfono ── */}
       <div ref={popupRef} className="sticky-btn-wrap">
