@@ -1135,6 +1135,15 @@ footer a:hover { color: var(--orange); }
 .bform-cta:hover:not(:disabled) { background: #d97700; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,149,0,.35); }
 .bform-cta:disabled { opacity: .6; cursor: not-allowed; }
 
+/* Aviso de validación (fechas) sobre el botón */
+.bform-aviso {
+  margin: 0 22px 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fef3f2; border: 1px solid #fda29b; color: #b42318;
+  font-size: 13px; font-weight: 600; line-height: 1.4;
+}
+
 /* Nota de confianza */
 .bform-trust-note {
   display: flex; align-items: center; gap: 8px;
@@ -2454,6 +2463,7 @@ footer a:hover { color: var(--orange); }
     box-shadow: none;
   }
   .hero-right .bform-title { color: #fff; }
+  .hero-right .bform-aviso { background: rgba(240,68,56,.16); border-color: rgba(253,162,155,.6); color: #fecdca; }
   .hero-right .bform-trust-badge { background: rgba(255,255,255,.08); color: #fff; }
   .hero-right .bform-vehicle-toggle {
     background: rgba(255,255,255,.06);

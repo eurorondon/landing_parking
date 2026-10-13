@@ -36,6 +36,8 @@ export default function BookingForm() {
   });
   const [hoy, setHoy]         = useState("");   // también se rellena en cliente
   const [calculo, setCalculo] = useState<CalculoPrecio | null>(null);
+  // Mensaje de validación dentro del formulario (en lugar de alert())
+  const [aviso, setAviso] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
   const router = useRouter();
 
@@ -167,6 +169,7 @@ export default function BookingForm() {
   }, [reserva.entryDate, reserva.entryTime, reserva.exitDate, reserva.exitTime, reserva.vehiculo, isActive]);
 
   function actualizar(campo: keyof DatosReserva, valor: string) {
+    setAviso(null);
     setReserva((r) => {
       const nuevo = { ...r, [campo]: valor };
 
@@ -194,11 +197,11 @@ export default function BookingForm() {
 
   function verPlanes() {
     if (!reserva.entryDate || !reserva.exitDate) {
-      alert("Por favor selecciona las fechas de entrada y salida.");
+      setAviso("Selecciona las fechas de entrada y salida.");
       return;
     }
     if (!calculo) {
-      alert("Por favor revisa las fechas de entrada y salida.");
+      setAviso("Revisa las fechas de entrada y salida.");
       return;
     }
     const nocturno = calculo.costoNocturnidad > 0;
@@ -399,6 +402,13 @@ export default function BookingForm() {
             <div className="bform-price-days-label">de estancia</div>
           </div>
         </div>
+
+        {/* ── Aviso de validación (sustituye al alert del navegador) ── */}
+        {aviso && (
+          <div className="bform-aviso" role="alert">
+            {aviso}
+          </div>
+        )}
 
         {/* ── Botón CTA ── */}
         <button
