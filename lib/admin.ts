@@ -104,3 +104,21 @@ export function isToday(dt: string): boolean {
     d.getDate() === t.getDate()
   );
 }
+
+/**
+ * Año, mes, día, hora y minuto de un instante en hora de Madrid, sea cual sea la
+ * zona del navegador. Úsalo con created_at (que viene en UTC) para agrupar por
+ * día/mes o mostrarlo, de modo que el panel dé lo mismo desde cualquier país.
+ */
+export function partesMadrid(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/Madrid",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+    }).formatToParts(d).map((x) => [x.type, x.value]),
+  );
+  return { y: p.year, m: p.month, d: p.day, hh: p.hour, mm: p.minute };
+}

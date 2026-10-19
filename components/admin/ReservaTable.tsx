@@ -1,7 +1,13 @@
 "use client";
 
-import { fmtCurrency, fmtDateTime, type ReservaAdmin } from "@/lib/admin";
+import { fmtCurrency, fmtDateTime, partesMadrid, type ReservaAdmin } from "@/lib/admin";
 import { Badge, EmptyState, TypeBadge } from "./ui";
+
+/** Fecha de creación (created_at, guardada en UTC) en hora de Madrid: "17/10/2026 11:20" */
+function fmtCreada(iso: string): string {
+  const t = iso ? partesMadrid(iso) : null;
+  return t ? `${t.d}/${t.m}/${t.y} ${t.hh}:${t.mm}` : "—";
+}
 
 interface Props {
   rows: ReservaAdmin[];
@@ -25,13 +31,14 @@ export default function ReservaTable({ rows, onDetail, onEdit, onDelete }: Props
       <table className="res-table-desktop">
         <thead>
           <tr>
-            <th>ID</th><th>Cliente</th><th>Vehículo</th><th>Terminales</th>
+            <th>Fecha de reserva</th><th>ID</th><th>Cliente</th><th>Vehículo</th><th>Terminales</th>
             <th>Entrada</th><th>Salida</th><th>Precio</th><th>Estado</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.id}>
+              <td style={{ whiteSpace: "nowrap" }}>{fmtCreada(r.createdAt)}</td>
               <td><span className="td-mono">{r.id}</span></td>
               <td>
                 <div className="td-name">{r.name}</div>
@@ -72,6 +79,9 @@ export default function ReservaTable({ rows, onDetail, onEdit, onDelete }: Props
                 </div>
               </div>
               <Badge status={r.status} />
+            </div>
+            <div className="res-card-sub" style={{ marginBottom: 6 }}>
+              <span>🕒 Reservó: {fmtCreada(r.createdAt)}</span>
             </div>
             <div className="res-card-dates">
               <div className="res-card-date">

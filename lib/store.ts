@@ -762,6 +762,7 @@ function estimarPrecioDemo(type: VehicleType, checkIn: string, checkOut: string)
 }
 
 export function buildDemo(): ReservaAdmin[] {
+  let demoSeq = 0; // reparte createdAt en varios días para que el gráfico diario tenga datos
   const mk = (
     offIn: number, offOut: number, status: ReservaStatus, type: VehicleType,
     terminal: Terminal, name: string, phone: string, email: string,
@@ -775,7 +776,7 @@ export function buildDemo(): ReservaAdmin[] {
       vehicleType: type, terminalEntrada: terminal, terminalSalida: terminal,
       checkIn, checkOut, status,
       price: estimarPrecioDemo(type, checkIn, checkOut),
-      notes: "", createdAt: new Date().toISOString(),
+      notes: "", createdAt: new Date(Date.now() - (demoSeq++ * 5 % 23) * 86400000).toISOString(),
     };
   };
 

@@ -1,7 +1,9 @@
 "use client";
 
-import { fmtCurrency, fmtDateTime, isToday, type ReservaAdmin } from "@/lib/admin";
+import { useState } from "react";
+import { fmtCurrency, fmtDateTime, isToday, partesMadrid, type ReservaAdmin } from "@/lib/admin";
 import ReservaTable from "./ReservaTable";
+import ReservasDiariasChart from "./ReservasDiariasChart";
 import { Badge, EmptyState } from "./ui";
 
 interface Props {
@@ -51,12 +53,40 @@ export default function HomeSection({ reservas, onDetail, onEdit, onDelete, goRe
   const todayIncome = reservas
     .filter((r) => r.status === "finished" && isToday(r.checkOut))
     .reduce((s, r) => s + (Number(r.price) || 0), 0);
-  const monthIncome = reservas
-    .filter((r) => {
-      const d = new Date(r.checkOut || r.checkIn);
-      return r.status !== "cancelled" && d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth();
-    })
-    .reduce((s, r) => s + (Number(r.price) || 0), 0);
+  // Ingresos por mes elegible (por defecto el actual), según la fecha de CREACIÓN
+  // de la reserva (para cruzarlo con la inversión en publicidad del mismo mes).
+  // Las canceladas no cuentan.
+  // created_at viene en UTC: el mes se calcula en hora de Madrid (no la del navegador)
+  // para no desplazar reservas hechas cerca de medianoche al mes anterior.
+  const mesKey = (iso: string) => {
+    const t = partesMadrid(iso);
+    return t ? `${t.y}-${t.m}` : "";
+  };
+  const mesActual = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  const [mes, setMes] = useState(mesActual);
+  const ingresosPorMes = new Map<string, { total: number; n: number }>();
+  for (const r of reservas) {
+    if (r.status === "cancelled") continue;
+    const k = mesKey(r.createdAt);
+    const e = ingresosPorMes.get(k) ?? { total: 0, n: 0 };
+    e.total += Number(r.price) || 0;
+    e.n++;
+    ingresosPorMes.set(k, e);
+  }
+  ingresosPorMes.set(mesActual, ingresosPorMes.get(mesActual) ?? { total: 0, n: 0 });
+  const meses = [...ingresosPorMes.keys()].sort().reverse();
+  const nombreMes = (k: string) => {
+    const [y, m] = k.split("-").map(Number);
+    const n = new Date(y, m - 1, 1).toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+    return n.charAt(0).toUpperCase() + n.slice(1);
+  };
+  const sel = ingresosPorMes.get(mes) ?? { total: 0, n: 0 };
+  const [verMes, setVerMes] = useState(false);
+  const delMes = verMes
+    ? reservas
+        .filter((r) => r.status !== "cancelled" && mesKey(r.createdAt) === mes)
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    : [];
 
   const stats: { icon: string; color: string; val: string | number; label: string }[] = [
     { icon: "✈️", color: "#e0f0ff", val: entries.length, label: "Entradas hoy" },
@@ -64,7 +94,6 @@ export default function HomeSection({ reservas, onDetail, onEdit, onDelete, goRe
     { icon: "🅿️", color: "#d1fae5", val: inside.length, label: "Reservas activas" },
     { icon: "⏳", color: "#fff7ed", val: upcoming.length, label: "Pendientes" },
     { icon: "💶", color: "#d1fae5", val: fmtCurrency(todayIncome), label: "Ingresos hoy" },
-    { icon: "📈", color: "#e0f0ff", val: fmtCurrency(monthIncome), label: "Ingresos del mes" },
   ];
 
   const recent = [...reservas]
@@ -90,7 +119,49 @@ export default function HomeSection({ reservas, onDetail, onEdit, onDelete, goRe
             <div className="stat-card-label">{s.label}</div>
           </div>
         ))}
+        <div className="stat-card">
+          <div className="stat-card-icon" style={{ background: "#e0f0ff" }}>📈</div>
+          <div className="stat-card-value">{fmtCurrency(sel.total)}</div>
+          <div className="stat-card-label">
+            Ingresos por reservas creadas · {sel.n} {sel.n === 1 ? "reserva" : "reservas"}
+          </div>
+          <select
+            value={mes}
+            onChange={(e) => setMes(e.target.value)}
+            aria-label="Mes de los ingresos"
+            style={{ marginTop: 8, width: "100%", fontSize: 12.5, padding: "5px 8px", borderRadius: 8, border: "1px solid var(--gray-200)", background: "var(--white)", color: "var(--gray-900)" }}
+          >
+            {meses.map((k) => (
+              <option key={k} value={k}>{nombreMes(k)}{k === mesActual ? " (actual)" : ""}</option>
+            ))}
+          </select>
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ marginTop: 6, width: "100%" }}
+            onClick={() => setVerMes((v) => !v)}
+          >
+            {verMes ? "Ocultar detalle" : "Ver reservas del mes"}
+          </button>
+        </div>
       </div>
+
+      {verMes && (
+        <div className="card" style={{ marginBottom: 20 }}>
+          <div className="card-header">
+            <div className="card-title">🧾 Reservas creadas en {nombreMes(mes)}</div>
+            <span className="badge badge-confirmed">{delMes.length} · {fmtCurrency(sel.total)}</span>
+          </div>
+          <div className="table-wrap">
+            {delMes.length === 0 ? (
+              <EmptyState icon="📭" text="Sin reservas en este mes" />
+            ) : (
+              <ReservaTable rows={delMes} onDetail={onDetail} onEdit={onEdit} onDelete={onDelete} />
+            )}
+          </div>
+        </div>
+      )}
+
+      <ReservasDiariasChart reservas={reservas} />
 
       <div className="grid-2" style={{ marginBottom: 20 }}>
         <div className="card">
