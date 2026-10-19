@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { fmtCurrency, fmtDateTime, isToday, partesMadrid, type ReservaAdmin } from "@/lib/admin";
+import Pagination from "./Pagination";
 import ReservaTable from "./ReservaTable";
 import ReservasDiariasChart from "./ReservasDiariasChart";
 import { Badge, EmptyState } from "./ui";
@@ -82,11 +83,18 @@ export default function HomeSection({ reservas, onDetail, onEdit, onDelete, goRe
   };
   const sel = ingresosPorMes.get(mes) ?? { total: 0, n: 0 };
   const [verMes, setVerMes] = useState(false);
+  const [pgMes, setPgMes] = useState(0);
+  const [ppMes, setPpMes] = useState(10);
+  const [pgRecent, setPgRecent] = useState(0);
+  const [ppRecent, setPpRecent] = useState(10);
   const delMes = verMes
     ? reservas
         .filter((r) => r.status !== "cancelled" && mesKey(r.createdAt) === mes)
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     : [];
+  const pagesMes = Math.max(1, Math.ceil(delMes.length / ppMes));
+  const pageMes = Math.min(pgMes, pagesMes - 1);
+  const delMesPag = delMes.slice(pageMes * ppMes, (pageMes + 1) * ppMes);
 
   const stats: { icon: string; color: string; val: string | number; label: string }[] = [
     { icon: "✈️", color: "#e0f0ff", val: entries.length, label: "Entradas hoy" },
@@ -97,8 +105,10 @@ export default function HomeSection({ reservas, onDetail, onEdit, onDelete, goRe
   ];
 
   const recent = [...reservas]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 8);
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const pagesRecent = Math.max(1, Math.ceil(recent.length / ppRecent));
+  const pageRecent = Math.min(pgRecent, pagesRecent - 1);
+  const recentPag = recent.slice(pageRecent * ppRecent, (pageRecent + 1) * ppRecent);
 
   return (
     <div>
@@ -127,7 +137,7 @@ export default function HomeSection({ reservas, onDetail, onEdit, onDelete, goRe
           </div>
           <select
             value={mes}
-            onChange={(e) => setMes(e.target.value)}
+            onChange={(e) => { setMes(e.target.value); setPgMes(0); }}
             aria-label="Mes de los ingresos"
             style={{ marginTop: 8, width: "100%", fontSize: 12.5, padding: "5px 8px", borderRadius: 8, border: "1px solid var(--gray-200)", background: "var(--white)", color: "var(--gray-900)" }}
           >
@@ -138,7 +148,7 @@ export default function HomeSection({ reservas, onDetail, onEdit, onDelete, goRe
           <button
             className="btn btn-ghost btn-sm"
             style={{ marginTop: 6, width: "100%" }}
-            onClick={() => setVerMes((v) => !v)}
+            onClick={() => { setVerMes((v) => !v); setPgMes(0); }}
           >
             {verMes ? "Ocultar detalle" : "Ver reservas del mes"}
           </button>
@@ -155,8 +165,14 @@ export default function HomeSection({ reservas, onDetail, onEdit, onDelete, goRe
             {delMes.length === 0 ? (
               <EmptyState icon="📭" text="Sin reservas en este mes" />
             ) : (
-              <ReservaTable rows={delMes} onDetail={onDetail} onEdit={onEdit} onDelete={onDelete} />
+              <ReservaTable rows={delMesPag} onDetail={onDetail} onEdit={onEdit} onDelete={onDelete} />
             )}
+          </div>
+          <div style={{ padding: "0 20px 16px" }}>
+            <Pagination
+              total={delMes.length} page={pageMes} perPage={ppMes}
+              onPage={setPgMes} onPerPage={(n) => { setPpMes(n); setPgMes(0); }}
+            />
           </div>
         </div>
       )}
@@ -190,7 +206,13 @@ export default function HomeSection({ reservas, onDetail, onEdit, onDelete, goRe
           <button className="btn btn-ghost btn-sm" onClick={goReservations}>Ver todas →</button>
         </div>
         <div className="table-wrap">
-          <ReservaTable rows={recent} onDetail={onDetail} onEdit={onEdit} onDelete={onDelete} />
+          <ReservaTable rows={recentPag} onDetail={onDetail} onEdit={onEdit} onDelete={onDelete} />
+        </div>
+        <div style={{ padding: "0 20px 16px" }}>
+          <Pagination
+            total={recent.length} page={pageRecent} perPage={ppRecent}
+            onPage={setPgRecent} onPerPage={(n) => { setPpRecent(n); setPgRecent(0); }}
+          />
         </div>
       </div>
     </div>

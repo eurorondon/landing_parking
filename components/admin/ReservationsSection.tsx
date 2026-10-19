@@ -2,9 +2,8 @@
 
 import { useMemo, useState } from "react";
 import type { ReservaAdmin, ReservaStatus, VehicleType } from "@/lib/admin";
+import Pagination from "./Pagination";
 import ReservaTable from "./ReservaTable";
-
-const PER_PAGE = 10;
 
 interface Props {
   reservas: ReservaAdmin[];
@@ -20,6 +19,7 @@ export default function ReservationsSection({ reservas, onDetail, onEdit, onDele
   const [type, setType] = useState<"" | VehicleType>("");
   const [terminal, setTerminal] = useState("");
   const [page, setPage] = useState(0);
+  const [perPage, setPerPage] = useState(10);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -35,9 +35,9 @@ export default function ReservationsSection({ reservas, onDetail, onEdit, onDele
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [reservas, search, status, type, terminal]);
 
-  const pages = Math.ceil(filtered.length / PER_PAGE);
-  const safePage = Math.min(page, Math.max(0, pages - 1));
-  const paged = filtered.slice(safePage * PER_PAGE, (safePage + 1) * PER_PAGE);
+  const pages = Math.max(1, Math.ceil(filtered.length / perPage));
+  const safePage = Math.min(page, pages - 1);
+  const paged = filtered.slice(safePage * perPage, (safePage + 1) * perPage);
 
   return (
     <div>
@@ -87,20 +87,10 @@ export default function ReservationsSection({ reservas, onDetail, onEdit, onDele
         </div>
       </div>
 
-      {pages > 1 && (
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 12, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 13, color: "var(--gray-500)", alignSelf: "center" }}>{filtered.length} reservas</span>
-          {Array.from({ length: pages }, (_, i) => (
-            <button
-              key={i}
-              className={`btn ${i === safePage ? "btn-primary" : "btn-ghost"} btn-sm`}
-              onClick={() => setPage(i)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      )}
+      <Pagination
+        total={filtered.length} page={safePage} perPage={perPage}
+        onPage={setPage} onPerPage={(n) => { setPerPage(n); setPage(0); }}
+      />
     </div>
   );
 }
