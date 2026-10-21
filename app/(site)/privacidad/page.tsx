@@ -5,6 +5,64 @@ export const metadata = {
   title: `Política de privacidad | ${NEGOCIO.nombre}`,
 };
 
+const RESPONSABLE: [string, string][] = [
+  ["Razón social", "GLOBAL SOLUCION MARICHAL, S.L. (Sociedad Unipersonal), marca ParkingAeroMadrid"],
+  ["NIF", "B19765569"],
+  ["Domicilio", "Calle Venus, 11, 1.º E, 28042 Madrid"],
+  ["Registro", "Inscrita en el Registro Mercantil de Madrid, hoja M-825952"],
+  ["Email", "parkingaeromadrid@gmail.com"],
+  ["Teléfono", "+34 632 868 936"],
+];
+
+const FINALIDADES = [
+  {
+    title: "a) Gestionar tu solicitud de reserva y transmitirla al prestador del servicio.",
+    base: "aplicación de medidas precontractuales y ejecución del contrato (art. 6.1.b RGPD).",
+    conservacion: "hasta finalizar el servicio y, después, durante los plazos de prescripción legal.",
+  },
+  {
+    title: "b) Responder tus consultas por formulario, email o WhatsApp.",
+    base: "atender tu solicitud (art. 6.1.b RGPD).",
+    conservacion: "hasta resolver la consulta y un máximo de 12 meses.",
+  },
+  {
+    title: "c) Analítica web (Google Analytics y Microsoft Clarity).",
+    base: "tu consentimiento (art. 6.1.a RGPD).",
+    conservacion: "la indicada en la Política de cookies.",
+  },
+  {
+    title: "d) Medición y publicidad (Google Ads).",
+    base: "tu consentimiento (art. 6.1.a RGPD).",
+    conservacion: "la indicada en la Política de cookies.",
+  },
+  {
+    title: "e) Cumplir obligaciones legales.",
+    base: "obligación legal (art. 6.1.c RGPD).",
+    conservacion: "los plazos que marque la ley.",
+  },
+];
+
+const DESTINATARIOS = [
+  "MARICHAL 4 PARKING SL (Parking Plus), CIF B88537345, prestador del servicio. Recibe los datos de tu reserva para ejecutarla, cobrarla y facturarla, y los trata como responsable independiente.",
+  "Proveedores que nos prestan servicios y solo acceden a los datos por nuestra cuenta: nuestro proveedor de alojamiento web, Cloudflare (seguridad y entrega de la web), Google (Analytics y Ads), Microsoft (Clarity) y Meta (WhatsApp, si nos escribes por ese canal).",
+  "Autoridades, cuando lo exija la ley.",
+];
+
+function DataList({ rows }: { rows: [string, string][] }) {
+  return (
+    <ul style={{ margin: "12px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
+      {rows.map(([label, value]) => (
+        <li key={label} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <span style={{ color: "var(--orange)", fontWeight: 700, flexShrink: 0, marginTop: 2 }}>✓</span>
+          <span style={{ fontSize: 14 }}>
+            <strong style={{ color: "#fff" }}>{label}:</strong> {value}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function Privacidad() {
   return (
     <main style={{ background: "var(--bg)", minHeight: "100vh", paddingBottom: 80 }}>
@@ -33,170 +91,106 @@ export default function Privacidad() {
             Política de Privacidad
           </h1>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,.6)", margin: "0 0 24px" }}>
-            ParkingAeroMadrid.es
+            Última actualización: 17 de octubre de 2026
           </p>
-          <p style={{ color: "rgba(255,255,255,.8)", lineHeight: 1.72, fontSize: 15 }}>
-            En cumplimiento del Reglamento General de Protección de Datos (RGPD) y
-            la Ley Orgánica de Protección de Datos (LOPDGDD), le informamos de
-            cómo tratamos los datos personales recogidos a través de este sitio web.
+          <p style={{ color: "rgba(255,255,255,.8)", lineHeight: 1.72, fontSize: 15, margin: 0 }}>
+            En cumplimiento del Reglamento (UE) 2016/679 (RGPD) y de la Ley Orgánica 3/2018 de
+            Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD), te
+            informamos de cómo tratamos tus datos personales.
           </p>
         </div>
 
         {/* Acordeón de secciones */}
         <div style={{ display: "grid", gap: 10 }}>
 
-          {/* Responsable */}
           <details open>
-            <summary>RESPONSABLE DEL TRATAMIENTO</summary>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 16 }}>
-              {[
-                ["Responsable:", "Administración de la web ParkingAeroMadrid.es"],
-                ["Contacto:", NEGOCIO.emailContacto],
-              ].map(([label, value]) => (
-                <div key={label}>
-                  <p style={{ fontWeight: 700, color: "#fff", fontSize: 13, marginBottom: 3 }}>{label}</p>
-                  <p style={{ fontSize: 14, margin: 0 }}>{value}</p>
-                </div>
-              ))}
-            </div>
+            <summary>1. RESPONSABLE DEL TRATAMIENTO</summary>
+            <DataList rows={RESPONSABLE} />
           </details>
 
-          {/* Finalidad */}
           <details>
-            <summary>FINALIDAD DEL TRATAMIENTO</summary>
+            <summary>2. QUÉ DATOS TRATAMOS</summary>
             <p>
-              Los datos personales facilitados a través de esta web se utilizan
-              para <strong>gestionar reservas y responder solicitudes</strong> enviadas
-              por WhatsApp o a través del formulario de contacto.
-            </p>
-            <p style={{ marginTop: 10 }}>
-              Los datos podrán ser comunicados a <strong>Parking Plus</strong> exclusivamente
-              para gestionar la reserva solicitada por el usuario.
+              Nombre, teléfono, email, matrícula y modelo del vehículo, fechas y horas de entrada y
+              salida, terminal y, en su caso, número de vuelo. También datos de navegación si
+              aceptas las cookies analíticas o publicitarias. No tratamos datos bancarios.
             </p>
           </details>
 
-          {/* Datos bancarios */}
           <details>
-            <summary>PAGOS Y DATOS BANCARIOS</summary>
-            <p>
-              Este sitio web <strong>no utiliza pasarelas de pago ni almacena datos
-              bancarios</strong>. El pago del servicio se realiza directamente al
-              titular del parking (Parking Plus), quien emite la correspondiente
-              factura al cliente.
-            </p>
-          </details>
-
-          {/* Derechos */}
-          <details>
-            <summary>SUS DERECHOS</summary>
-            <p>
-              El usuario puede solicitar en cualquier momento el <strong>acceso,
-              modificación o eliminación</strong> de sus datos personales escribiendo
-              al correo:{" "}
-              <a href={`mailto:${NEGOCIO.emailContacto}`} style={{ color: "var(--orange)" }}>
-                {NEGOCIO.emailContacto}
-              </a>
-            </p>
-            <p style={{ marginTop: 10 }}>
-              Asimismo, si considera que sus derechos no han sido atendidos,
-              puede presentar una reclamación ante la{" "}
-              <strong>Agencia Española de Protección de Datos</strong> (
-              <a href="https://www.aepd.es" target="_blank" rel="noreferrer" style={{ color: "var(--orange)" }}>
-                www.aepd.es
-              </a>
-              ).
-            </p>
-
-            {[
-              { label: "Sede electrónica:", value: "www.aepd.es" },
-              { label: "Dirección postal:", value: "C/ Jorge Juan, 6 · 28001 Madrid" },
-              { label: "Vía telefónica:", value: "901 100 099 / 91 266 35 17" },
-            ].map(({ label, value }) => (
+            <summary>3. PARA QUÉ USAMOS TUS DATOS Y CON QUÉ BASE LEGAL</summary>
+            {FINALIDADES.map(({ title, base, conservacion }) => (
               <div
-                key={label}
-                style={{
-                  borderLeft: "3px solid rgba(255,149,0,.35)",
-                  paddingLeft: 16,
-                  margin: "14px 0",
-                }}
+                key={title}
+                style={{ borderLeft: "3px solid rgba(255,149,0,.35)", paddingLeft: 16, margin: "14px 0" }}
               >
-                <p style={{ fontWeight: 700, color: "#fff", fontSize: 13, marginBottom: 4 }}>{label}</p>
-                <p style={{ margin: 0, fontSize: 14 }}>{value}</p>
+                <p style={{ fontWeight: 700, color: "#fff", fontSize: 13, marginBottom: 4 }}>{title}</p>
+                <p style={{ margin: 0, fontSize: 14 }}>Base legal: {base}</p>
+                <p style={{ margin: "4px 0 0", fontSize: 14 }}>Conservación: {conservacion}</p>
               </div>
             ))}
           </details>
 
-          {/* Conservación */}
           <details>
-            <summary>CONSERVACIÓN DE LOS DATOS</summary>
+            <summary>4. MICROSOFT CLARITY</summary>
             <p>
-              Los datos se conservarán durante el tiempo necesario para la
-              gestión de la reserva o consulta, y mientras lo exijan las
-              obligaciones legales aplicables. Una vez finalizado ese plazo,
-              serán eliminados de forma segura.
+              Si pulsas «Aceptar todo», usamos Microsoft Clarity para ver mapas de calor y
+              grabaciones de sesión y así mejorar la web. Los campos de los formularios (nombre,
+              teléfono, email, matrícula y modelo) se ocultan en las grabaciones. Según Microsoft,
+              las grabaciones se conservan 30 días y los datos agregados hasta 9 meses. Si eliges
+              «Solo esenciales», Clarity no se activa.
             </p>
           </details>
 
-          {/* Analítica y grabación de sesiones */}
           <details>
-            <summary>ANALÍTICA WEB Y GRABACIÓN DE SESIONES (MICROSOFT CLARITY)</summary>
+            <summary>5. A QUIÉN COMUNICAMOS TUS DATOS</summary>
+            <ul style={{ margin: "12px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
+              {DESTINATARIOS.map((text) => (
+                <li key={text} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <span style={{ color: "var(--orange)", fontWeight: 700, flexShrink: 0, marginTop: 2 }}>✓</span>
+                  <span style={{ fontSize: 14 }}>{text}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+
+          <details>
+            <summary>6. TRANSFERENCIAS INTERNACIONALES</summary>
             <p>
-              Si aceptas las cookies con <strong>«Aceptar todo»</strong>, utilizamos{" "}
-              <strong>Microsoft Clarity</strong>, un servicio de Microsoft Corporation,
-              para ver cómo usas y te desenvuelves en nuestra web mediante métricas de
-              comportamiento, mapas de calor y reproducciones de sesión. Lo hacemos para
-              mejorar la usabilidad de la página y detectar errores, y se basa en
-              cookies propias y de terceros (consulta la{" "}
-              <Link href="/cookies" style={{ color: "var(--orange)" }}>Política de cookies</Link>).
+              Google, Microsoft y Meta pueden tratar datos fuera del Espacio Económico Europeo.
+              Estas transferencias se amparan en el Marco de Privacidad de Datos UE-EE. UU. o en
+              cláusulas contractuales tipo aprobadas por la Comisión Europea.
             </p>
-            <p style={{ marginTop: 10 }}>
-              <strong>Base legitimadora:</strong> tu consentimiento (art. 6.1.a RGPD),
-              que otorgas con «Aceptar todo» y puedes retirar en cualquier momento
-              escribiendo a{" "}
-              <a href={`mailto:${NEGOCIO.emailContacto}`} style={{ color: "var(--orange)" }}>
-                {NEGOCIO.emailContacto}
+          </details>
+
+          <details>
+            <summary>7. TUS DERECHOS</summary>
+            <p>
+              Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición,
+              limitación del tratamiento y portabilidad, y retirar tu consentimiento en cualquier
+              momento, escribiendo a{" "}
+              <a href="mailto:parkingaeromadrid@gmail.com" style={{ color: "var(--orange)" }}>
+                parkingaeromadrid@gmail.com
               </a>{" "}
-              o borrando las cookies de tu navegador. Si eliges «Solo esenciales», esta
-              herramienta no se activa.
+              e indicando qué derecho quieres ejercer. Si necesitamos verificar tu identidad, te lo
+              pediremos. Para los datos que trata el parking, también puedes dirigirte a MARICHAL 4
+              PARKING SL (parkingplus01@gmail.com).
             </p>
             <p style={{ marginTop: 10 }}>
-              <strong>Qué no se recoge:</strong> los campos de los formularios de reserva
-              (nombre, teléfono, correo, matrícula y modelo del vehículo) se ocultan en
-              las grabaciones.
-            </p>
-            <p style={{ marginTop: 10 }}>
-              <strong>Conservación:</strong> según Microsoft, las grabaciones se conservan
-              30 días y los datos agregados de clics y las sesiones marcadas, hasta 9 meses.
-            </p>
-            <p style={{ marginTop: 10 }}>
-              Más información sobre cómo Microsoft trata los datos en su{" "}
-              <a
-                href="https://www.microsoft.com/privacy/privacystatement"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: "var(--orange)" }}
-              >
-                declaración de privacidad
-              </a>.
+              Si consideras que no hemos atendido tus derechos, puedes presentar una reclamación
+              ante la Agencia Española de Protección de Datos:{" "}
+              <a href="https://www.aepd.es" target="_blank" rel="noreferrer" style={{ color: "var(--orange)" }}>
+                www.aepd.es
+              </a>
+              , C/ Jorge Juan 6, 28001 Madrid.
             </p>
           </details>
 
-          {/* Transferencias internacionales */}
           <details>
-            <summary>TRANSFERENCIAS INTERNACIONALES</summary>
+            <summary>8. SEGURIDAD</summary>
             <p>
-              Nuestra política es no enviar fuera del Espacio Económico Europeo los
-              datos personales que facilitas para gestionar tu reserva. En caso de que
-              fuera necesario, se informará previamente al usuario y se aplicarán las
-              garantías legales pertinentes.
-            </p>
-            <p style={{ marginTop: 10 }}>
-              No obstante, si aceptas las cookies de analítica, proveedores con sede en
-              Estados Unidos como <strong>Google</strong> (Google Analytics) y{" "}
-              <strong>Microsoft</strong> (Clarity) pueden tratar datos de uso de tu
-              navegación fuera del Espacio Económico Europeo, con las garantías
-              previstas por cada proveedor (por ejemplo, cláusulas contractuales tipo
-              o el Marco de Privacidad de Datos UE–EE. UU.).
+              Aplicamos medidas técnicas y organizativas adecuadas para proteger tus datos frente a
+              pérdida, acceso no autorizado o alteración.
             </p>
           </details>
 

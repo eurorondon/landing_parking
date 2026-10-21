@@ -3,6 +3,39 @@ import { NEGOCIO } from "@/lib/config";
 
 export const metadata = { title: `Aviso legal | ${NEGOCIO.nombre}` };
 
+const TITULAR: [string, string][] = [
+  ["Razón social", "GLOBAL SOLUCION MARICHAL, S.L. (Sociedad Unipersonal)"],
+  ["NIF", "B19765569"],
+  ["Domicilio social", "Calle Venus, 11, 1.º E, 28042 Madrid"],
+  ["Datos registrales", "inscrita en el Registro Mercantil de Madrid, hoja M-825952, tomo y folio electrónicos, inscripción 1.ª. EUID: ES28065.082268635"],
+  ["Email", "parkingaeromadrid@gmail.com"],
+  ["Teléfono", "+34 632 868 936"],
+  ["Marca comercial", "ParkingAeroMadrid"],
+];
+
+const PRESTADOR: [string, string][] = [
+  ["Razón social", "MARICHAL 4 PARKING SL"],
+  ["Nombre comercial", "Parking Plus"],
+  ["CIF", "B88537345"],
+  ["Domicilio social", "Calle Playa de Riazor, 14, 28042 Madrid"],
+  ["Email", "parkingplus01@gmail.com"],
+];
+
+function DataList({ rows }: { rows: [string, string][] }) {
+  return (
+    <ul style={{ margin: "12px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
+      {rows.map(([label, value]) => (
+        <li key={label} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <span style={{ color: "var(--orange)", fontWeight: 700, flexShrink: 0, marginTop: 2 }}>✓</span>
+          <span style={{ fontSize: 14 }}>
+            <strong style={{ color: "#fff" }}>{label}:</strong> {value}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function AvisoLegal() {
   return (
     <main style={{ background: "var(--bg)", minHeight: "100vh", paddingBottom: 80 }}>
@@ -30,112 +63,112 @@ export default function AvisoLegal() {
           <h1 style={{ fontSize: "clamp(22px, 3vw, 32px)", fontWeight: 800, letterSpacing: "-.03em", color: "#fff", margin: "0 0 6px" }}>
             Aviso Legal
           </h1>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,.6)", margin: "0 0 24px" }}>
-            {NEGOCIO.nombre}{NEGOCIO.direccion ? ` — ${NEGOCIO.direccion}` : ""}
-          </p>
-          <p style={{ color: "rgba(255,255,255,.8)", lineHeight: 1.72, fontSize: 15 }}>
-            Le informamos de las condiciones legales bajo las que se presta el servicio
-            a través de este sitio web y la naturaleza de la relación entre esta
-            plataforma y el prestador del servicio de estacionamiento.
+          <p style={{ fontSize: 14, color: "rgba(255,255,255,.6)", margin: 0 }}>
+            Última actualización: 17 de octubre de 2026
           </p>
         </div>
 
         {/* Secciones */}
         <div style={{ display: "grid", gap: 10 }}>
 
-          {/* Naturaleza del servicio */}
           <details open>
-            <summary>NATURALEZA DE LA WEB Y DEL SERVICIO</summary>
+            <summary>1. TITULAR DEL SITIO WEB</summary>
             <p>
-              Este sitio web tiene como finalidad la <strong>captación de clientes para
-              servicios de parking prestados por terceros</strong>. El servicio de parking es
-              prestado por <strong>Parking Plus</strong>, titular del recinto y responsable del
+              En cumplimiento del artículo 10 de la Ley 34/2002, de Servicios de la Sociedad de la
+              Información y de Comercio Electrónico (LSSI), se informa de que este sitio web es
+              titularidad de:
+            </p>
+            <DataList rows={TITULAR} />
+          </details>
+
+          <details>
+            <summary>2. NATURALEZA DE LA WEB: INTERMEDIARIO</summary>
+            <p>
+              ParkingAeroMadrid es una plataforma de intermediación. Su actividad consiste en dar a
+              conocer el servicio de aparcamiento y recogida de vehículos en el Aeropuerto Adolfo
+              Suárez Madrid-Barajas y en transmitir las solicitudes de reserva al prestador del
               servicio.
             </p>
             <p style={{ marginTop: 12 }}>
-              Esta web actúa únicamente como <strong>canal de captación y gestión
-              comercial de clientes</strong>, sin prestar directamente el servicio de
-              estacionamiento.
+              GLOBAL SOLUCION MARICHAL, S.L. no presta el servicio de aparcamiento, no custodia
+              vehículos, no cobra el servicio al cliente y no emite factura al cliente.
             </p>
           </details>
 
-          {/* Responsabilidad del servicio */}
           <details>
-            <summary>RESPONSABILIDAD DEL SERVICIO</summary>
+            <summary>3. PRESTADOR DEL SERVICIO</summary>
             <p>
-              La responsabilidad del servicio, la <strong>custodia de los vehículos</strong> y
-              las condiciones del parking recaen <strong>exclusivamente en el titular
-              del parking</strong> (Parking Plus).
+              El servicio de aparcamiento, traslado, custodia y entrega de vehículos lo presta,
+              cobra, factura y asegura:
+            </p>
+            <DataList rows={PRESTADOR} />
+            <p style={{ marginTop: 14 }}>
+              Al confirmar una reserva, el contrato de servicio se celebra directamente entre el
+              cliente y MARICHAL 4 PARKING SL, que fija las condiciones del servicio.
+            </p>
+          </details>
+
+          <details>
+            <summary>4. PAGO Y FACTURACIÓN</summary>
+            <p>
+              El cliente paga el servicio directamente a MARICHAL 4 PARKING SL en el momento de la
+              entrega del vehículo. MARICHAL 4 PARKING SL emite la factura a nombre del cliente.
+              Esta web no procesa pagos ni solicita datos bancarios.
+            </p>
+          </details>
+
+          <details>
+            <summary>5. SEGURO</summary>
+            <p>
+              Los vehículos están cubiertos por el seguro contratado por MARICHAL 4 PARKING SL como
+              prestador del servicio. Cualquier incidencia o daño relacionado con el vehículo se
+              tramita a través de MARICHAL 4 PARKING SL y su aseguradora.
+            </p>
+          </details>
+
+          <details>
+            <summary>6. RESPONSABILIDADES</summary>
+            <p>
+              GLOBAL SOLUCION MARICHAL, S.L. responde de la exactitud de la información publicada en
+              esta web y de transmitir correctamente al prestador las reservas recibidas.
             </p>
             <p style={{ marginTop: 12 }}>
-              Esta web no asume responsabilidad alguna por los daños, pérdidas o
-              incidencias que pudieran producirse en relación con el servicio de
-              estacionamiento, que es gestionado y ejecutado íntegramente por
-              Parking Plus.
-            </p>
-          </details>
-
-          {/* Pago y facturación */}
-          <details>
-            <summary>PAGO Y FACTURACIÓN</summary>
-            <p>
-              El pago del servicio se realiza <strong>directamente al titular del
-              parking</strong> (Parking Plus), quien emite la correspondiente factura al
-              cliente bajo la entidad <strong>MARICHAL 4 PARKING SL</strong> (CIF{" "}
-              <strong>B88537345</strong>), con domicilio en Calle Playa de Riazor 14,
-              CP 28042, Madrid.
+              MARICHAL 4 PARKING SL responde de la ejecución del servicio: recogida, traslado,
+              custodia, conducción y entrega del vehículo, así como de los daños, pérdidas o retrasos
+              derivados de dicha ejecución.
             </p>
             <p style={{ marginTop: 12 }}>
-              Este sitio web <strong>no gestiona ni procesa pagos</strong> en su nombre ni
-              actúa como intermediario financiero en la operación.
+              Los precios mostrados son orientativos y los confirma el prestador del servicio en la
+              confirmación de la reserva.
             </p>
           </details>
 
-          {/* Gestión de reservas */}
           <details>
-            <summary>GESTIÓN DE RESERVAS</summary>
+            <summary>7. RECLAMACIONES</summary>
             <p>
-              Las reservas realizadas a través de esta web son gestionadas por
-              <strong> Parking Plus</strong>, quien presta el servicio de
-              <strong> estacionamiento, custodia y entrega de vehículos</strong>.
-            </p>
-            <p style={{ marginTop: 12 }}>
-              Una vez confirmada la reserva, el cliente estará sujeto a las
-              condiciones propias del servicio establecidas por Parking Plus como
-              titular y responsable del recinto.
+              Las reclamaciones sobre el servicio de aparcamiento deben dirigirse a MARICHAL 4
+              PARKING SL (parkingplus01@gmail.com), que dispone de hojas de reclamaciones oficiales.
+              Las consultas sobre el funcionamiento de esta web pueden enviarse a
+              parkingaeromadrid@gmail.com.
             </p>
           </details>
 
-          {/* Propiedad intelectual */}
           <details>
-            <summary>PROPIEDAD INTELECTUAL</summary>
+            <summary>8. PROPIEDAD INTELECTUAL E INDUSTRIAL</summary>
             <p>
-              Los contenidos de este sitio web (textos, imágenes, diseño y código)
-              son propiedad de sus titulares y están protegidos por la legislación
-              vigente en materia de propiedad intelectual e industrial.
-            </p>
-            <p style={{ marginTop: 12 }}>
-              Queda prohibida su reproducción total o parcial sin autorización
-              expresa y por escrito.
+              Los textos, imágenes, diseño, código y la marca ParkingAeroMadrid son titularidad de
+              GLOBAL SOLUCION MARICHAL, S.L. o se usan con autorización de sus titulares. Queda
+              prohibida su reproducción total o parcial sin autorización escrita.
             </p>
           </details>
 
-          {/* Contacto */}
           <details>
-            <summary>CONTACTO</summary>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 12 }}>
-              {[
-                ["Web:", NEGOCIO.nombre],
-                ["Email:", NEGOCIO.emailContacto],
-                ["Teléfono:", NEGOCIO.telefono],
-                ...(NEGOCIO.direccion ? [["Dirección:", NEGOCIO.direccion]] : []),
-              ].map(([label, value]) => (
-                <div key={label}>
-                  <p style={{ fontWeight: 700, color: "#fff", fontSize: 13, marginBottom: 3 }}>{label}</p>
-                  <p style={{ fontSize: 14, margin: 0 }}>{value}</p>
-                </div>
-              ))}
-            </div>
+            <summary>9. LEGISLACIÓN APLICABLE</summary>
+            <p>
+              Este aviso legal se rige por la legislación española. Cuando el usuario sea
+              consumidor, serán competentes los juzgados de su domicilio, conforme a la normativa de
+              consumo.
+            </p>
           </details>
 
         </div>

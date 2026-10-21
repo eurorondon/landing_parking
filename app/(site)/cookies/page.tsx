@@ -6,34 +6,35 @@ export const metadata = {
 };
 
 const BROWSERS = [
-  { name: "Google Chrome",      url: "https://support.google.com/chrome/answer/95647?hl=es" },
-  { name: "Mozilla Firefox",    url: "https://support.mozilla.org/es/kb/habilitar-y-deshabilitar-cookies-sitios-web-rastrear-preferencias" },
-  { name: "Internet Explorer",  url: "https://support.microsoft.com/es-es/help/17442/windows-internet-explorer-delete-manage-cookies" },
-  { name: "Safari (Mac)",       url: "https://support.apple.com/es-es/guide/safari/sfri11471/mac" },
-  { name: "Safari (iOS)",       url: "https://support.apple.com/es-es/HT201265" },
-  { name: "Chrome para Android",url: "https://support.google.com/chrome/answer/95647?hl=es-419" },
+  { name: "Chrome",  url: "https://support.google.com/chrome/answer/95647?hl=es" },
+  { name: "Firefox", url: "https://support.mozilla.org/es/kb/habilitar-y-deshabilitar-cookies-sitios-web-rastrear-preferencias" },
+  { name: "Safari",  url: "https://support.apple.com/es-es/guide/safari/sfri11471/mac" },
+  { name: "Edge",    url: "https://support.microsoft.com/es-es/microsoft-edge" },
 ];
 
-const COOKIE_TYPES = [
+const COOKIE_GROUPS = [
   {
-    title: "Cookies Técnicas",
-    desc: "Son necesarias para que nuestra página web pueda funcionar, no necesitan de tu autorización y son las únicas que tenemos activadas por defecto.",
+    title: "Cookies técnicas (siempre activas)",
+    items: [
+      { name: "Cookie de consentimiento", provider: "ParkingAeroMadrid", purpose: "guardar tu elección sobre las cookies", duration: "12 meses" },
+    ],
   },
   {
-    title: "Cookies de Análisis",
-    desc: "Nos permiten estudiar la navegación de los usuarios de nuestra página web en general (secciones más visitadas, servicios más usados, funcionamiento, etc.). A partir de esta información estadística mejoramos tanto la página como los distintos servicios que ofrece.",
+    title: "Cookies analíticas (solo si las aceptas)",
+    items: [
+      { name: "_ga", provider: "Google Ireland Ltd.", purpose: "distinguir usuarios en Google Analytics", duration: "2 años" },
+      { name: "_ga_[ID]", provider: "Google Ireland Ltd.", purpose: "mantener el estado de la sesión en Google Analytics", duration: "2 años" },
+      { name: "_clck", provider: "Microsoft", purpose: "identificador seudónimo de Clarity", duration: "1 año" },
+      { name: "_clsk", provider: "Microsoft", purpose: "unir las páginas vistas en una misma sesión", duration: "1 día" },
+      { name: "CLID y MUID", provider: "Microsoft", purpose: "identificar el navegador en Clarity", duration: "1 año" },
+      { name: "ANONCHK, MR y SM", provider: "Microsoft", purpose: "funcionamiento interno de Clarity", duration: "desde la sesión hasta 7 días" },
+    ],
   },
   {
-    title: "Cookies de Funcionalidad y Personalización",
-    desc: "Nos permiten recordar tus preferencias para personalizar determinadas características y opciones generales de nuestra página web cada vez que accedas a la misma.",
-  },
-  {
-    title: "Cookies de Publicidad",
-    desc: "Nos permiten la gestión de los espacios publicitarios incluidos en nuestra página web en base a criterios como el contenido mostrado o la frecuencia en la que se muestran los anuncios.",
-  },
-  {
-    title: "Cookies de Publicidad Comportamental",
-    desc: "Nos permiten obtener información basada en la observación de tus hábitos y comportamientos de navegación, a fin de poder mostrarte contenidos publicitarios que se ajusten mejor a tus gustos e intereses.",
+    title: "Cookies publicitarias (solo si las aceptas)",
+    items: [
+      { name: "_gcl_au", provider: "Google Ireland Ltd.", purpose: "medir las reservas que llegan desde los anuncios de Google Ads", duration: "90 días" },
+    ],
   },
 ];
 
@@ -62,16 +63,10 @@ export default function PoliticaCookies() {
             LSSI · Normativa de cookies
           </p>
           <h1 style={{ fontSize: "clamp(22px, 3vw, 32px)", fontWeight: 800, letterSpacing: "-.03em", color: "#fff", margin: "0 0 6px" }}>
-            Política de <span style={{ color: "var(--orange)" }}>Uso de Cookies</span>
+            Política de <span style={{ color: "var(--orange)" }}>Cookies</span>
           </h1>
-          <p style={{ fontSize: 14, color: "#fff", margin: "0 0 20px" }}>
-            {NEGOCIO.razonSocial} &mdash; NIF {NEGOCIO.nif}
-          </p>
-          <p style={{ color: "#fff", lineHeight: 1.72, fontSize: 15, margin: 0 }}>
-            Bienvenido/a a la POLÍTICA DE COOKIES de la página web de{" "}
-            <strong style={{ color: "#fff" }}>{NEGOCIO.razonSocial}</strong>, donde te explicaremos
-            en un lenguaje claro y sencillo todas las cuestiones necesarias para que
-            puedas tener el control sobre ellas en base a tus decisiones personales.
+          <p style={{ fontSize: 14, color: "#fff", margin: 0 }}>
+            Última actualización: 17 de octubre de 2026
           </p>
         </div>
 
@@ -79,140 +74,64 @@ export default function PoliticaCookies() {
         <div style={{ display: "grid", gap: 10 }}>
 
           <details>
-            <summary>¿QUÉ SON LAS COOKIES Y PARA QUÉ LAS USAMOS?</summary>
+            <summary>1. TITULAR</summary>
             <p>
-              Una cookie o galleta informática es un pequeño archivo de información
-              que se guarda en tu ordenador, &ldquo;smartphone&rdquo; o tableta cada
-              vez que visitas nuestra página web.
-            </p>
-            <p style={{ marginTop: 10 }}>
-              En principio, una cookie es inofensiva: no contiene virus, troyanos,
-              gusanos, etc. que puedan dañar tu terminal, pero sí tiene cierto impacto
-              sobre tu derecho a la protección de tus datos personales, pues recoge
-              determinada información concerniente a tu persona (hábitos de navegación,
-              identidad, preferencias, etc.).
-            </p>
-            <p style={{ marginTop: 10 }}>
-              Es por ello que, en base a lo establecido en la normativa aplicable
-              (LSSI y normativa vigente de protección de datos personales), la
-              activación de determinados tipos de cookies necesitará de tu autorización
-              previa.
+              Esta web es titularidad de <strong style={{ color: "#fff" }}>GLOBAL SOLUCION MARICHAL, S.L.</strong>{" "}
+              (Sociedad Unipersonal), marca ParkingAeroMadrid, NIF B19765569, con domicilio en
+              Calle Venus, 11, 1.º E, 28042 Madrid, inscrita en el Registro Mercantil de Madrid,
+              hoja M-825952. Email:{" "}
+              <a href="mailto:parkingaeromadrid@gmail.com" style={{ color: "var(--orange)" }}>
+                parkingaeromadrid@gmail.com
+              </a>.
             </p>
           </details>
 
           <details>
-            <summary>TIPOS DE COOKIES</summary>
-            <p style={{ marginBottom: 14 }}>
-              Las cookies pueden ser de varios tipos en función de su finalidad:
+            <summary>2. QUÉ SON LAS COOKIES</summary>
+            <p>
+              Una cookie es un pequeño archivo que se guarda en tu dispositivo cuando visitas una web.
+              Las cookies técnicas son necesarias para que la web funcione y no requieren tu
+              consentimiento. Las cookies analíticas y publicitarias solo se instalan si las aceptas.
             </p>
-            {COOKIE_TYPES.map(({ title, desc }) => (
+          </details>
+
+          <details>
+            <summary>3. COOKIES QUE UTILIZA ESTA WEB</summary>
+            {COOKIE_GROUPS.map(({ title, items }) => (
               <div
                 key={title}
-                style={{ borderLeft: "3px solid rgba(255,149,0,.35)", paddingLeft: 16, margin: "12px 0" }}
+                style={{ borderLeft: "3px solid rgba(255,149,0,.35)", paddingLeft: 16, margin: "14px 0" }}
               >
-                <p style={{ fontWeight: 700, color: "#fff", fontSize: 13, marginBottom: 4 }}>{title}</p>
-                <p style={{ margin: 0, fontSize: 14 }}>{desc}</p>
+                <p style={{ fontWeight: 700, color: "#fff", fontSize: 13, marginBottom: 8 }}>{title}</p>
+                <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
+                  {items.map(({ name, provider, purpose, duration }) => (
+                    <li key={name} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                      <span style={{ color: "var(--orange)", fontWeight: 700, flexShrink: 0, marginTop: 2 }}>✓</span>
+                      <span style={{ fontSize: 14 }}>
+                        <strong style={{ color: "#fff" }}>{name}.</strong>{" "}
+                        Proveedor: {provider}. Finalidad: {purpose}. Duración: {duration}.
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
-            <p style={{ marginTop: 14 }}>
-              Algunas son <strong style={{ color: "#fff" }}>cookies propias</strong> y otras
-              pertenecen a empresas externas (<strong style={{ color: "#fff" }}>cookies de terceros</strong>).
-            </p>
-            <p style={{ marginTop: 10 }}>
-              En función del plazo de tiempo que permanecen activas:
-            </p>
-            <ul style={{ margin: "10px 0 0 0", padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
-              {[
-                ["Cookies de sesión", "Expiran automáticamente cuando terminas la sesión en tu dispositivo."],
-                ["Cookies persistentes", "Permanecen almacenadas durante un periodo determinado, desde unos minutos hasta varios años."],
-              ].map(([term, def]) => (
-                <li key={term} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <span style={{ color: "var(--orange)", fontWeight: 700, flexShrink: 0, marginTop: 2 }}>✓</span>
-                  <span style={{ fontSize: 14 }}><strong style={{ color: "#fff" }}>{term}:</strong> {def}</span>
-                </li>
-              ))}
-            </ul>
           </details>
 
           <details>
-            <summary>¿QUÉ TIPO DE COOKIES SE UTILIZAN EN NUESTRA PÁGINA WEB?</summary>
-            <div style={{ borderLeft: "3px solid rgba(255,149,0,.35)", paddingLeft: 16, margin: "12px 0" }}>
-              <p style={{ fontWeight: 700, color: "#fff", fontSize: 13, marginBottom: 4 }}>Cookies Propias</p>
-              <p style={{ margin: 0, fontSize: 14 }}>
-                Son aquéllas que permiten al usuario la navegación a través de nuestra
-                página web y la utilización de las diferentes opciones o servicios que
-                en ella existan: controlar el tráfico, identificar la sesión, acceder a
-                partes de acceso restringido, entre otros.
-              </p>
-            </div>
-            <div style={{ borderLeft: "3px solid rgba(255,149,0,.35)", paddingLeft: 16, margin: "12px 0" }}>
-              <p style={{ fontWeight: 700, color: "#fff", fontSize: 13, marginBottom: 4 }}>Cookies de Terceros</p>
-              <p style={{ margin: 0, fontSize: 14 }}>
-                En particular, este sitio web utiliza <strong style={{ color: "#fff" }}>Google Analytics</strong>,
-                un servicio analítico prestado por Google, Inc. (1600 Amphitheatre Parkway,
-                Mountain View, California 94043, EE.UU.).
-              </p>
-              <p style={{ margin: "10px 0 0", fontSize: 14 }}>
-                Además, si aceptas las cookies con <strong style={{ color: "#fff" }}>«Aceptar todo»</strong>,
-                se activa <strong style={{ color: "#fff" }}>Microsoft Clarity</strong>, un servicio de análisis
-                del comportamiento prestado por Microsoft Corporation (One Microsoft Way, Redmond,
-                Washington 98052, EE.UU.). Registra cómo usas la web (clics, movimientos, desplazamiento
-                y páginas visitadas) mediante mapas de calor y reproducciones de sesión, con el fin de
-                mejorar la usabilidad y detectar errores. Para ello establece las cookies propias{" "}
-                <strong style={{ color: "#fff" }}>_clck</strong> (identificador pseudónimo de usuario) y{" "}
-                <strong style={{ color: "#fff" }}>_clsk</strong> (une las páginas vistas en una misma sesión), y
-                las cookies de terceros de Microsoft <strong style={{ color: "#fff" }}>CLID</strong>,{" "}
-                <strong style={{ color: "#fff" }}>ANONCHK</strong>, <strong style={{ color: "#fff" }}>MR</strong>,{" "}
-                <strong style={{ color: "#fff" }}>MUID</strong> y <strong style={{ color: "#fff" }}>SM</strong>.
-              </p>
-              <p style={{ margin: "10px 0 0", fontSize: 14 }}>
-                Si eliges <strong style={{ color: "#fff" }}>«Solo esenciales»</strong>, Clarity no se carga ni
-                guarda cookies. Los formularios donde introduces tus datos personales se ocultan en las
-                grabaciones. Puedes consultar cómo trata Microsoft los datos en su{" "}
-                <a
-                  href="https://www.microsoft.com/privacy/privacystatement"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "var(--orange)" }}
-                >
-                  declaración de privacidad
-                </a>.
-              </p>
-            </div>
-          </details>
-
-          <details>
-            <summary>¿QUÉ PUEDES HACER CON LAS COOKIES?</summary>
+            <summary>4. CÓMO ACEPTAR, RECHAZAR O CAMBIAR TU ELECCIÓN</summary>
             <p>
-              Cuando accedes por primera vez a nuestra página web, se te muestra una
-              ventana informativa sobre los tipos de cookies:
-            </p>
-            <ul style={{ margin: "12px 0", padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
-              <li style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <span style={{ color: "var(--orange)", fontWeight: 700, flexShrink: 0, marginTop: 2 }}>✓</span>
-                <span style={{ fontSize: 14 }}>Las cookies técnicas son necesarias para el funcionamiento de la web y están activadas por defecto sin requerir autorización.</span>
-              </li>
-              <li style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <span style={{ color: "var(--orange)", fontWeight: 700, flexShrink: 0, marginTop: 2 }}>✓</span>
-                <span style={{ fontSize: 14 }}>El resto sirven para mejorar la página o mostrarte publicidad ajustada. Puedes aceptar todas con <strong style={{ color: "#fff" }}>«Aceptar todo»</strong> o rechazarlas con <strong style={{ color: "#fff" }}>«Solo esenciales»</strong>.</span>
-              </li>
-            </ul>
-            <p style={{ marginTop: 10 }}>
-              Una vez tomada tu decisión, podrás cambiarla contactando con nosotros en{" "}
-              <a href={`mailto:${NEGOCIO.emailContacto}`} style={{ color: "var(--orange)" }}>
-                {NEGOCIO.emailContacto}
-              </a>{" "}
-              o borrando las cookies desde tu navegador.
+              Al entrar por primera vez verás un aviso con dos opciones:{" "}
+              <strong style={{ color: "#fff" }}>«Aceptar todo»</strong> o{" "}
+              <strong style={{ color: "#fff" }}>«Solo esenciales»</strong>. Si eliges «Solo esenciales»,
+              no se instala ninguna cookie analítica ni publicitaria.
             </p>
             <p style={{ marginTop: 10 }}>
-              Recuerda también que, a través de la configuración de tu navegador, puedes
-              bloquear o recibir alertas de la presencia de cookies, aunque esto puede
-              afectar al correcto funcionamiento de las cookies técnicas necesarias.
+              Puedes cambiar o retirar tu consentimiento en cualquier momento desde el enlace
+              «Gestionar cookies» del pie de página.
             </p>
-
-            {/* Links navegadores — solo con clase CSS, sin event handlers */}
-            <p style={{ marginTop: 18, fontWeight: 700, color: "#fff", fontSize: 14 }}>
-              Desactivar cookies en tu navegador:
+            <p style={{ marginTop: 10 }}>
+              También puedes borrar o bloquear las cookies desde la configuración de tu navegador:
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10, marginTop: 10 }}>
               {BROWSERS.map(({ name, url }) => (
@@ -227,9 +146,16 @@ export default function PoliticaCookies() {
                 </a>
               ))}
             </div>
+          </details>
 
-            <p style={{ marginTop: 20, textAlign: "center", fontWeight: 600, color: "#fff", fontSize: 14 }}>
-              Muchas gracias por tu colaboración.
+          <details>
+            <summary>5. TRANSFERENCIAS INTERNACIONALES</summary>
+            <p>
+              Google y Microsoft pueden tratar datos fuera del Espacio Económico Europeo, con las
+              garantías del Marco de Privacidad de Datos UE-EE. UU. Tienes más información en nuestra{" "}
+              <Link href="/privacidad" style={{ color: "var(--orange)" }}>
+                Política de privacidad
+              </Link>.
             </p>
           </details>
 
