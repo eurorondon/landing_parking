@@ -18,6 +18,14 @@ export function middleware(req: NextRequest) {
   // Con trailingSlash la ruta puede llegar con o sin "/" final
   const pathname = rawPath.length > 1 && rawPath.endsWith("/") ? rawPath.slice(0, -1) : rawPath;
 
+  // www → dominio sin www (Google llegó a elegir www como canónica)
+  const host = req.headers.get("host") ?? "";
+  if (host.toLowerCase().startsWith("www.")) {
+    // Se añade la barra final aquí mismo para no encadenar dos redirecciones
+    const ruta = rawPath.endsWith("/") ? rawPath : rawPath + "/";
+    return NextResponse.redirect(`${SITE_URL}${ruta}${req.nextUrl.search}`, 301);
+  }
+
   const esAdmin = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
 
   if (!esAdmin) {
