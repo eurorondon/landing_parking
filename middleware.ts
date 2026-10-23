@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { SITE_URL } from "@/lib/seo";
 
 /**
  * 1) Páginas públicas: redirige con 301 la URL sin barra final a la canónica
@@ -24,9 +25,13 @@ export function middleware(req: NextRequest) {
     if (pathname !== "/" && !rawPath.endsWith("/")) {
       // URL absoluta construida a mano: nextUrl.clone() volvería a quitar la
       // barra final, y Next rechaza un Location relativo.
-      const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? req.nextUrl.host;
-      const proto = req.headers.get("x-forwarded-proto") ?? req.nextUrl.protocol.replace(":", "");
-      return NextResponse.redirect(`${proto}://${host}${rawPath}/${req.nextUrl.search}`, 301);
+      // En producción (Passenger + Cloudflare) las cabeceras de host no son
+      // fiables y daban 500, así que se usa el dominio canónico.
+      const origen =
+        process.env.NODE_ENV === "production"
+          ? SITE_URL
+          : `${req.nextUrl.protocol}//${req.nextUrl.host}`;
+      return NextResponse.redirect(`${origen}${rawPath}/${req.nextUrl.search}`, 301);
     }
     return NextResponse.next();
   }
