@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Protege el panel de administración y sus APIs.
+ * 1) Páginas públicas: redirige con 301 la URL sin barra final a la canónica
+ *    con barra (trailingSlash: true + skipTrailingSlashRedirect en next.config).
+ * 2) Protege el panel de administración y sus APIs.
  *
  * ⚠️ CAMBIAR: la contraseña se define en .env.local → ADMIN_PASSWORD
  * (por defecto "admin123", solo para desarrollo).
@@ -11,7 +13,23 @@ import { NextResponse, type NextRequest } from "next/server";
  * sustituir por un sistema de autenticación real (Auth.js, Supabase Auth…).
  */
 export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const { pathname: rawPath } = req.nextUrl;
+  // Con trailingSlash la ruta puede llegar con o sin "/" final
+  const pathname = rawPath.length > 1 && rawPath.endsWith("/") ? rawPath.slice(0, -1) : rawPath;
+
+  const esAdmin = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
+
+  if (!esAdmin) {
+    // Página pública sin barra final → 301 a la versión con barra
+    if (pathname !== "/" && !rawPath.endsWith("/")) {
+      // URL absoluta construida a mano: nextUrl.clone() volvería a quitar la
+      // barra final, y Next rechaza un Location relativo.
+      const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? req.nextUrl.host;
+      const proto = req.headers.get("x-forwarded-proto") ?? req.nextUrl.protocol.replace(":", "");
+      return NextResponse.redirect(`${proto}://${host}${rawPath}/${req.nextUrl.search}`, 301);
+    }
+    return NextResponse.next();
+  }
 
   // El login debe ser accesible sin sesión
   if (pathname === "/admin/login" || pathname === "/api/admin/login") {
@@ -33,5 +51,7 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  // Todo salvo estáticos de Next, /api no-admin y archivos con extensión
+  // (sitemap.xml, robots.txt, imágenes…)
+  matcher: ["/((?!_next/|api/(?!admin)|.*\\..*).*)"],
 };

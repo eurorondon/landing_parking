@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import LandingPageSEO from "@/components/LandingPageSEO";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Parking Valet Aeropuerto Madrid | Entrega tu Coche en Terminal",
   description:
     "Reserva tu parking valet en el Aeropuerto Madrid-Barajas. Entrega y recogida de tu vehículo directamente en terminal, sin esperas y con vigilancia 24 horas.",
-  alternates: { canonical: "https://parkingaeromadrid.es/parking-valet-aeropuerto-madrid/" },
-  openGraph: {
-    title: "Parking Valet Aeropuerto Madrid | Entrega tu Coche en Terminal",
-    description:
-      "Servicio valet premium en Barajas. Entregamos y recogemos tu coche en la terminal. Reserva online sin pago anticipado.",
-    locale: "es_ES",
-    type: "website",
-  },
-};
+  path: "/parking-valet-aeropuerto-madrid/",
+  ogTitle: "Parking Valet Aeropuerto Madrid | Entrega tu Coche en Terminal",
+  ogDescription:
+    "Servicio valet premium en Barajas. Entregamos y recogemos tu coche en la terminal. Reserva online sin pago anticipado.",
+});
 
 export default function ParkingValetPage() {
   return (
@@ -194,11 +191,9 @@ export default function ParkingValetPage() {
             <>
               <p>
                 Somos especialistas en <strong>parking valet en Madrid Barajas</strong>{" "}
-                con miles de reservas realizadas y una valoración media de 4,9 sobre 5.
+                con atención personalizada y reserva online en menos de 1 minuto.
               </p>
               <ul>
-                <li>Más de 20.000 reservas realizadas</li>
-                <li>Valoración media de 4,9 estrellas</li>
                 <li>Atención al cliente 24/7 por WhatsApp</li>
                 <li>Cobertura en T1, T2 y T4</li>
                 <li>Sin pago anticipado ni sorpresas</li>

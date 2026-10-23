@@ -7,7 +7,7 @@ export default function FinalCTA() {
           Calcula tu precio, deja tus datos y recibe la confirmación de tu
           reserva para aparcar en Madrid-Barajas.
         </p>
-        <a className="btn btn-primary" href="#reserva">
+        <a className="btn btn-primary" href="#calcular">
           Ver disponibilidad
         </a>
       </div>

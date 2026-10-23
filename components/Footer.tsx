@@ -24,9 +24,10 @@ export default function Footer() {
           </div>
           <div>
             <h3>Servicio</h3>
-            <a href="#reserva">Reservar</a>
-            <a href="#como-funciona">Cómo funciona</a>
-            <a href="#ventajas">Ventajas</a>
+            <a href="/#calcular">Reservar</a>
+            <a href="/#como-funciona">Cómo funciona</a>
+            <a href="/#ventajas">Ventajas</a>
+            <a href="/#faq">Preguntas frecuentes</a>
           </div>
           <div>
             <h3>Parkings</h3>
@@ -46,9 +47,9 @@ export default function Footer() {
           </div>
           <div>
             <h3>Legal</h3>
-            <a href="/aviso-legal">Aviso legal</a>
-            <a href="/privacidad">Privacidad</a>
-            <a href="/cookies">Política de cookies</a>
+            <a href="/aviso-legal/">Aviso legal</a>
+            <a href="/privacidad/">Privacidad</a>
+            <a href="/cookies/">Política de cookies</a>
             <CookieResetButton />
           </div>
         </div>

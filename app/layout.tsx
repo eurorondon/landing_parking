@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Manrope, Inter } from "next/font/google";
+import { SITE_URL, OG_IMAGE } from "@/lib/seo";
 
 // Autoalojadas con next/font (antes <link> a fonts.googleapis.com): evita los
 // dos saltos de red a fonts.googleapis.com + fonts.gstatic.com antes de
@@ -27,6 +28,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  // Base para que og:image, canonical, etc. salgan como URL absoluta
+  // (sin esto Next usaba http://localhost:3000)
+  metadataBase: new URL(SITE_URL),
   title: "Parking Aero Madrid | Reserva en Barajas sin estrés",
   description:
     "Reserva tu parking en Madrid-Barajas en menos de 1 minuto. Entrega y recogida en terminal, servicio 24 horas y sin pago anticipado.",
@@ -38,9 +42,13 @@ export const metadata: Metadata = {
     title: "Parking Aero Madrid",
     description:
       "Deja tu coche en la terminal y viaja sin estrés. Reserva online sin pago anticipado.",
-    images: [{ url: "/logo.jpg", width: 512, height: 512, alt: "Parking Aero Madrid" }],
+    images: [OG_IMAGE],
     locale: "es_ES",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [OG_IMAGE.url],
   },
 };
 
@@ -64,6 +72,8 @@ export default function RootLayout({
                 ad_storage: 'denied',
                 ad_user_data: 'denied',
                 ad_personalization: 'denied',
+                functionality_storage: 'granted',
+                security_storage: 'granted',
                 wait_for_update: 500
               });
             `,

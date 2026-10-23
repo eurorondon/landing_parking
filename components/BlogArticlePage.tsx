@@ -11,12 +11,14 @@ const APP_URL = "https://parkingaeromadrid.es";
 function buildArticleLD(post: BlogPost) {
   return {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${APP_URL}/blog/${post.slug}/` },
     headline: post.h1,
     description: post.metaDescription,
     url: `${APP_URL}/blog/${post.slug}/`,
     datePublished: post.publishDate,
     dateModified: post.publishDate,
+    image: `${APP_URL}/og-default.png`,
     inLanguage: "es",
     author: {
       "@type": "Organization",
@@ -27,6 +29,7 @@ function buildArticleLD(post: BlogPost) {
       "@type": "Organization",
       name: NEGOCIO.nombre,
       url: APP_URL,
+      logo: { "@type": "ImageObject", url: `${APP_URL}/logo.jpg` },
     },
   };
 }

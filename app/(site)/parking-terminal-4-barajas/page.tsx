@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import LandingPageSEO from "@/components/LandingPageSEO";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Parking Terminal 4 Barajas | Reserva Parking Seguro Cerca de la T4",
   description:
     "Reserva tu parking para la Terminal 4 del Aeropuerto Madrid-Barajas con entrega y recogida en terminal, vigilancia 24 horas y reserva online rápida y segura.",
-  alternates: { canonical: "https://parkingaeromadrid.es/parking-terminal-4-barajas/" },
-  openGraph: {
-    title: "Parking Terminal 4 Barajas | Reserva Parking Seguro Cerca de la T4",
-    description:
-      "Entrega tu coche en la T4 y viaja sin esperas. Vigilancia 24h y reserva online sin pago anticipado.",
-    locale: "es_ES",
-    type: "website",
-  },
-};
+  path: "/parking-terminal-4-barajas/",
+  ogTitle: "Parking Terminal 4 Barajas | Reserva Parking Seguro Cerca de la T4",
+  ogDescription:
+    "Entrega tu coche en la T4 y viaja sin esperas. Vigilancia 24h y reserva online sin pago anticipado.",
+});
 
 export default function ParkingTerminal4Page() {
   return (
@@ -220,7 +217,7 @@ export default function ParkingTerminal4Page() {
         {
           pregunta: "¿Cuánto cuesta el parking para la Terminal 4?",
           respuesta:
-            "El precio depende de los días de estancia. Usa nuestro calculador online para obtener el precio exacto en tiempo real, sin compromiso.",
+            "El precio depende de los días de estancia. Usa nuestro calculador online para obtener el precio estimado en tiempo real, sin compromiso.",
         },
         {
           pregunta: "¿El servicio incluye seguro?",

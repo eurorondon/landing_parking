@@ -93,10 +93,14 @@ function pushConsentUpdate(analytics: ConsentValue, marketing: ConsentValue) {
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
+  const [configurando, setConfigurando] = useState(false);
+  const [analitica, setAnalitica] = useState(false);
+  const [publicidad, setPublicidad] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
-    if (POLICY_PATHS.includes(pathname)) {
+    // Con trailingSlash, usePathname devuelve p. ej. "/cookies/"
+    if (POLICY_PATHS.includes(pathname.replace(/\/$/, ""))) {
       setVisible(false);
       return;
     }
@@ -113,21 +117,40 @@ export default function CookieBanner() {
     return () => { document.body.style.overflow = ""; };
   }, [visible]);
 
-  function acceptAll() {
-    const data: ConsentData = { analytics: "granted", marketing: "granted", timestamp: Date.now() };
-    saveConsent(data);
-    pushConsentUpdate("granted", "granted");
+  function guardar(analytics: ConsentValue, marketing: ConsentValue) {
+    saveConsent({ analytics, marketing, timestamp: Date.now() });
+    pushConsentUpdate(analytics, marketing);
     setVisible(false);
   }
 
-  function rejectAll() {
-    const data: ConsentData = { analytics: "denied", marketing: "denied", timestamp: Date.now() };
-    saveConsent(data);
-    pushConsentUpdate("denied", "denied");
-    setVisible(false);
-  }
+  const acceptAll = () => guardar("granted", "granted");
+  const rejectAll = () => guardar("denied", "denied");
 
   if (!visible) return null;
+
+  const botonBase: React.CSSProperties = {
+    flex: 1,
+    minWidth: 120,
+    padding: "12px 16px",
+    borderRadius: 12,
+    fontFamily: "inherit",
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: "pointer",
+  };
+  const botonSecundario: React.CSSProperties = {
+    ...botonBase,
+    border: "1.5px solid rgba(255,255,255,.25)",
+    background: "transparent",
+    color: "#fff",
+  };
+  const botonPrimario: React.CSSProperties = {
+    ...botonBase,
+    border: "none",
+    background: "var(--orange)",
+    color: "#000",
+    fontWeight: 800,
+  };
 
   return (
     <>
@@ -140,16 +163,23 @@ export default function CookieBanner() {
       }} />
 
       {/* Banner */}
-      <div style={{
-        position: "fixed", bottom: 0, left: 0, right: 0,
-        zIndex: 9999,
-        padding: "16px",
-        display: "flex",
-        justifyContent: "center",
-      }}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Preferencias de cookies"
+        style={{
+          position: "fixed", bottom: 0, left: 0, right: 0,
+          zIndex: 9999,
+          padding: "16px",
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
         <div style={{
           width: "100%",
           maxWidth: 720,
+          maxHeight: "calc(100vh - 32px)",
+          overflowY: "auto",
           background: "#181818",
           border: "1px solid rgba(255,149,0,.25)",
           borderRadius: 20,
@@ -166,17 +196,17 @@ export default function CookieBanner() {
             </p>
             <p style={{ color: "#fff", fontSize: 14, lineHeight: 1.65, margin: 0 }}>
               Utilizamos cookies propias y de terceros para analizar el uso del
-              sitio y mejorar tu experiencia. Puedes aceptar todas o solo las
-              esenciales.{" "}
+              sitio y mejorar tu experiencia. Puedes aceptar todas, rechazarlas o
+              elegir cuáles activar.{" "}
               <Link
-                href="/cookies"
+                href="/cookies/"
                 style={{ color: "var(--orange)", fontWeight: 600, textDecoration: "underline" }}
               >
                 Política de cookies
               </Link>
               {" · "}
               <Link
-                href="/privacidad"
+                href="/privacidad/"
                 style={{ color: "var(--orange)", fontWeight: 600, textDecoration: "underline" }}
               >
                 Privacidad
@@ -184,48 +214,76 @@ export default function CookieBanner() {
             </p>
           </div>
 
+          {/* Panel Configurar */}
+          {configurando && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                {
+                  titulo: "Necesarias",
+                  texto: "Imprescindibles para que la web funcione. Siempre activas.",
+                  valor: true,
+                  fija: true,
+                  cambiar: () => {},
+                },
+                {
+                  titulo: "Analítica",
+                  texto: "Google Analytics y Microsoft Clarity: nos ayudan a entender cómo se usa la web.",
+                  valor: analitica,
+                  fija: false,
+                  cambiar: () => setAnalitica((v) => !v),
+                },
+                {
+                  titulo: "Publicidad",
+                  texto: "Google Ads: medir campañas y mostrar anuncios relevantes.",
+                  valor: publicidad,
+                  fija: false,
+                  cambiar: () => setPublicidad((v) => !v),
+                },
+              ].map((c) => (
+                <label
+                  key={c.titulo}
+                  style={{
+                    display: "flex", alignItems: "flex-start", gap: 12,
+                    padding: "12px 14px", borderRadius: 12,
+                    background: "rgba(255,255,255,.05)",
+                    cursor: c.fija ? "default" : "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={c.valor}
+                    disabled={c.fija}
+                    onChange={c.cambiar}
+                    style={{ marginTop: 3, width: 18, height: 18, accentColor: "#FF9500" }}
+                  />
+                  <span style={{ color: "#fff", fontSize: 14, lineHeight: 1.5 }}>
+                    <b>{c.titulo}</b>
+                    <br />
+                    <span style={{ color: "rgba(255,255,255,.75)" }}>{c.texto}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+
           {/* Botones */}
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button
-              onClick={rejectAll}
-              style={{
-                flex: 1,
-                minWidth: 140,
-                padding: "12px 20px",
-                borderRadius: 12,
-                border: "1.5px solid rgba(255,255,255,.25)",
-                background: "transparent",
-                color: "#fff",
-                fontFamily: "inherit",
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "background .2s, border-color .2s",
-              }}
-              onMouseOver={e => (e.currentTarget.style.background = "rgba(255,255,255,.08)")}
-              onMouseOut={e => (e.currentTarget.style.background = "transparent")}
-            >
-              Solo esenciales
+            <button onClick={rejectAll} style={botonSecundario}>
+              Rechazar
             </button>
-            <button
-              onClick={acceptAll}
-              style={{
-                flex: 1,
-                minWidth: 140,
-                padding: "12px 20px",
-                borderRadius: 12,
-                border: "none",
-                background: "var(--orange)",
-                color: "#000",
-                fontFamily: "inherit",
-                fontSize: 14,
-                fontWeight: 800,
-                cursor: "pointer",
-                transition: "background .2s, transform .2s",
-              }}
-              onMouseOver={e => { e.currentTarget.style.background = "#d97700"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-              onMouseOut={e => { e.currentTarget.style.background = "var(--orange)"; e.currentTarget.style.transform = "none"; }}
-            >
+            {configurando ? (
+              <button
+                onClick={() => guardar(analitica ? "granted" : "denied", publicidad ? "granted" : "denied")}
+                style={botonSecundario}
+              >
+                Guardar selección
+              </button>
+            ) : (
+              <button onClick={() => setConfigurando(true)} style={botonSecundario}>
+                Configurar
+              </button>
+            )}
+            <button onClick={acceptAll} style={botonPrimario}>
               Aceptar todo
             </button>
           </div>

@@ -75,8 +75,8 @@ export default function Hero() {
             {/* Stats */}
             <div className="hero-stats">
               <div className="hero-stat">
-                <span className="stat-icon">👥</span>
-                <div className="stat-text">Más de <b>20.000</b><br />clientes satisfechos</div>
+                <span className="stat-icon">💬</span>
+                <div className="stat-text">Confirmación<br />por WhatsApp</div>
               </div>
               <div className="hero-stat">
                 <span className="stat-icon">🛡️</span>

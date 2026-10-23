@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import LandingPageSEO from "@/components/LandingPageSEO";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Parking Terminal 1 Barajas | Reserva Parking Seguro Cerca de la T1",
   description:
     "Reserva tu parking para la Terminal 1 del Aeropuerto Madrid-Barajas con entrega y recogida en terminal, vigilancia 24 horas y reserva online rápida y segura.",
-  alternates: { canonical: "https://parkingaeromadrid.es/parking-terminal-1-barajas/" },
-  openGraph: {
-    title: "Parking Terminal 1 Barajas | Reserva Parking Seguro Cerca de la T1",
-    description:
-      "Entrega tu coche en la T1 y viaja sin esperas. Vigilancia 24h y reserva online sin pago anticipado.",
-    locale: "es_ES",
-    type: "website",
-  },
-};
+  path: "/parking-terminal-1-barajas/",
+  ogTitle: "Parking Terminal 1 Barajas | Reserva Parking Seguro Cerca de la T1",
+  ogDescription:
+    "Entrega tu coche en la T1 y viaja sin esperas. Vigilancia 24h y reserva online sin pago anticipado.",
+});
 
 export default function ParkingTerminal1Page() {
   return (
@@ -177,8 +174,8 @@ export default function ParkingTerminal1Page() {
             <>
               <p>
                 La Terminal 1 está conectada con la T2 y T3 mediante pasarelas
-                interiores. Nuestro servicio te permite llegar directamente a la
-                puerta de embarque sin rodeos.
+                interiores. Nuestro servicio te permite entregar el coche junto a la
+                terminal y acceder al edificio sin rodeos.
               </p>
               <p>
                 Al reservar el{" "}
@@ -204,7 +201,7 @@ export default function ParkingTerminal1Page() {
         {
           pregunta: "¿Qué aerolíneas operan en la Terminal 1 de Barajas?",
           respuesta:
-            "La T1 concentra principalmente vuelos internacionales de la alianza SkyTeam (Air France, KLM, Alitalia) y otras aerolíneas intercontinentales. Consulta la web del aeropuerto para confirmar tu terminal.",
+            "La T1 concentra principalmente vuelos internacionales de la alianza SkyTeam (como Air France y KLM) y otras aerolíneas intercontinentales. Consulta la web del aeropuerto para confirmar tu terminal.",
         },
         {
           pregunta: "¿El parking T1 funciona de noche?",

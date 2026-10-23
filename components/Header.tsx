@@ -1,10 +1,16 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  // La calculadora (#calcular) solo existe en la home y en las landings; en el
+  // resto (blog, legales) el botón lleva a la calculadora de la home.
+  const pathname = usePathname();
+  const hayCalculadora = pathname === "/" || pathname.startsWith("/parking-");
+  const hrefReservar = hayCalculadora ? "#calcular" : "/#calcular";
 
   // Cierra el menú al hacer resize a escritorio
   useEffect(() => {
@@ -25,7 +31,7 @@ export default function Header() {
   return (
     <>
       <header>
-        <a href="#" className="brand" onClick={close}>
+        <a href="/" className="brand" onClick={close}>
           <Image
             src="/logo.jpg"
             alt="Parking Aero Madrid"
@@ -48,7 +54,7 @@ export default function Header() {
 
         <div className="header-right">
           {/* Botón Reservar: oculto en móvil, visible en escritorio */}
-          <a className="btn btn-primary header-btn-reservar" href="#calcular">
+          <a className="btn btn-primary header-btn-reservar" href={hrefReservar}>
             Reservar
           </a>
           {/* Hamburguesa: visible en móvil, oculta en escritorio */}
@@ -83,7 +89,7 @@ export default function Header() {
         <a href="/parking-barajas/" onClick={close}>Parking Barajas</a>
         <a href="/#faq" onClick={close}>FAQ</a>
         <a href="/#contacto" onClick={close}>Contacto</a>
-        <a className="btn btn-primary" href="#calcular" onClick={close}>
+        <a className="btn btn-primary" href={hrefReservar} onClick={close}>
           Reservar ahora
         </a>
       </nav>

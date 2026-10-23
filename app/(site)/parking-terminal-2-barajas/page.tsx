@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import LandingPageSEO from "@/components/LandingPageSEO";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Parking Terminal 2 Barajas | Reserva Parking Seguro Cerca de la T2",
   description:
     "Reserva tu parking para la Terminal 2 del Aeropuerto Madrid-Barajas con entrega y recogida en terminal, vigilancia 24 horas y reserva online rápida y segura.",
-  alternates: { canonical: "https://parkingaeromadrid.es/parking-terminal-2-barajas/" },
-  openGraph: {
-    title: "Parking Terminal 2 Barajas | Reserva Parking Seguro Cerca de la T2",
-    description:
-      "Entrega tu coche en la T2 y viaja sin esperas. Vigilancia 24h y reserva online sin pago anticipado.",
-    locale: "es_ES",
-    type: "website",
-  },
-};
+  path: "/parking-terminal-2-barajas/",
+  ogTitle: "Parking Terminal 2 Barajas | Reserva Parking Seguro Cerca de la T2",
+  ogDescription:
+    "Entrega tu coche en la T2 y viaja sin esperas. Vigilancia 24h y reserva online sin pago anticipado.",
+});
 
 export default function ParkingTerminal2Page() {
   return (
@@ -218,7 +215,7 @@ export default function ParkingTerminal2Page() {
         {
           pregunta: "¿Cuánto cuesta el parking para la Terminal 2?",
           respuesta:
-            "El precio depende del número de días de estancia. Usa nuestro calculador online para obtener el precio exacto al instante y sin compromiso.",
+            "El precio depende del número de días de estancia. Usa nuestro calculador online para obtener el precio estimado al instante y sin compromiso.",
         },
         {
           pregunta: "¿El servicio incluye seguro para mi vehículo?",

@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { NEGOCIO } from "@/lib/config";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: `Política de privacidad | ${NEGOCIO.nombre}`,
-};
+  description:
+    "Cómo trata parkingaeromadrid.es tus datos personales: responsable, finalidades, base legal, destinatarios y cómo ejercer tus derechos RGPD.",
+  path: "/privacidad/",
+});
 
 const RESPONSABLE: [string, string][] = [
   ["Razón social", "GLOBAL SOLUCION MARICHAL, S.L. (Sociedad Unipersonal), marca ParkingAeroMadrid"],

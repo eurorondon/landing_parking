@@ -14,7 +14,7 @@ export default function Reassurance() {
             continúas tu viaje. Nosotros nos ocupamos del resto.
           </p>
           <br />
-          <a href="#reserva" className="btn btn-primary">
+          <a href="#calcular" className="btn btn-primary">
             Calcular mi precio
           </a>
         </div>

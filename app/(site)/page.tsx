@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import TrustBar from "@/components/TrustBar";
@@ -14,6 +16,16 @@ import StickyButtons from "@/components/StickyButtons";
 // esto la home queda estática en build y ese precio no se actualiza hasta
 // el próximo deploy aunque se cambie en el panel admin.
 export const revalidate = 60;
+
+export const metadata: Metadata = pageMetadata({
+  title: "Parking Aero Madrid | Reserva en Barajas sin estrés",
+  description:
+    "Reserva tu parking en Madrid-Barajas en menos de 1 minuto. Entrega y recogida en terminal, servicio 24 horas y sin pago anticipado.",
+  path: "/",
+  ogTitle: "Parking Aero Madrid",
+  ogDescription:
+    "Deja tu coche en la terminal y viaja sin estrés. Reserva online sin pago anticipado.",
+});
 
 export default function Home() {
   return (

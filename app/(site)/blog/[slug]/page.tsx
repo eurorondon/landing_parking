@@ -2,8 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getBlogPostBySlug, BLOG_POSTS } from "@/lib/blog-data";
 import BlogArticlePage from "@/components/BlogArticlePage";
-
-const APP_URL = "https://parkingaeromadrid.es";
+import { pageMetadata } from "@/lib/seo";
 
 /* ─── SSG: genera una ruta por cada artículo ──────────────────────────────── */
 
@@ -22,21 +21,13 @@ export async function generateMetadata({
   const post = getBlogPostBySlug(slug);
   if (!post) return {};
 
-  return {
+  return pageMetadata({
     title: post.title,
     description: post.metaDescription,
-    alternates: {
-      canonical: `${APP_URL}/blog/${post.slug}/`,
-    },
-    openGraph: {
-      title: post.title,
-      description: post.metaDescription,
-      type: "article",
-      publishedTime: post.publishDate,
-      locale: "es_ES",
-      url: `${APP_URL}/blog/${post.slug}/`,
-    },
-  };
+    path: `/blog/${post.slug}/`,
+    type: "article",
+    publishedTime: post.publishDate,
+  });
 }
 
 /* ─── Página ──────────────────────────────────────────────────────────────── */

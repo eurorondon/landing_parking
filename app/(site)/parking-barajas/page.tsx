@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import LandingPageSEO from "@/components/LandingPageSEO";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Parking Barajas | Reserva Parking Seguro Cerca del Aeropuerto",
   description:
     "Reserva tu parking en Barajas con entrega y recogida en terminal, vigilancia 24 horas y acceso rápido al Aeropuerto Madrid-Barajas. Reserva online.",
-  alternates: { canonical: "https://parkingaeromadrid.es/parking-barajas/" },
-  openGraph: {
-    title: "Parking Barajas | Reserva Parking Seguro Cerca del Aeropuerto",
-    description:
-      "Entrega tu coche en la terminal y viaja sin esperas. Vigilancia 24h y reserva online sin pago anticipado.",
-    locale: "es_ES",
-    type: "website",
-  },
-};
+  path: "/parking-barajas/",
+  ogTitle: "Parking Barajas | Reserva Parking Seguro Cerca del Aeropuerto",
+  ogDescription:
+    "Entrega tu coche en la terminal y viaja sin esperas. Vigilancia 24h y reserva online sin pago anticipado.",
+});
 
 export default function ParkingBarajasPage() {
   return (

@@ -3,13 +3,14 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import StickyButtons from "@/components/StickyButtons";
 import { BLOG_POSTS } from "@/lib/blog-data";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Blog de Parking en el Aeropuerto Madrid-Barajas | Guías y Consejos",
   description:
     "Guías prácticas, consejos y respuestas sobre parking en el Aeropuerto Madrid-Barajas. Aprende a reservar mejor, ahorrar y viajar sin imprevistos.",
-  alternates: { canonical: "https://parkingaeromadrid.es/blog/" },
-};
+  path: "/blog/",
+});
 
 export default function BlogIndexPage() {
   return (

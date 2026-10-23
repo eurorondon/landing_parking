@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { NEGOCIO } from "@/lib/config";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: `Política de cookies | ${NEGOCIO.nombre}`,
-};
+  description:
+    "Qué cookies usa parkingaeromadrid.es, para qué sirven y cómo aceptarlas, rechazarlas o configurarlas desde tu navegador y desde nuestro banner.",
+  path: "/cookies/",
+});
 
 const BROWSERS = [
   { name: "Chrome",  url: "https://support.google.com/chrome/answer/95647?hl=es" },
@@ -153,7 +157,7 @@ export default function PoliticaCookies() {
             <p>
               Google y Microsoft pueden tratar datos fuera del Espacio Económico Europeo, con las
               garantías del Marco de Privacidad de Datos UE-EE. UU. Tienes más información en nuestra{" "}
-              <Link href="/privacidad" style={{ color: "var(--orange)" }}>
+              <Link href="/privacidad/" style={{ color: "var(--orange)" }}>
                 Política de privacidad
               </Link>.
             </p>
@@ -168,7 +172,7 @@ export default function PoliticaCookies() {
             {NEGOCIO.emailContacto}
           </a>
           {" · "}
-          <Link href="/privacidad" style={{ color: "var(--orange)" }}>
+          <Link href="/privacidad/" style={{ color: "var(--orange)" }}>
             Política de privacidad
           </Link>
         </p>

@@ -3,10 +3,10 @@
 import { useEffect, useRef } from "react";
 
 const stats = [
-  { numero: "+20.000", etiqueta: "Clientes satisfechos" },
-  { numero: "4.9★", etiqueta: "Valoración media" },
+  { numero: "T1 · T2 · T4", etiqueta: "Entrega en terminal" },
   { numero: "24/7", etiqueta: "Atención al cliente" },
   { numero: "<60 seg", etiqueta: "Para completar la reserva" },
+  { numero: "0 €", etiqueta: "De pago anticipado" },
 ];
 
 export default function TrustBar() {

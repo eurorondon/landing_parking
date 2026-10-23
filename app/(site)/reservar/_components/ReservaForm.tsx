@@ -367,7 +367,7 @@ export default function ReservaForm() {
               </button>
 
               <p className="reservar-legal">
-                Al confirmar aceptas nuestros <a href="/aviso-legal">términos y condiciones</a>.
+                Al confirmar aceptas nuestros <a href="/aviso-legal/">términos y condiciones</a>.
               </p>
             </form>
           )}

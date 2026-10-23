@@ -146,8 +146,7 @@ export default function LandingPageSEO({
               {/* Izquierda: H1 + trust + CTA móvil */}
               <div className="seo-hero-left">
                 <div className="hero-badge">
-                  <span className="hero-badge-stars">★★★★★</span>
-                  <span>Más de 20.000 reservas realizadas</span>
+                  <span>Reserva online · Sin pago anticipado</span>
                 </div>
 
                 <h1>{h1}</h1>
@@ -201,7 +200,8 @@ export default function LandingPageSEO({
         </section>
 
         {/* ── SECCIONES H2 ─────────────────────────────────────────────── */}
-        {secciones.map((sec) => (
+        {/* La sección "faq" es solo un marcador de título: la FAQ real se pinta más abajo */}
+        {secciones.filter((sec) => sec.id !== "faq").map((sec) => (
           <section key={sec.id} id={sec.id} className="seo-section">
             <div className="container">
               <h2 className="seo-h2">{sec.title}</h2>

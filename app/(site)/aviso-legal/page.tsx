@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { NEGOCIO } from "@/lib/config";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = { title: `Aviso legal | ${NEGOCIO.nombre}` };
+export const metadata = pageMetadata({
+  title: `Aviso legal | ${NEGOCIO.nombre}`,
+  description:
+    "Aviso legal de parkingaeromadrid.es: titular del sitio web, datos de contacto, condiciones de uso y propiedad intelectual.",
+  path: "/aviso-legal/",
+});
 
 const TITULAR: [string, string][] = [
   ["Razón social", "GLOBAL SOLUCION MARICHAL, S.L. (Sociedad Unipersonal)"],

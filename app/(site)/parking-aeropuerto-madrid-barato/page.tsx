@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import LandingPageSEO from "@/components/LandingPageSEO";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Parking Aeropuerto Madrid Barato | Reserva y Ahorra en Barajas",
   description:
     "Reserva parking barato cerca del Aeropuerto Madrid-Barajas con entrega y recogida en terminal, vigilancia 24 horas y tarifas competitivas.",
-  alternates: { canonical: "https://parkingaeromadrid.es/parking-aeropuerto-madrid-barato/" },
-  openGraph: {
-    title: "Parking Aeropuerto Madrid Barato | Reserva y Ahorra en Barajas",
-    description:
-      "Parking económico en Barajas con entrega en terminal. Tarifas competitivas y sin pago anticipado.",
-    locale: "es_ES",
-    type: "website",
-  },
-};
+  path: "/parking-aeropuerto-madrid-barato/",
+  ogTitle: "Parking Aeropuerto Madrid Barato | Reserva y Ahorra en Barajas",
+  ogDescription:
+    "Parking económico en Barajas con entrega en terminal. Tarifas competitivas y sin pago anticipado.",
+});
 
 export default function ParkingBaratoPage() {
   return (
@@ -85,8 +82,8 @@ export default function ParkingBaratoPage() {
               {[
                 {
                   icon: "💰",
-                  title: "Mejor precio garantizado",
-                  text: "Las reservas anticipadas siempre obtienen las mejores tarifas disponibles.",
+                  title: "Planifica tu presupuesto",
+                  text: "Calculas el precio estimado antes de viajar y sabes lo que vas a pagar.",
                 },
                 {
                   icon: "✅",
@@ -128,7 +125,6 @@ export default function ParkingBaratoPage() {
                 <li>Entrega directa en T1, T2 o T4</li>
                 <li>Recogida en la terminal de llegada</li>
                 <li>Sin desplazamientos adicionales ni esperas</li>
-                <li>Ahorra hasta 45 minutos por trayecto</li>
               </ul>
             </>
           ),
@@ -164,9 +160,8 @@ export default function ParkingBaratoPage() {
                 adapta a tu ritmo de viaje.
               </p>
               <p>
-                Más de 20.000 clientes ya confían en Parkingaeromadrid.es para
-                aparcar en Barajas. Reserva online en menos de 1 minuto y empieza a
-                ahorrar desde tu próxima reserva.
+                Con Parkingaeromadrid.es puedes calcular tu precio estimado y reservar
+                online en menos de 1 minuto para tu próximo viaje desde Barajas.
               </p>
             </>
           ),
@@ -186,7 +181,7 @@ export default function ParkingBaratoPage() {
         {
           pregunta: "¿Cómo consigo el mejor precio para aparcar en Barajas?",
           respuesta:
-            "Reservando con antelación obtienes siempre las mejores tarifas. Usa nuestro calculador online para ver el precio exacto al instante sin compromiso.",
+            "Reservando con antelación obtienes siempre las mejores tarifas. Usa nuestro calculador online para ver el precio estimado al instante sin compromiso.",
         },
         {
           pregunta: "¿El parking barato incluye entrega en terminal?",
@@ -196,12 +191,12 @@ export default function ParkingBaratoPage() {
         {
           pregunta: "¿Cuánto cuesta aparcar en Barajas con vuestro servicio?",
           respuesta:
-            "El precio depende del número de días de estancia. Usa el calculador online para obtener una tarifa exacta y personalizada al instante.",
+            "El precio depende del número de días de estancia. Usa el calculador online para obtener una tarifa estimada y personalizada al instante.",
         },
         {
           pregunta: "¿Es más barato que el parking oficial del aeropuerto?",
           respuesta:
-            "Sí. Los parkings privados cercanos al aeropuerto como el nuestro ofrecen tarifas significativamente más bajas que los aparcamientos oficiales de AENA, con servicios equivalentes o superiores.",
+            "Sí. Los parkings privados cercanos al aeropuerto como el nuestro suelen ofrecer tarifas más bajas que los aparcamientos oficiales de AENA. Compara el precio total de tu estancia con nuestro calculador online.",
         },
         {
           pregunta: "¿Puedo pagar al entregar el coche en lugar de por adelantado?",

@@ -187,7 +187,7 @@ export const BLOG_POSTS: BlogPost[] = [
         content:
           "Existen estrategias sencillas para pagar menos por aparcar en Madrid-Barajas:",
         items: [
-          "Reserva online con antelación: la reserva anticipada puede suponer hasta un 30 % de ahorro.",
+          "Reserva online con antelación: la reserva anticipada suele salir más barata que pagar sin reservar.",
           "Elige el tipo de parking adecuado para tu duración de viaje: larga estancia para más de 5 días.",
           "Evita los parkings oficiales del aeropuerto: los privados cercanos son más competitivos.",
           "Compara el precio total, no solo el diario: algunos servicios cobran tasas adicionales.",
@@ -214,7 +214,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         question: "¿Cuánto cuesta aparcar varios días en Barajas?",
         answer:
-          "El precio depende del tipo de parking y la duración. Los parkings de larga estancia privados son los más económicos para estancias superiores a 4-5 días. Consulta el calculador de precios en nuestra web para obtener una tarifa exacta según tus fechas.",
+          "El precio depende del tipo de parking y la duración. Los parkings de larga estancia privados son los más económicos para estancias superiores a 4-5 días. Consulta el calculador de precios en nuestra web para obtener una tarifa estimada según tus fechas.",
       },
       {
         question: "¿Es más barato reservar online?",
@@ -324,7 +324,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         question: "¿Merece la pena reservar con antelación?",
         answer:
-          "Absolutamente. Reservar con antelación puede suponer un ahorro de entre el 15 % y el 30 % respecto al precio sin reserva, además de garantizar disponibilidad en temporada alta.",
+          "Absolutamente. Reservar con antelación suele salir más barato que contratar sin reserva, además de asegurar disponibilidad en temporada alta.",
       },
       {
         question: "¿Cómo evitar pagar de más?",
@@ -540,7 +540,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         question: "¿Cuánto cuesta aparcar varios días?",
         answer:
-          "El precio varía según el tipo de parking y la duración. Los parkings de larga estancia tienen tarifas diarias reducidas. Consulta nuestro calculador de precios para una tarifa exacta.",
+          "El precio varía según el tipo de parking y la duración. Los parkings de larga estancia tienen tarifas diarias reducidas. Consulta nuestro calculador de precios para una tarifa estimada.",
       },
     ],
     cta: "Reserva tu parking con antelación y viaja con la tranquilidad de dejar tu coche en buenas manos.",

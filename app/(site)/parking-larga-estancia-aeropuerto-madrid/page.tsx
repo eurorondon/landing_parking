@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import LandingPageSEO from "@/components/LandingPageSEO";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Parking Larga Estancia Aeropuerto Madrid | Reserva al Mejor Precio",
   description:
     "Reserva parking de larga estancia cerca del Aeropuerto Madrid-Barajas con vigilancia 24 horas, entrega y recogida en terminal y tarifas competitivas para viajes de varios días.",
-  alternates: { canonical: "https://parkingaeromadrid.es/parking-larga-estancia-aeropuerto-madrid/" },
-  openGraph: {
-    title: "Parking Larga Estancia Aeropuerto Madrid | Reserva al Mejor Precio",
-    description:
-      "Deja tu coche varios días con total seguridad. Parking larga estancia en Barajas con entrega en terminal y vigilancia 24h.",
-    locale: "es_ES",
-    type: "website",
-  },
-};
+  path: "/parking-larga-estancia-aeropuerto-madrid/",
+  ogTitle: "Parking Larga Estancia Aeropuerto Madrid | Reserva al Mejor Precio",
+  ogDescription:
+    "Deja tu coche varios días con total seguridad. Parking larga estancia en Barajas con entrega en terminal y vigilancia 24h.",
+});
 
 export default function ParkingLargaEstanciaPage() {
   return (
@@ -231,7 +228,7 @@ export default function ParkingLargaEstanciaPage() {
         {
           pregunta: "¿Cómo se calcula el precio del parking larga estancia?",
           respuesta:
-            "El precio se calcula en función del número de días de estancia. Usa nuestro calculador online para obtener el precio exacto al instante sin compromiso.",
+            "El precio se calcula en función del número de días de estancia. Usa nuestro calculador online para obtener el precio estimado al instante sin compromiso.",
         },
         {
           pregunta: "¿Qué pasa si mi vuelo de regreso se retrasa?",
