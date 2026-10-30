@@ -63,7 +63,7 @@
 .sb-logout:hover{background:rgba(255,255,255,.1);color:#fff;}
 
 /* ── MAIN AREA ── */
-#main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+#main{margin-left:var(--sidebar-w);flex:1;min-width:0;display:flex;flex-direction:column;min-height:100vh;}
 
 /* ── TOPBAR ── */
 #topbar{height:var(--topbar-h);background:var(--white);border-bottom:1px solid var(--gray-200);
@@ -75,7 +75,7 @@
   cursor:pointer;color:var(--gray-700);padding:4px;}
 
 /* ── CONTENT ── */
-#content{padding:24px;flex:1;max-width:1400px;width:100%;}
+#content{padding:24px;flex:1;max-width:1400px;width:100%;min-width:0;}
 
 /* ── PAGE HEADER ── */
 .page-header{display:flex;align-items:center;justify-content:space-between;
@@ -606,7 +606,7 @@ select.filter-select:focus{border-color:var(--teal-400);}
 
 /* ── Análisis de caída de reservas ── */
 .an-intro{font-size:13.5px;color:var(--gray-600);line-height:1.55;margin:0 0 14px;}
-.an-chart-scroll{overflow-x:auto;margin:0 -4px;padding:0 4px;}
+.an-chart-scroll{overflow-x:auto;max-width:100%;margin:0 -4px;padding:0 4px;-webkit-overflow-scrolling:touch;}
 .an-chart{width:100%;min-width:760px;height:auto;display:block;font-family:var(--font-inter),system-ui,sans-serif;}
 .an-zona{fill:rgba(239,68,68,.07);}
 .an-grid{stroke:var(--gray-200);stroke-width:1;}
@@ -692,3 +692,10 @@ select.filter-select:focus{border-color:var(--teal-400);}
 @media (prefers-reduced-motion: reduce) {
   .datepicker-skeleton-caption, .datepicker-skeleton-grid span { animation: none; }
 }
+
+/* ── Móvil: nada del panel debe ensanchar la página ──
+   Las rejillas y tarjetas usan min-width:auto, así que un contenido ancho
+   (gráficos, tablas, textos largos) las agrandaba y aparecía scroll horizontal. */
+#content .card,#content .stat-card,#content .card-body{min-width:0;max-width:100%;}
+.an-eventos,.an-pasos,.an-lista,.an-lista-concl{grid-template-columns:minmax(0,1fr);}
+.an-eventos li>div,.an-ev-titulo,.an-ev-detalle,.an-intro,.an-paso .card-body p,.an-lista li,.an-lista-concl li{min-width:0;overflow-wrap:anywhere;}
