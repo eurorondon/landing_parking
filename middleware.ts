@@ -18,9 +18,10 @@ export function middleware(req: NextRequest) {
   // Con trailingSlash la ruta puede llegar con o sin "/" final
   const pathname = rawPath.length > 1 && rawPath.endsWith("/") ? rawPath.slice(0, -1) : rawPath;
 
-  // www → dominio sin www (Google llegó a elegir www como canónica)
-  const host = req.headers.get("host") ?? "";
-  if (host.toLowerCase().startsWith("www.")) {
+  // Cualquier subdominio (www., ipv4., …) → dominio canónico con 301.
+  // Google llegó a elegir www como canónica e indexó copias en ipv4.
+  const host = (req.headers.get("host") ?? "").toLowerCase().split(":")[0];
+  if (host.endsWith("." + new URL(SITE_URL).hostname)) {
     // Se añade la barra final aquí mismo para no encadenar dos redirecciones
     const ruta = rawPath.endsWith("/") ? rawPath : rawPath + "/";
     return NextResponse.redirect(`${SITE_URL}${ruta}${req.nextUrl.search}`, 301);
