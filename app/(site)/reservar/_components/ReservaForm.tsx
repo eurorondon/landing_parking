@@ -133,7 +133,15 @@ export default function ReservaForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        // Entrada/salida dentro de un periodo sin servicio: el servidor explica el motivo
+        const fallo = await res.json().catch(() => null);
+        if (fallo?.code === "parada" && typeof fallo.error === "string") {
+          setError(fallo.error);
+          return;
+        }
+        throw new Error();
+      }
 
       const data = await res.json();
       const id   = data.reservaId ?? null;

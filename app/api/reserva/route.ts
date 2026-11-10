@@ -6,6 +6,8 @@ import type { ReservaCompleta } from "@/lib/types";
 import { getConfig, createFullReservation } from "@/lib/store";
 import { validarCupon, calcularDescuento, registrarUsoCupon, type TipoCupon } from "@/lib/cupones";
 import { enviarReservaAParkingPlus } from "@/lib/parkingplus";
+import { paradaQueContiene, rangoEnFrase } from "@/lib/paradas";
+import { obtenerParadasActivas } from "@/lib/paradas-db";
 import {
   crearTransporte,
   smtpConfigurado,
@@ -173,6 +175,30 @@ export async function POST(request: Request) {
       { ok: false, error: "La salida debe ser posterior a la entrada" },
       { status: 400 },
     );
+  }
+
+  // ── Periodos de parada: no se reciben ni entregan vehículos dentro de ellos ───
+  // Solo se bloquean la hora de ENTRADA y la de SALIDA; una estancia que atraviesa
+  // la parada (entra antes, sale después) es válida. Si la consulta a la BD falla
+  // NO se rechaza la reserva (mejor aceptarla que perderla): se registra el error.
+  try {
+    const paradas = await obtenerParadasActivas();
+    const enEntrada = paradaQueContiene(reserva.entrada, paradas);
+    const enSalida  = paradaQueContiene(reserva.salida, paradas);
+    if (enEntrada || enSalida) {
+      const p   = enEntrada ?? enSalida!;
+      const que = enEntrada && enSalida ? "de entrada y de salida" : enEntrada ? "de entrada" : "de salida";
+      return NextResponse.json(
+        {
+          ok:    false,
+          code:  "parada",
+          error: `No recibimos ni entregamos vehículos ${rangoEnFrase(p)}${p.descripcion ? ` (${p.descripcion})` : ""}. Elige otra hora ${que}.`,
+        },
+        { status: 400 },
+      );
+    }
+  } catch (err) {
+    console.error("[reserva] No se pudieron comprobar las paradas:", err);
   }
 
   // ── Cupón promocional: revalidar en servidor y recalcular el total ──────────

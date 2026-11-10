@@ -33,6 +33,8 @@ interface Props {
   onChange: (valor: string) => void;
   /** Fecha mínima seleccionable, formato "YYYY-MM-DD" */
   min?: string;
+  /** Devuelve true para los días ("YYYY-MM-DD") que no se pueden elegir (p. ej. paradas) */
+  isDateDisabled?: (fecha: string) => boolean;
   disabled?: boolean;
   ariaLabel?: string;
   placeholder?: string;
@@ -77,6 +79,7 @@ export default function DatePicker({
   value,
   onChange,
   min,
+  isDateDisabled,
   disabled,
   ariaLabel,
   placeholder = "Selecciona fecha",
@@ -148,6 +151,7 @@ export default function DatePicker({
               <DatePickerCalendar
                 selected={selected}
                 minDate={minDate}
+                isDateDisabled={isDateDisabled}
                 onSelect={(d) => {
                   onChange(toStr(d));
                   setOpen(false);

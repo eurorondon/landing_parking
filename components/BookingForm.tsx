@@ -14,6 +14,14 @@ import {
   formatFranjaNocturna,
 } from "@/lib/pricing";
 import type { DatosReserva } from "@/lib/types";
+import {
+  diaCerrado,
+  horasDisponibles,
+  horaLibreMasCercana,
+  paradaQueContiene,
+  rangoEnFrase,
+  type Parada,
+} from "@/lib/paradas";
 
 /**
  * Calculadora de precio — tema claro.
@@ -39,6 +47,8 @@ export default function BookingForm() {
   // Mensaje de validación dentro del formulario (en lugar de alert())
   const [aviso, setAviso] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
+  // Periodos sin servicio (p. ej. Navidad): no se admiten entradas ni salidas dentro
+  const [paradas, setParadas] = useState<Parada[]>([]);
   const router = useRouter();
 
   // Estado del servicio de lavado seleccionado desde ServiciosLimpieza
@@ -119,6 +129,46 @@ export default function BookingForm() {
     };
   }, [isActive]);
 
+  // Carga los periodos de parada vigentes (petición pequeña, una vez por montaje).
+  // Si falla se ignora: la validación definitiva la hace el servidor al reservar.
+  useEffect(() => {
+    if (!isActive) return;
+    let cancelado = false;
+    fetch("/api/paradas")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d: { paradas?: Parada[] }) => {
+        if (!cancelado) setParadas(Array.isArray(d.paradas) ? d.paradas : []);
+      })
+      .catch(() => {});
+    return () => { cancelado = true; };
+  }, [isActive]);
+
+  // Si la hora elegida cae dentro de una parada (el cliente cambió de fecha o las
+  // paradas llegaron después), la mueve a la hora libre más cercana y lo avisa.
+  useEffect(() => {
+    if (!isActive || paradas.length === 0) return;
+
+    const entradaBloq = reserva.entryDate && reserva.entryTime
+      ? paradaQueContiene(`${reserva.entryDate}T${reserva.entryTime}`, paradas) : null;
+    const salidaBloq = reserva.exitDate && reserva.exitTime
+      ? paradaQueContiene(`${reserva.exitDate}T${reserva.exitTime}`, paradas) : null;
+    if (!entradaBloq && !salidaBloq) return;
+
+    const cambios: Partial<DatosReserva> = {};
+    if (entradaBloq) {
+      const base = reserva.entryDate === hoy ? OPCIONES_HORA.filter((h) => h >= getNearestSlot()) : OPCIONES_HORA;
+      cambios.entryTime = horaLibreMasCercana(reserva.entryDate, reserva.entryTime, paradas, base) ?? "";
+    }
+    if (salidaBloq) {
+      cambios.exitTime = horaLibreMasCercana(reserva.exitDate, reserva.exitTime, paradas) ?? "";
+    }
+    setReserva((r) => ({ ...r, ...cambios }));
+
+    const p = entradaBloq ?? salidaBloq!;
+    const que = entradaBloq && salidaBloq ? "de entrada y de salida" : entradaBloq ? "de entrada" : "de salida";
+    setAviso(`No recibimos ni entregamos vehículos ${rangoEnFrase(p)}. Hemos ajustado la hora ${que}.`);
+  }, [reserva.entryDate, reserva.entryTime, reserva.exitDate, reserva.exitTime, paradas, hoy, isActive]);
+
   // Difunde el tipo de vehículo para que otras secciones (ServiciosLimpieza)
   // puedan adaptar su texto (p. ej. ocultar "interior" en autocaravana).
   useEffect(() => {
@@ -191,9 +241,17 @@ export default function BookingForm() {
   }
 
   // Opciones de hora de entrada: si la fecha es hoy, solo muestra slots futuros
-  const opcionesHoraEntrada = (reserva.entryDate === hoy && hoy)
-    ? OPCIONES_HORA.filter(h => h >= getNearestSlot())
-    : OPCIONES_HORA;
+  // y, en cualquier caso, se quitan las horas que caen dentro de una parada
+  const opcionesHoraEntrada = horasDisponibles(
+    reserva.entryDate,
+    paradas,
+    (reserva.entryDate === hoy && hoy)
+      ? OPCIONES_HORA.filter(h => h >= getNearestSlot())
+      : OPCIONES_HORA,
+  );
+  const opcionesHoraSalida = horasDisponibles(reserva.exitDate, paradas);
+  // Días enteros dentro de una parada: no se pueden elegir en el calendario
+  const diaNoDisponible = (fecha: string) => diaCerrado(fecha, paradas);
 
   function verPlanes() {
     if (!reserva.entryDate || !reserva.exitDate) {
@@ -247,6 +305,7 @@ export default function BookingForm() {
               <DatePicker
                 value={reserva.entryDate}
                 min={hoy}
+                isDateDisabled={diaNoDisponible}
                 onChange={(v) => actualizar("entryDate", v)}
                 ariaLabel="Fecha de entrada"
                 title="Fecha de entrada"
@@ -276,6 +335,7 @@ export default function BookingForm() {
               <DatePicker
                 value={reserva.exitDate}
                 min={reserva.entryDate || hoy}
+                isDateDisabled={diaNoDisponible}
                 onChange={(v) => actualizar("exitDate", v)}
                 ariaLabel="Fecha de salida"
                 title="Fecha de salida"
@@ -291,7 +351,7 @@ export default function BookingForm() {
               <Select
                 ariaLabel="Hora de salida"
                 value={reserva.exitTime}
-                opciones={OPCIONES_HORA}
+                opciones={opcionesHoraSalida}
                 onChange={(v) => actualizar("exitTime", v)}
               />
             </div>
@@ -381,6 +441,14 @@ export default function BookingForm() {
             🚐 Se aplica recargo de autocaravana de {formatoEuros(calculo.costoAutocaravana)} ({calculo.dias} {calculo.dias === 1 ? "día" : "días"})
           </div>
         )}
+
+        {/* ── Aviso de paradas (periodos sin entradas ni salidas) ── */}
+        {paradas.slice(0, 2).map((p) => (
+          <div key={`${p.inicio}-${p.fin}`} className="bform-nocturno-aviso">
+            📅 Sin entradas ni salidas de vehículos {rangoEnFrase(p)}{p.descripcion ? ` (${p.descripcion})` : ""}.
+            {" "}Puedes reservar entrando antes y saliendo después.
+          </div>
+        ))}
 
         {/* ── Caja de precio ── */}
         <div className="bform-price-box">

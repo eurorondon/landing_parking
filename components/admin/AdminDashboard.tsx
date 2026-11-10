@@ -18,11 +18,12 @@ import SettingsSection from "./SettingsSection";
 import PlanningSection from "./PlanningSection";
 import CuponesSection from "./CuponesSection";
 import TemporadasSection from "./TemporadasSection";
+import ParadasSection from "./ParadasSection";
 import AnalisisSection from "./AnalisisSection";
 import ReservationFormModal from "./ReservationFormModal";
 import DetailModal from "./DetailModal";
 
-type Section = "home" | "reservations" | "calendar" | "clients" | "reports" | "planning" | "cupones" | "temporadas" | "analisis" | "settings";
+type Section = "home" | "reservations" | "calendar" | "clients" | "reports" | "planning" | "cupones" | "temporadas" | "paradas" | "analisis" | "settings";
 
 const TITLES: Record<Section, string> = {
   home:         "Inicio",
@@ -33,7 +34,8 @@ const TITLES: Record<Section, string> = {
   planning:     "Planning",
   cupones:      "Cupones",
   temporadas:   "Temporadas",
-  analisis:     "Análisis de caída",
+  paradas:      "Paradas",
+  analisis:    "Análisis de caída",
   settings:     "Configuración",
 };
 
@@ -237,6 +239,7 @@ export default function AdminDashboard() {
     { sec: "planning", icon: "🗓️", label: "Planning"  },
     { sec: "cupones",    icon: "🎟️", label: "Cupones"    },
     { sec: "temporadas", icon: "🗓️", label: "Temporadas" },
+    { sec: "paradas",    icon: "🛑", label: "Paradas"    },
     { sec: "analisis",   icon: "📉", label: "Análisis de caída" },
   ];
 
@@ -323,6 +326,7 @@ export default function AdminDashboard() {
               {section === "planning" && <PlanningSection />}
               {section === "cupones"    && <CuponesSection toast={toast} />}
               {section === "temporadas" && <TemporadasSection toast={toast} />}
+              {section === "paradas"    && <ParadasSection toast={toast} />}
               {section === "analisis"   && <AnalisisSection reservas={reservas} />}
               {section === "settings" && (
                 <SettingsSection
