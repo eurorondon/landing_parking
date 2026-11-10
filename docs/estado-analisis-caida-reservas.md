@@ -5,6 +5,13 @@ próxima sesión sin repetir nada. El método detallado (paso a paso, consultas 
 URLs) está en `docs/manual-analisis-caida-reservas.md`, y el informe visual en el
 panel `/admin` → **Análisis de caída**.
 
+> **Actualización 10-nov-2026:** apareció una causa probable de la caída que este
+> documento no contemplaba: bloqueos de IP de Cloudflare por las operadoras
+> durante los partidos (afectan a iPhone y Android). Ver
+> [`bloqueos-laliga-cloudflare-2026-11-10.md`](bloqueos-laliga-cloudflare-2026-11-10.md).
+> La conclusión «sin culpable único» de abajo debe revisarse; falta cuantificar
+> cuánto de la caída se explica por esos bloqueos.
+
 ## 1. Resumen en pocas líneas
 
 - Las reservas web pasaron de **~7 al día** (3 ago – 13 sep) a **~3,5 al día**

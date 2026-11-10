@@ -4,6 +4,13 @@ Guía para investigar reportes de caída del sitio (ej. `ERR_CONNECTION_ABORTED`
 "no carga", "se cae el panel") cuando el sitio corre en el VPS Plesk
 (`root@91.213.46.180`) detrás de Cloudflare.
 
+> **Actualización 10-nov-2026:** desde esta fecha la web **ya no está detrás del
+> proxy de Cloudflare** (registros `parkingaeromadrid.es` y `www` en «DNS only»),
+> para evitar los bloqueos de IP de Cloudflare por las operadoras durante los
+> partidos. Las menciones a Cloudflare de abajo describen la situación anterior.
+> Detalle, evidencia y cómo revertir en
+> [`bloqueos-laliga-cloudflare-2026-11-10.md`](bloqueos-laliga-cloudflare-2026-11-10.md).
+
 ## Arquitectura relevante
 
 - El sitio **no está en Vercel**. Corre en un VPS Plesk (`server.js` levanta
